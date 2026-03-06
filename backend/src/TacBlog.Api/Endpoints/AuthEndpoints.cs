@@ -19,13 +19,15 @@ public static class AuthEndpoints
             cancellationToken);
 
         if (result.IsLockedOut)
-            return Results.Json(new { error = result.ErrorMessage }, statusCode: 429);
+            return Results.Json(new ErrorResponse(result.ErrorMessage!), statusCode: 429);
 
         if (!result.IsSuccess)
-            return Results.Json(new { error = result.ErrorMessage }, statusCode: 401);
+            return Results.Json(new ErrorResponse(result.ErrorMessage!), statusCode: 401);
 
-        return Results.Ok(new { token = result.Token, expiresAt = result.ExpiresAt });
+        return Results.Ok(new LoginResponse(result.Token!, result.ExpiresAt!.Value));
     }
 }
 
 public sealed record LoginRequest(string Email, string Password);
+public sealed record LoginResponse(string Token, DateTime ExpiresAt);
+public sealed record ErrorResponse(string Error);

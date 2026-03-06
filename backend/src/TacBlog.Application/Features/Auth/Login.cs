@@ -23,40 +23,63 @@ public sealed record LoginResult(
 
 public sealed record AdminCredentials(string Email, string HashedPassword);
 
+public sealed class FailureTracker
+{
+    private static readonly TimeSpan FailureWindow = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
+    private const int MaxFailedAttempts = 5;
+
+    private readonly List<DateTime> _timestamps = [];
+
+    public void Record(DateTime now)
+    {
+        _timestamps.Add(now);
+        PruneExpired(now);
+    }
+
+    public void Reset() => _timestamps.Clear();
+
+    public bool IsLockedOut(DateTime now)
+    {
+        PruneExpired(now);
+
+        if (_timestamps.Count < MaxFailedAttempts)
+            return false;
+
+        var mostRecentFailure = _timestamps[^1];
+        return now - mostRecentFailure < LockoutDuration;
+    }
+
+    private void PruneExpired(DateTime now)
+    {
+        _timestamps.RemoveAll(t => now - t > FailureWindow);
+    }
+}
+
 public sealed class LoginHandler(
     AdminCredentials adminCredentials,
     IPasswordHasher passwordHasher,
     ITokenGenerator tokenGenerator,
     IClock clock)
 {
-    private static readonly TimeSpan FailureWindow = TimeSpan.FromMinutes(10);
-    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
-    private const int MaxFailedAttempts = 5;
+    private readonly FailureTracker _failureTracker = new();
 
-    private readonly List<DateTime> _failureTimestamps = [];
-
-    public void ResetFailedAttempts() => _failureTimestamps.Clear();
+    public void ResetFailedAttempts() => _failureTracker.Reset();
 
     public Task<LoginResult> HandleAsync(LoginCommand command, CancellationToken cancellationToken = default)
     {
         var now = clock.UtcNow;
 
-        if (IsLockedOut(now))
+        if (_failureTracker.IsLockedOut(now))
             return Task.FromResult(LoginResult.Lockout());
 
-        if (!string.Equals(command.Email, adminCredentials.Email, StringComparison.OrdinalIgnoreCase))
+        if (!AreCredentialsValid(command))
         {
-            RecordFailure(now);
+            _failureTracker.Record(now);
             return Task.FromResult(LoginResult.Failure("Invalid email or password"));
         }
 
-        if (!passwordHasher.Verify(command.Password, adminCredentials.HashedPassword))
-        {
-            RecordFailure(now);
-            return Task.FromResult(LoginResult.Failure("Invalid email or password"));
-        }
-
-        _failureTimestamps.Clear();
+        _failureTracker.Reset();
 
         var token = tokenGenerator.Generate(command.Email);
         var expiresAt = now.AddHours(1);
@@ -64,25 +87,11 @@ public sealed class LoginHandler(
         return Task.FromResult(LoginResult.Success(token, expiresAt));
     }
 
-    private bool IsLockedOut(DateTime now)
+    private bool AreCredentialsValid(LoginCommand command)
     {
-        PruneExpiredFailures(now);
-
-        if (_failureTimestamps.Count < MaxFailedAttempts)
+        if (!string.Equals(command.Email, adminCredentials.Email, StringComparison.OrdinalIgnoreCase))
             return false;
 
-        var mostRecentFailure = _failureTimestamps[^1];
-        return now - mostRecentFailure < LockoutDuration;
-    }
-
-    private void RecordFailure(DateTime now)
-    {
-        _failureTimestamps.Add(now);
-        PruneExpiredFailures(now);
-    }
-
-    private void PruneExpiredFailures(DateTime now)
-    {
-        _failureTimestamps.RemoveAll(t => now - t > FailureWindow);
+        return passwordHasher.Verify(command.Password, adminCredentials.HashedPassword);
     }
 }

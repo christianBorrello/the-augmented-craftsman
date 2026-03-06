@@ -74,7 +74,7 @@ public sealed class TacBlogWebApplicationFactory : WebApplicationFactory<Program
 
     public async Task InitializeAsync()
     {
-        await _postgres.StartAsync();
+        await StartContainerAsync();
     }
 
     async Task IAsyncLifetime.DisposeAsync()
