@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Reqnroll;
 using TacBlog.Acceptance.Tests.Support;
+using TacBlog.Application.Features.Auth;
 
 namespace TacBlog.Acceptance.Tests.Hooks;
 
@@ -19,6 +20,9 @@ public sealed class TestHooks
     public async Task CleanDatabase()
     {
         await _factory.EnsureMigratedAsync();
+
+        var loginHandler = _factory.Services.GetRequiredService<LoginHandler>();
+        loginHandler.ResetFailedAttempts();
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<TacBlogDbContext>();

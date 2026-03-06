@@ -43,7 +43,7 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddSingleton<IPasswordHasher, AspNetPasswordHasher>();
 builder.Services.AddSingleton<ITokenGenerator, JwtTokenGenerator>();
-builder.Services.AddScoped<LoginHandler>();
+builder.Services.AddSingleton<LoginHandler>();
 
 var app = builder.Build();
 

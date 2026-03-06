@@ -35,6 +35,8 @@ public sealed class LoginHandler(
 
     private readonly List<DateTime> _failureTimestamps = [];
 
+    public void ResetFailedAttempts() => _failureTimestamps.Clear();
+
     public Task<LoginResult> HandleAsync(LoginCommand command, CancellationToken cancellationToken = default)
     {
         var now = clock.UtcNow;

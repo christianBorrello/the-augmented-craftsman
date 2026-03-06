@@ -18,6 +18,9 @@ public static class AuthEndpoints
             new LoginCommand(request.Email, request.Password),
             cancellationToken);
 
+        if (result.IsLockedOut)
+            return Results.Json(new { error = result.ErrorMessage }, statusCode: 429);
+
         if (!result.IsSuccess)
             return Results.Json(new { error = result.ErrorMessage }, statusCode: 401);
 

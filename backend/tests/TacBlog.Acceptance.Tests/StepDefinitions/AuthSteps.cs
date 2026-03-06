@@ -26,7 +26,10 @@ public sealed class AuthSteps
     [Given("Christian has failed login {int} times in the last {int} minutes")]
     public async Task GivenChristianHasFailedLoginNTimes(int attempts, int minutes)
     {
-        throw new PendingStepException();
+        for (var i = 0; i < attempts; i++)
+        {
+            await _authDriver.Login("christian.borrello@live.it", "wrong-password");
+        }
     }
 
     [Then("the response contains a valid authentication token")]
