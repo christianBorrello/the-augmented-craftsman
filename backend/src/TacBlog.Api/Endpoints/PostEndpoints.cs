@@ -8,9 +8,9 @@ public static class PostEndpoints
 {
     public static void MapPostEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/posts", CreatePostAsync);
-        app.MapGet("/api/posts", ListPostsAsync);
-        app.MapGet("/api/posts/{slug}", GetPostBySlugAsync);
+        app.MapPost("/api/posts", CreatePostAsync).RequireAuthorization();
+        app.MapGet("/api/posts", ListPostsAsync).AllowAnonymous();
+        app.MapGet("/api/posts/{slug}", GetPostBySlugAsync).AllowAnonymous();
     }
 
     private static async Task<IResult> ListPostsAsync(

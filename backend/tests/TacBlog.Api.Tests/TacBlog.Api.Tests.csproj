@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\TacBlog.Api\TacBlog.Api.csproj" />
+    <ProjectReference Include="..\..\src\TacBlog.Infrastructure\TacBlog.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
