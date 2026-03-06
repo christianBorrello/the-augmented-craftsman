@@ -6,4 +6,5 @@ public interface IBlogPostRepository
 {
     Task SaveAsync(BlogPost post, CancellationToken cancellationToken);
     Task<BlogPost?> FindBySlugAsync(Slug slug, CancellationToken cancellationToken);
+    Task<IReadOnlyList<BlogPost>> FindAllAsync(CancellationToken cancellationToken);
 }

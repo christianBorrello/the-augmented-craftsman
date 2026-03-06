@@ -14,4 +14,7 @@ public sealed class EfBlogPostRepository(TacBlogDbContext context) : IBlogPostRe
 
     public async Task<BlogPost?> FindBySlugAsync(Slug slug, CancellationToken cancellationToken) =>
         await context.Posts.SingleOrDefaultAsync(p => p.Slug == slug, cancellationToken);
+
+    public async Task<IReadOnlyList<BlogPost>> FindAllAsync(CancellationToken cancellationToken) =>
+        await context.Posts.OrderByDescending(p => p.CreatedAt).ToListAsync(cancellationToken);
 }

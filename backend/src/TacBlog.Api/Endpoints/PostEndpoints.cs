@@ -1,4 +1,5 @@
 using TacBlog.Application.Features.Posts;
+using TacBlog.Application.Ports.Driven;
 using TacBlog.Domain;
 
 namespace TacBlog.Api.Endpoints;
@@ -8,7 +9,16 @@ public static class PostEndpoints
     public static void MapPostEndpoints(this WebApplication app)
     {
         app.MapPost("/api/posts", CreatePostAsync);
+        app.MapGet("/api/posts", ListPostsAsync);
         app.MapGet("/api/posts/{slug}", GetPostBySlugAsync);
+    }
+
+    private static async Task<IResult> ListPostsAsync(
+        IBlogPostRepository repository,
+        CancellationToken cancellationToken)
+    {
+        var posts = await repository.FindAllAsync(cancellationToken);
+        return Results.Ok(posts.Select(ToResponse));
     }
 
     private static async Task<IResult> CreatePostAsync(
