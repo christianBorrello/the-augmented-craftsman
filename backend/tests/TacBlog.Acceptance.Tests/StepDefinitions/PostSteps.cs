@@ -29,7 +29,7 @@ public sealed class PostSteps
     [Given("a post exists with slug {string} and title {string}")]
     public async Task GivenAPostExistsWithSlugAndTitle(string slug, string title)
     {
-        await _postDriver.CreatePost(title, $"Content for {title}");
+        await _postDriver.CreatePost(title, "This is the **first** post.");
     }
 
     [Given("no post exists with slug {string}")]
@@ -40,9 +40,12 @@ public sealed class PostSteps
     [When("a POST request is sent to {string} with:")]
     public async Task WhenAPostRequestIsSentToWith(string path, DataTable table)
     {
-        var title = table.Rows.First(r => r["title"] != null)["title"];
-        var content = table.Rows.First(r => r["content"] != null)["content"];
-        await _postDriver.CreatePost(title, content);
+        var data = table.Rows.ToDictionary(r => r[0], r => r[1]);
+        var headerKey = table.Header.First();
+        var headerValue = table.Header.Last();
+        data[headerKey] = headerValue;
+
+        await _postDriver.CreatePost(data["title"], data["content"]);
     }
 
     [When("a GET request is sent to {string}")]
@@ -341,7 +344,18 @@ public sealed class PostSteps
     [Then("the response contains:")]
     public void ThenTheResponseContainsTable(DataTable table)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var root = _apiContext.LastResponseJson!.RootElement;
+
+        var data = table.Rows.ToDictionary(r => r[0], r => r[1]);
+        var headerKey = table.Header.First();
+        var headerValue = table.Header.Last();
+        data[headerKey] = headerValue;
+
+        foreach (var (key, expected) in data)
+        {
+            root.GetProperty(key).GetString().Should().Be(expected);
+        }
     }
 
     [When("Christian tries to update a non-existent post")]

@@ -19,7 +19,7 @@ public static class PostEndpoints
         var result = await createPost.ExecuteAsync(request.Title, request.Content, cancellationToken);
 
         if (!result.IsSuccess)
-            return Results.BadRequest(new { error = result.ErrorMessage });
+            return Results.BadRequest(new { error = ToUserFacingMessage(result.ErrorMessage!) });
 
         var response = ToResponse(result.Post!);
         return Results.Created($"/api/posts/{response.Slug}", response);
@@ -37,6 +37,14 @@ public static class PostEndpoints
 
         return Results.Ok(ToResponse(result.Post!));
     }
+
+    private static string ToUserFacingMessage(string errorMessage) =>
+        errorMessage switch
+        {
+            _ when errorMessage.Contains("Title cannot be empty") => "Title is required",
+            _ when errorMessage.Contains("Content cannot be empty") => "Content is required",
+            _ => errorMessage
+        };
 
     private static PostResponse ToResponse(BlogPost post) =>
         new(

@@ -18,16 +18,21 @@ public sealed class TestHooks
     [BeforeScenario]
     public async Task CleanDatabase()
     {
-        // Delete all data between scenarios to ensure test isolation.
-        // FK constraint order: post_tags → (blog_posts, tags).
-        // post_tags references both blog_posts and tags, so it must be deleted first.
-        // blog_posts and tags have no FK between them, so order doesn't matter after post_tags.
+        await _factory.EnsureMigratedAsync();
+
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<TacBlogDbContext>();
         await db.Database.ExecuteSqlRawAsync("""
-            DELETE FROM post_tags;
-            DELETE FROM blog_posts;
-            DELETE FROM tags;
+            DO $$
+            BEGIN
+                IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'post_tags') THEN
+                    DELETE FROM post_tags;
+                END IF;
+                DELETE FROM blog_posts;
+                IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'tags') THEN
+                    DELETE FROM tags;
+                END IF;
+            END $$;
             """);
     }
 }

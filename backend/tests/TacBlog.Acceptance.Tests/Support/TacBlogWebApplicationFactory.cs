@@ -16,6 +16,8 @@ public sealed class TacBlogWebApplicationFactory : WebApplicationFactory<Program
         .WithPassword("test")
         .Build();
 
+    private bool _migrated;
+
     public string ConnectionString => _postgres.GetConnectionString();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -33,6 +35,21 @@ public sealed class TacBlogWebApplicationFactory : WebApplicationFactory<Program
         });
 
         builder.UseEnvironment("Testing");
+    }
+
+    public async Task StartContainerAsync()
+    {
+        await _postgres.StartAsync();
+    }
+
+    public async Task EnsureMigratedAsync()
+    {
+        if (_migrated) return;
+
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<TacBlogDbContext>();
+        await db.Database.MigrateAsync();
+        _migrated = true;
     }
 
     public async Task InitializeAsync()
