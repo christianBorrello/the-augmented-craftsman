@@ -12,5 +12,7 @@ public readonly record struct PostContent
         _value = value;
     }
 
+    public string Value => _value;
+
     public override string ToString() => _value;
 }

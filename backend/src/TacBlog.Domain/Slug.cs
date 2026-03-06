@@ -25,6 +25,8 @@ public readonly partial record struct Slug
         return new Slug(slug);
     }
 
+    public string Value => _value;
+
     public override string ToString() => _value;
 
     [GeneratedRegex(@"\s+")]

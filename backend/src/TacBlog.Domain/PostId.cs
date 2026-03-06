@@ -12,6 +12,8 @@ public readonly record struct PostId
         _value = value;
     }
 
+    public Guid Value => _value;
+
     public static PostId NewUnique() => new(Guid.NewGuid());
 
     public override string ToString() => _value.ToString();

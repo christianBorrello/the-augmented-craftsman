@@ -204,6 +204,41 @@
       "s": "EXECUTED",
       "d": "PASS",
       "t": "2026-03-06T14:18:50Z"
+    },
+    {
+      "sid": "03-03",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-06T14:19:08Z"
+    },
+    {
+      "sid": "04-01",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-06T14:21:32Z"
+    },
+    {
+      "sid": "04-01",
+      "p": "RED_ACCEPTANCE",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: infrastructure configuration step, acceptance tests at API level",
+      "t": "2026-03-06T14:21:36Z"
+    },
+    {
+      "sid": "04-01",
+      "p": "RED_UNIT",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: EF configuration verified through integration/acceptance tests, not unit testable in isolation",
+      "t": "2026-03-06T14:21:37Z"
+    },
+    {
+      "sid": "04-01",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-06T14:23:18Z"
     }
   ]
 }

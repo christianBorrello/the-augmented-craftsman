@@ -18,5 +18,7 @@ public readonly record struct Title
         _value = trimmed;
     }
 
+    public string Value => _value;
+
     public override string ToString() => _value;
 }
