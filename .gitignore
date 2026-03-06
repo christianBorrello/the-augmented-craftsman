@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+frontend/dist/
+backend/**/bin/
+backend/**/obj/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.sln.docstates
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Astro
+.astro/
+
+# .NET
+*.nupkg
+project.lock.json
+
+# Skills
+.agents/
+skills-lock.json
+
+# Claude
+.claude/
+
+# Reference project (will be removed after migration)
+# blog/
