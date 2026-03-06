@@ -66,27 +66,23 @@ public sealed class LoginHandler(
 
     private bool IsLockedOut(DateTime now)
     {
-        var recentFailures = RecentFailures(now);
-        if (recentFailures.Count < MaxFailedAttempts)
+        PruneExpiredFailures(now);
+
+        if (_failureTimestamps.Count < MaxFailedAttempts)
             return false;
 
-        var fifthFailureTime = recentFailures[^1];
-        return now - fifthFailureTime < LockoutDuration;
+        var mostRecentFailure = _failureTimestamps[^1];
+        return now - mostRecentFailure < LockoutDuration;
     }
 
     private void RecordFailure(DateTime now)
     {
         _failureTimestamps.Add(now);
-        PruneOldFailures(now);
+        PruneExpiredFailures(now);
     }
 
-    private void PruneOldFailures(DateTime now)
+    private void PruneExpiredFailures(DateTime now)
     {
         _failureTimestamps.RemoveAll(t => now - t > FailureWindow);
-    }
-
-    private List<DateTime> RecentFailures(DateTime now)
-    {
-        return _failureTimestamps.Where(t => now - t <= FailureWindow).ToList();
     }
 }
