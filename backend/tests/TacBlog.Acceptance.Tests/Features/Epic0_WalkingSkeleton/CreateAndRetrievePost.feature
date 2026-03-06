@@ -9,6 +9,7 @@ Feature: Create and retrieve a blog post
 
   Background:
     Given the blog system is running
+    And Christian is authenticated
 
   Scenario: Create a blog post with title and content
     When a POST request is sent to "/api/posts" with:

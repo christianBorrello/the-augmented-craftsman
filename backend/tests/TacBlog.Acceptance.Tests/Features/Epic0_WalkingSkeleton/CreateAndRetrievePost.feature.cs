@@ -118,6 +118,9 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
 #line 11
     await testRunner.GivenAsync("the blog system is running", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
+#line 12
+    await testRunner.AndAsync("Christian is authenticated", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
         }
         
         async global::System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
@@ -153,7 +156,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
             string[] tagsOfScenario = ((string[])(null));
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Create a blog post with title and content", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 13
+#line 14
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -172,16 +175,16 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
                 table1.AddRow(new string[] {
                             "content",
                             "This is the **first** post."});
-#line 14
+#line 15
     await testRunner.WhenAsync("a POST request is sent to \"/api/posts\" with:", ((string)(null)), table1, "When ");
 #line hidden
-#line 17
+#line 18
     await testRunner.ThenAsync("the response status is 201", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 18
+#line 19
     await testRunner.AndAsync("the response contains a post with slug \"hello-world\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 19
+#line 20
     await testRunner.AndAsync("the post can be retrieved", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
@@ -196,7 +199,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
             string[] tagsOfScenario = ((string[])(null));
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Retrieve an existing post by slug", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 21
+#line 22
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -209,13 +212,13 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
 #line 10
   await this.FeatureBackgroundAsync();
 #line hidden
-#line 22
+#line 23
     await testRunner.GivenAsync("a post exists with slug \"hello-world\" and title \"Hello World\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 23
+#line 24
     await testRunner.WhenAsync("a GET request is sent to \"/api/posts/hello-world\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 24
+#line 25
     await testRunner.ThenAsync("the response status is 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
                 global::Reqnroll.Table table2 = new global::Reqnroll.Table(new string[] {
@@ -227,7 +230,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
                 table2.AddRow(new string[] {
                             "content",
                             "This is the **first** post."});
-#line 25
+#line 26
     await testRunner.AndAsync("the response contains:", ((string)(null)), table2, "And ");
 #line hidden
             }
@@ -242,7 +245,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
             string[] tagsOfScenario = ((string[])(null));
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Return 404 for non-existent slug", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 30
+#line 31
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -255,13 +258,13 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
 #line 10
   await this.FeatureBackgroundAsync();
 #line hidden
-#line 31
+#line 32
     await testRunner.GivenAsync("no post exists with slug \"nonexistent-post\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 32
+#line 33
     await testRunner.WhenAsync("a GET request is sent to \"/api/posts/nonexistent-post\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 33
+#line 34
     await testRunner.ThenAsync("the response status is 404", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -276,7 +279,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
             string[] tagsOfScenario = ((string[])(null));
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Reject a post with empty title", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 35
+#line 36
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -295,13 +298,13 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
                 table3.AddRow(new string[] {
                             "content",
                             "Some content here."});
-#line 36
+#line 37
     await testRunner.WhenAsync("a POST request is sent to \"/api/posts\" with:", ((string)(null)), table3, "When ");
 #line hidden
-#line 39
+#line 40
     await testRunner.ThenAsync("the response status is 400", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 40
+#line 41
     await testRunner.AndAsync("the response contains \"Title is required\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
@@ -316,7 +319,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
             string[] tagsOfScenario = ((string[])(null));
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Generate slug from title with special characters", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 42
+#line 43
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -335,10 +338,10 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
                 table4.AddRow(new string[] {
                             "content",
                             "Design, not verification."});
-#line 43
+#line 44
     await testRunner.WhenAsync("a POST request is sent to \"/api/posts\" with:", ((string)(null)), table4, "When ");
 #line hidden
-#line 46
+#line 47
     await testRunner.ThenAsync("the response contains a post with slug \"tdd-is-not-about-testing\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -353,7 +356,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
             string[] tagsOfScenario = ((string[])(null));
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Create and retrieve a post end-to-end", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 48
+#line 49
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -372,25 +375,25 @@ namespace TacBlog.Acceptance.Tests.Features.Epic0_WalkingSkeleton
                 table5.AddRow(new string[] {
                             "content",
                             "This is the **first** post."});
-#line 49
+#line 50
     await testRunner.WhenAsync("a POST request is sent to \"/api/posts\" with:", ((string)(null)), table5, "When ");
 #line hidden
-#line 52
+#line 53
     await testRunner.ThenAsync("the response status is 201", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 53
+#line 54
     await testRunner.AndAsync("the response contains a post with slug \"hello-world\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 54
+#line 55
     await testRunner.WhenAsync("a GET request is sent to \"/api/posts/hello-world\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 55
+#line 56
     await testRunner.ThenAsync("the response status is 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 56
+#line 57
     await testRunner.AndAsync("the response contains title \"Hello World\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 57
+#line 58
     await testRunner.AndAsync("the response contains content \"This is the **first** post.\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
