@@ -44,5 +44,10 @@ events:
   s: EXECUTED
   sid: 01-02
   t: '2026-03-06T13:10:40Z'
+- d: PASS
+  p: COMMIT
+  s: EXECUTED
+  sid: 01-02
+  t: '2026-03-06T13:11:08Z'
 project_id: walking-skeleton
 schema_version: '3.0'

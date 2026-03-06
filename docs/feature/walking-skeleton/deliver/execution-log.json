@@ -1,0 +1,37 @@
+{
+  "schema_version": "3.0",
+  "project_id": "walking-skeleton",
+  "step_id": "01-02",
+  "phases": [
+    {
+      "phase": "PREPARE",
+      "status": "EXECUTED",
+      "data": "PASS",
+      "timestamp": "2026-03-06T13:08:05Z"
+    },
+    {
+      "phase": "RED_ACCEPTANCE",
+      "status": "SKIPPED",
+      "data": "NOT_APPLICABLE: scaffolding step",
+      "timestamp": "2026-03-06T13:08:07Z"
+    },
+    {
+      "phase": "RED_UNIT",
+      "status": "SKIPPED",
+      "data": "NOT_APPLICABLE: scaffolding step",
+      "timestamp": "2026-03-06T13:08:08Z"
+    },
+    {
+      "phase": "GREEN",
+      "status": "EXECUTED",
+      "data": "PASS",
+      "timestamp": "2026-03-06T13:10:40Z"
+    },
+    {
+      "phase": "COMMIT",
+      "status": "EXECUTED",
+      "data": "PASS",
+      "timestamp": "2026-03-06T13:11:08Z"
+    }
+  ]
+}
