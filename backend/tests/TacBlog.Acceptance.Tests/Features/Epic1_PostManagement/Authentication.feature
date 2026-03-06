@@ -1,4 +1,4 @@
-@epic1 @skip @api
+@epic1 @api
 Feature: Authenticate as admin
   As Christian (the author)
   I want to log in to the admin area
