@@ -22,6 +22,15 @@ public sealed class LoginHandler(
 {
     public Task<LoginResult> HandleAsync(LoginCommand command, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        if (!string.Equals(command.Email, adminCredentials.Email, StringComparison.OrdinalIgnoreCase))
+            return Task.FromResult(LoginResult.Failure("Invalid email or password"));
+
+        if (!passwordHasher.Verify(command.Password, adminCredentials.HashedPassword))
+            return Task.FromResult(LoginResult.Failure("Invalid email or password"));
+
+        var token = tokenGenerator.Generate(command.Email);
+        var expiresAt = DateTime.UtcNow.AddHours(1);
+
+        return Task.FromResult(LoginResult.Success(token, expiresAt));
     }
 }
