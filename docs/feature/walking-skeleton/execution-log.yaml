@@ -49,5 +49,25 @@ events:
   s: EXECUTED
   sid: 01-02
   t: '2026-03-06T13:11:08Z'
+- d: PASS
+  p: PREPARE
+  s: EXECUTED
+  sid: 01-03
+  t: '2026-03-06T13:33:42Z'
+- d: 'NOT_APPLICABLE: scaffolding step'
+  p: RED_ACCEPTANCE
+  s: SKIPPED
+  sid: 01-03
+  t: '2026-03-06T13:33:49Z'
+- d: 'NOT_APPLICABLE: scaffolding step'
+  p: RED_UNIT
+  s: SKIPPED
+  sid: 01-03
+  t: '2026-03-06T13:33:51Z'
+- d: PASS
+  p: GREEN
+  s: EXECUTED
+  sid: 01-03
+  t: '2026-03-06T13:33:55Z'
 project_id: walking-skeleton
 schema_version: '3.0'
