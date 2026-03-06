@@ -14,9 +14,15 @@ public readonly partial record struct Slug
         _value = value;
     }
 
-    public static Slug FromTitle(Title title)
+    public static Slug FromTitle(Title title) =>
+        FromText(title.ToString());
+
+    public static Slug FromTagName(TagName tagName) =>
+        FromText(tagName.ToString());
+
+    private static Slug FromText(string text)
     {
-        var slug = title.ToString().ToLowerInvariant();
+        var slug = text.ToLowerInvariant();
         slug = SpacesPattern().Replace(slug, "-");
         slug = NonAlphanumericPattern().Replace(slug, "");
         slug = MultipleHyphensPattern().Replace(slug, "-");
