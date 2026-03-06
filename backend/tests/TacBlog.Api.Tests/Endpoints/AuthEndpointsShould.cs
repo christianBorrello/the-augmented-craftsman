@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TacBlog.Api.Endpoints;
+using TacBlog.Application.Ports.Driven;
 using TacBlog.Infrastructure;
-using TacBlog.Infrastructure.Identity;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -18,6 +19,8 @@ public sealed class AuthEndpointsShould : IAsyncLifetime
 {
     private const string JwtSecret = "test-jwt-secret-key-minimum-32-characters-long!";
     private const string JwtIssuer = "TacBlog-Test";
+    private const string AdminEmail = "admin@test.com";
+    private const string AdminPassword = "test-admin-password";
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:16-alpine")
@@ -38,10 +41,11 @@ public sealed class AuthEndpointsShould : IAsyncLifetime
             {
                 builder.ConfigureAppConfiguration((_, config) =>
                 {
+                    var passwordHasher = new Infrastructure.Identity.AspNetPasswordHasher();
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        ["AdminCredentials:Email"] = "admin@test.com",
-                        ["AdminCredentials:HashedPassword"] = "not-used-in-these-tests",
+                        ["AdminCredentials:Email"] = AdminEmail,
+                        ["AdminCredentials:HashedPassword"] = passwordHasher.Hash(AdminPassword),
                         ["Jwt:Secret"] = JwtSecret,
                         ["Jwt:Issuer"] = JwtIssuer,
                         ["Jwt:ExpiryInMinutes"] = "60"
@@ -89,9 +93,13 @@ public sealed class AuthEndpointsShould : IAsyncLifetime
     [Fact]
     public async Task accept_authenticated_post_with_201()
     {
-        var token = GenerateValidToken();
+        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login",
+            new LoginRequest(AdminEmail, AdminPassword));
+
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var login = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
         _client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", token);
+            new AuthenticationHeaderValue("Bearer", login!.Token);
 
         var response = await _client.PostAsJsonAsync("/api/posts",
             new { Title = "Authenticated Post", Content = "Content from authenticated user" });
@@ -107,12 +115,5 @@ public sealed class AuthEndpointsShould : IAsyncLifetime
         var response = await _client.GetAsync(endpoint);
 
         response.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized);
-    }
-
-    private static string GenerateValidToken()
-    {
-        var settings = new JwtSettings(JwtSecret, JwtIssuer);
-        var generator = new JwtTokenGenerator(settings);
-        return generator.Generate("admin@test.com");
     }
 }

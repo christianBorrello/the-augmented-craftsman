@@ -76,6 +76,10 @@ public sealed class LoginHandler(
         if (!AreCredentialsValid(command))
         {
             _failureTracker.Record(now);
+
+            if (_failureTracker.IsLockedOut(now))
+                return Task.FromResult(LoginResult.Lockout());
+
             return Task.FromResult(LoginResult.Failure("Invalid email or password"));
         }
 

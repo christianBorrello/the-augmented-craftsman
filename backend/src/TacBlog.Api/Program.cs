@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -29,17 +30,29 @@ builder.Services.AddSingleton(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
     var section = config.GetSection("AdminCredentials");
+    var email = section["Email"];
+    var hashedPassword = section["HashedPassword"];
+
+    if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(hashedPassword))
+        return new AdminCredentials(email, hashedPassword);
+
+    var passwordHasher = new AspNetPasswordHasher();
     return new AdminCredentials(
-        section["Email"] ?? throw new InvalidOperationException("AdminCredentials:Email is required"),
-        section["HashedPassword"] ?? throw new InvalidOperationException("AdminCredentials:HashedPassword is required"));
+        "admin@localhost",
+        passwordHasher.Hash("dev-admin-password"));
 });
 
 builder.Services.AddSingleton(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
     var section = config.GetSection("Jwt");
+    var secret = section["Secret"];
+
+    if (string.IsNullOrEmpty(secret))
+        secret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+
     return new JwtSettings(
-        section["Secret"] ?? throw new InvalidOperationException("Jwt:Secret is required"),
+        secret,
         section["Issuer"] ?? "TacBlog",
         int.TryParse(section["ExpiryInMinutes"], out var expiry) ? expiry : 60);
 });

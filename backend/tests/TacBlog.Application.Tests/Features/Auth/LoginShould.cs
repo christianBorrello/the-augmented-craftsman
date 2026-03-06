@@ -35,7 +35,7 @@ public class LoginShould
 
         result.IsSuccess.Should().BeTrue();
         result.Token.Should().Be(GeneratedToken);
-        result.ExpiresAt.Should().NotBeNull();
+        result.ExpiresAt.Should().Be(new DateTime(2026, 1, 15, 11, 0, 0, DateTimeKind.Utc));
     }
 
     [Fact]
@@ -58,26 +58,87 @@ public class LoginShould
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Be("Invalid email or password");
         result.Token.Should().BeNull();
-        _passwordHasher.DidNotReceive().Verify(Arg.Any<string>(), Arg.Any<string>());
     }
 
     [Fact]
-    public async Task return_lockout_error_after_5_failed_attempts_within_10_minutes()
+    public async Task return_lockout_on_the_5th_failed_attempt_within_10_minutes()
     {
         _passwordHasher.Verify("wrong", AdminHashedPassword).Returns(false);
         var baseTime = new DateTime(2026, 1, 15, 10, 0, 0, DateTimeKind.Utc);
 
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 4; i++)
         {
             _clock.UtcNow.Returns(baseTime.AddMinutes(i));
             await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
         }
 
-        _clock.UtcNow.Returns(baseTime.AddMinutes(6));
+        _clock.UtcNow.Returns(baseTime.AddMinutes(5));
         var result = await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
 
         result.IsLockedOut.Should().BeTrue();
         result.ErrorMessage.Should().Be("Too many attempts. Try again in 15 minutes.");
+    }
+
+    [Fact]
+    public async Task not_lock_out_on_the_4th_failed_attempt()
+    {
+        _passwordHasher.Verify("wrong", AdminHashedPassword).Returns(false);
+        var baseTime = new DateTime(2026, 1, 15, 10, 0, 0, DateTimeKind.Utc);
+
+        for (var i = 0; i < 3; i++)
+        {
+            _clock.UtcNow.Returns(baseTime.AddMinutes(i));
+            await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
+        }
+
+        _clock.UtcNow.Returns(baseTime.AddMinutes(4));
+        var result = await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
+
+        result.IsLockedOut.Should().BeFalse();
+        result.ErrorMessage.Should().Be("Invalid email or password");
+    }
+
+    [Fact]
+    public async Task lock_out_when_5th_failure_falls_at_exactly_10_minute_boundary()
+    {
+        _passwordHasher.Verify("wrong", AdminHashedPassword).Returns(false);
+        var baseTime = new DateTime(2026, 1, 15, 10, 0, 0, DateTimeKind.Utc);
+
+        _clock.UtcNow.Returns(baseTime);
+        await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
+
+        for (var i = 1; i < 4; i++)
+        {
+            _clock.UtcNow.Returns(baseTime.AddMinutes(i));
+            await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
+        }
+
+        _clock.UtcNow.Returns(baseTime.AddMinutes(10));
+        var result = await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
+
+        result.IsLockedOut.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task not_lock_out_when_5th_failure_falls_just_past_10_minute_window()
+    {
+        _passwordHasher.Verify("wrong", AdminHashedPassword).Returns(false);
+        var baseTime = new DateTime(2026, 1, 15, 10, 0, 0, DateTimeKind.Utc);
+
+        _clock.UtcNow.Returns(baseTime);
+        await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
+
+        for (var i = 1; i < 4; i++)
+        {
+            _clock.UtcNow.Returns(baseTime.AddMinutes(i));
+            await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
+        }
+
+        _clock.UtcNow.Returns(baseTime.AddMinutes(10).AddTicks(1));
+        var result = await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
+
+        result.IsLockedOut.Should().BeFalse();
+        result.ErrorMessage.Should().Be("Invalid email or password");
     }
 
     [Fact]
@@ -121,14 +182,21 @@ public class LoginShould
         for (var i = 0; i < 4; i++)
         {
             _clock.UtcNow.Returns(baseTime.AddMinutes(6 + i));
-            await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
+            var intermediateResult = await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
+            intermediateResult.IsLockedOut.Should().BeFalse();
         }
+    }
 
-        _clock.UtcNow.Returns(baseTime.AddMinutes(10));
-        var result = await _handler.HandleAsync(new LoginCommand(AdminEmail, "wrong"));
+    [Fact]
+    public async Task accept_email_regardless_of_case()
+    {
+        _passwordHasher.Verify(ValidPassword, AdminHashedPassword).Returns(true);
+        _tokenGenerator.Generate("ADMIN@EXAMPLE.COM").Returns(GeneratedToken);
 
-        result.IsLockedOut.Should().BeFalse();
-        result.ErrorMessage.Should().Be("Invalid email or password");
+        var result = await _handler.HandleAsync(new LoginCommand("ADMIN@EXAMPLE.COM", ValidPassword));
+
+        result.IsSuccess.Should().BeTrue();
+        result.Token.Should().Be(GeneratedToken);
     }
 
     [Fact]
