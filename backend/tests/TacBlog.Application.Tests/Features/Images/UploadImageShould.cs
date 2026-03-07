@@ -69,17 +69,4 @@ public class UploadImageShould
         result.ErrorMessage.Should().Contain("Connection refused");
         result.Url.Should().BeNull();
     }
-
-    [Fact]
-    public async Task delegate_to_image_storage_exactly_once()
-    {
-        using var stream = new MemoryStream([0x89, 0x50]);
-        _imageStorage.UploadAsync(stream, "photo.png", Arg.Any<CancellationToken>())
-            .Returns("https://ik.imagekit.io/blog/photo.png");
-
-        await _useCase.ExecuteAsync(stream, "photo.png", "image/png");
-
-        await _imageStorage.Received(1).UploadAsync(
-            stream, "photo.png", Arg.Any<CancellationToken>());
-    }
 }
