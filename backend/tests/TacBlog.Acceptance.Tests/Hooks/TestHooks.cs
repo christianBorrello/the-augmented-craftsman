@@ -24,6 +24,9 @@ public sealed class TestHooks
         var loginHandler = _factory.Services.GetRequiredService<LoginHandler>();
         loginHandler.ResetFailedAttempts();
 
+        var stubImageStorage = _factory.Services.GetRequiredService<StubImageStorage>();
+        stubImageStorage.ShouldFail = false;
+
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<TacBlogDbContext>();
         await db.Database.ExecuteSqlRawAsync("""

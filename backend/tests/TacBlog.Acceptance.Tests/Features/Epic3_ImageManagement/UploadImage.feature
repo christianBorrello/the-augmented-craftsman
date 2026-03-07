@@ -1,4 +1,4 @@
-@epic3 @skip @api
+@epic3 @api
 Feature: Upload an image for a blog post
   As Christian (the author)
   I want to upload images for my posts

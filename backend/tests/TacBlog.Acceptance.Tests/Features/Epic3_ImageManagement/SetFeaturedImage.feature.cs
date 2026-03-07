@@ -18,7 +18,6 @@ namespace TacBlog.Acceptance.Tests.Features.Epic3_ImageManagement
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [Xunit.TraitAttribute("Category", "epic3")]
-    [Xunit.TraitAttribute("Category", "skip")]
     [Xunit.TraitAttribute("Category", "api")]
     public partial class SetFeaturedImageForABlogPostFeature : object, Xunit.IClassFixture<SetFeaturedImageForABlogPostFeature.FixtureData>, Xunit.IAsyncLifetime
     {
@@ -27,7 +26,6 @@ namespace TacBlog.Acceptance.Tests.Features.Epic3_ImageManagement
         
         private static string[] featureTags = new string[] {
                 "epic3",
-                "skip",
                 "api"};
         
         private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en"), "Features/Epic3_ImageManagement", "Set featured image for a blog post", "  As Christian (the author)\n  I want to set a featured image on my posts\n  So tha" +

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TacBlog.Application.Ports.Driven;
+using TacBlog.Infrastructure.Storage;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -52,6 +54,19 @@ public sealed class TacBlogWebApplicationFactory : WebApplicationFactory<Program
 
             services.AddDbContext<TacBlogDbContext>(options =>
                 options.UseNpgsql(_postgres.GetConnectionString()));
+
+            var imageStorageDescriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(IImageStorage));
+            if (imageStorageDescriptor is not null)
+                services.Remove(imageStorageDescriptor);
+
+            var settingsDescriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(ImageKitSettings));
+            if (settingsDescriptor is not null)
+                services.Remove(settingsDescriptor);
+
+            services.AddSingleton<StubImageStorage>();
+            services.AddSingleton<IImageStorage>(sp => sp.GetRequiredService<StubImageStorage>());
         });
 
         builder.UseEnvironment("Testing");

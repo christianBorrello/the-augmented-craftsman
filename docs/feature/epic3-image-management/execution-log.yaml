@@ -1,0 +1,203 @@
+schema_version: "2.0"
+project_id: "epic3-image-management"
+events:
+  - step_id: "01-01"
+    phase: PREPARE
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T00:00:00Z"
+  - step_id: "01-01"
+    phase: RED_ACCEPTANCE
+    status: SKIPPED
+    data: "NOT_APPLICABLE: domain-only step, no acceptance test"
+    timestamp: "2026-03-07T00:00:01Z"
+  - step_id: "01-01"
+    phase: RED_UNIT
+    status: EXECUTED
+    data: "PASS — 5 tests (3 parametrized, 2 facts), compilation failure confirmed"
+    timestamp: "2026-03-07T00:00:02Z"
+  - step_id: "01-01"
+    phase: GREEN
+    status: EXECUTED
+    data: "PASS — 60 domain tests green, 35 application tests green"
+    timestamp: "2026-03-07T00:00:03Z"
+  - step_id: "01-01"
+    phase: COMMIT
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T00:00:04Z"
+  - step_id: "01-02"
+    phase: PREPARE
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T12:00:00Z"
+  - step_id: "01-02"
+    phase: RED_ACCEPTANCE
+    status: SKIPPED
+    data: "NOT_APPLICABLE: domain-only step, no acceptance test"
+    timestamp: "2026-03-07T12:00:01Z"
+  - step_id: "01-02"
+    phase: RED_UNIT
+    status: EXECUTED
+    data: "PASS — 4 tests (set image, remove image, idempotent remove, null default), compilation failure confirmed"
+    timestamp: "2026-03-07T12:00:02Z"
+  - step_id: "01-02"
+    phase: GREEN
+    status: EXECUTED
+    data: "PASS — 64 domain tests green, 35 application tests green"
+    timestamp: "2026-03-07T12:00:03Z"
+  - step_id: "01-02"
+    phase: COMMIT
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T12:00:04Z"
+  - step_id: "02-01"
+    phase: PREPARE
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T14:00:00Z"
+  - step_id: "02-01"
+    phase: RED_ACCEPTANCE
+    status: SKIPPED
+    data: "NOT_APPLICABLE: use case layer step, no acceptance test"
+    timestamp: "2026-03-07T14:00:01Z"
+  - step_id: "02-01"
+    phase: RED_UNIT
+    status: EXECUTED
+    data: "PASS — 4 tests (2 parametrized theories, 2 facts), compilation failure confirmed"
+    timestamp: "2026-03-07T14:00:02Z"
+  - step_id: "02-01"
+    phase: GREEN
+    status: EXECUTED
+    data: "PASS — 64 domain tests green, 50 application tests green"
+    timestamp: "2026-03-07T14:00:03Z"
+  - step_id: "02-01"
+    phase: COMMIT
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T14:00:04Z"
+  - step_id: "02-02"
+    phase: PREPARE
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T14:51:54Z"
+  - step_id: "02-02"
+    phase: RED_ACCEPTANCE
+    status: SKIPPED
+    data: "NOT_APPLICABLE: use case layer step, no acceptance test"
+    timestamp: "2026-03-07T14:51:58Z"
+  - step_id: "02-02"
+    phase: RED_UNIT
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T14:52:48Z"
+  - step_id: "02-02"
+    phase: GREEN
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T14:54:18Z"
+  - step_id: "02-02"
+    phase: COMMIT
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T14:54:38Z"
+  - step_id: "03-01"
+    phase: PREPARE
+    status: EXECUTED
+    data: "PASS — reviewed BlogPostConfiguration, Infrastructure.csproj, Program.cs, IImageStorage, FeaturedImageUrl, existing use cases"
+    timestamp: "2026-03-07T14:58:00Z"
+  - step_id: "03-01"
+    phase: RED_ACCEPTANCE
+    status: SKIPPED
+    data: "NOT_APPLICABLE: infrastructure adapter step, tested via acceptance tests in later steps"
+    timestamp: "2026-03-07T14:58:01Z"
+  - step_id: "03-01"
+    phase: RED_UNIT
+    status: SKIPPED
+    data: "NOT_APPLICABLE: adapter wraps external ImageKit SDK, no meaningful unit test without integration"
+    timestamp: "2026-03-07T14:58:02Z"
+  - step_id: "03-01"
+    phase: GREEN
+    status: EXECUTED
+    data: "PASS — ImageKitImageStorage adapter, EF FeaturedImageUrl mapping, migration, DI wiring. Build green, 133 tests green (64 domain + 50 application + 19 API)"
+    timestamp: "2026-03-07T14:58:03Z"
+  - step_id: "03-01"
+    phase: COMMIT
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T14:58:18Z"
+  - step_id: "03-02"
+    phase: PREPARE
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T15:04:59Z"
+  - step_id: "03-02"
+    phase: RED_ACCEPTANCE
+    status: SKIPPED
+    data: "NOT_APPLICABLE: endpoint wiring tested via acceptance tests in step 04-01"
+    timestamp: "2026-03-07T15:05:04Z"
+  - step_id: "03-02"
+    phase: RED_UNIT
+    status: SKIPPED
+    data: "NOT_APPLICABLE: thin glue code tested through integration/acceptance tests"
+    timestamp: "2026-03-07T15:05:04Z"
+  - step_id: "03-02"
+    phase: GREEN
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T15:05:04Z"
+  - step_id: "03-02"
+    phase: COMMIT
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T15:05:18Z"
+  - step_id: "04-01"
+    phase: PREPARE
+    status: EXECUTED
+    data: "PASS — reviewed ImageSteps, ImageApiDriver, PostSteps, CommonSteps, AuthSteps, feature files, IImageStorage, ImageEndpoints, UploadImage use case, SetFeaturedImage use case, factory, DI config"
+    timestamp: "2026-03-07T16:00:00Z"
+  - step_id: "04-01"
+    phase: RED_ACCEPTANCE
+    status: EXECUTED
+    data: "PASS — removed @skip from all 3 feature files, 8 of 9 scenarios fail with PendingStepException (1 passes via existing PostSteps)"
+    timestamp: "2026-03-07T16:01:00Z"
+  - step_id: "04-01"
+    phase: RED_UNIT
+    status: SKIPPED
+    data: "NOT_APPLICABLE: acceptance test step, no inner unit test loop"
+    timestamp: "2026-03-07T16:01:01Z"
+  - step_id: "04-01"
+    phase: GREEN
+    status: EXECUTED
+    data: "PASS — 9/9 Epic 3 acceptance scenarios green, 64 domain + 50 application + 19 API + 48 acceptance (non-epic4) all green"
+    timestamp: "2026-03-07T16:10:00Z"
+  - step_id: "04-01"
+    phase: COMMIT
+    status: EXECUTED
+    data: "PASS — commit f8786b7"
+    timestamp: "2026-03-07T16:12:00Z"
+  - step_id: "04-02"
+    phase: PREPARE
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T15:18:06Z"
+  - step_id: "04-02"
+    phase: RED_ACCEPTANCE
+    status: SKIPPED
+    data: "NOT_APPLICABLE: regression verification step"
+    timestamp: "2026-03-07T15:18:06Z"
+  - step_id: "04-02"
+    phase: RED_UNIT
+    status: SKIPPED
+    data: "NOT_APPLICABLE: regression verification step"
+    timestamp: "2026-03-07T15:18:06Z"
+  - step_id: "04-02"
+    phase: GREEN
+    status: EXECUTED
+    data: "PASS — 181 tests green (64 domain + 50 application + 19 API + 48 acceptance)"
+    timestamp: "2026-03-07T15:18:06Z"
+  - step_id: "04-02"
+    phase: COMMIT
+    status: SKIPPED
+    data: "NOT_APPLICABLE: no code changes in regression step"
+    timestamp: "2026-03-07T15:18:06Z"

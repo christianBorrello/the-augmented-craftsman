@@ -12,6 +12,7 @@ public sealed class BlogPost
     public DateTime CreatedAt { get; }
     public DateTime UpdatedAt { get; private set; }
     public DateTime? PublishedAt { get; private set; }
+    public FeaturedImageUrl? FeaturedImageUrl { get; private set; }
     public IReadOnlyList<Tag> Tags => _tags.AsReadOnly();
 
     private BlogPost(PostId id, Title title, Slug slug, PostContent content, PostStatus status, DateTime createdAt, DateTime updatedAt)
@@ -48,6 +49,18 @@ public sealed class BlogPost
         Status = PostStatus.Published;
         PublishedAt = publishedAt;
         UpdatedAt = publishedAt;
+    }
+
+    public void SetFeaturedImage(FeaturedImageUrl url, DateTime updatedAt)
+    {
+        FeaturedImageUrl = url;
+        UpdatedAt = updatedAt;
+    }
+
+    public void RemoveFeaturedImage(DateTime updatedAt)
+    {
+        FeaturedImageUrl = null;
+        UpdatedAt = updatedAt;
     }
 
     public void AddTag(Tag tag)

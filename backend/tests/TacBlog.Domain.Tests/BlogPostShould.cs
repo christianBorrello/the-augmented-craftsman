@@ -119,4 +119,49 @@ public class BlogPostShould
 
         post.PublishedAt.Should().BeNull();
     }
+
+    [Fact]
+    public void have_no_featured_image_by_default()
+    {
+        var post = CreateDraftPost();
+
+        post.FeaturedImageUrl.Should().BeNull();
+    }
+
+    [Fact]
+    public void set_featured_image_and_advance_updated_at()
+    {
+        var post = CreateDraftPost();
+        var imageUrl = new FeaturedImageUrl("https://cdn.example.com/image.jpg");
+
+        post.SetFeaturedImage(imageUrl, Later);
+
+        post.FeaturedImageUrl.Should().Be(imageUrl);
+        post.UpdatedAt.Should().Be(Later);
+    }
+
+    [Fact]
+    public void remove_featured_image_and_advance_updated_at()
+    {
+        var post = CreateDraftPost();
+        var imageUrl = new FeaturedImageUrl("https://cdn.example.com/image.jpg");
+        post.SetFeaturedImage(imageUrl, Later);
+        var evenLater = Later.AddHours(1);
+
+        post.RemoveFeaturedImage(evenLater);
+
+        post.FeaturedImageUrl.Should().BeNull();
+        post.UpdatedAt.Should().Be(evenLater);
+    }
+
+    [Fact]
+    public void remove_featured_image_idempotently_when_no_image_set()
+    {
+        var post = CreateDraftPost();
+
+        post.RemoveFeaturedImage(Later);
+
+        post.FeaturedImageUrl.Should().BeNull();
+        post.UpdatedAt.Should().Be(Later);
+    }
 }

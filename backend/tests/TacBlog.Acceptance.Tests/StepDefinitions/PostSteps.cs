@@ -11,6 +11,7 @@ public sealed class PostSteps
 {
     private readonly PostApiDriver _postDriver;
     private readonly TagApiDriver _tagDriver;
+    private readonly ImageApiDriver _imageDriver;
     private readonly ApiContext _apiContext;
     private readonly ScenarioContext _scenarioContext;
 
@@ -23,11 +24,13 @@ public sealed class PostSteps
     public PostSteps(
         PostApiDriver postDriver,
         TagApiDriver tagDriver,
+        ImageApiDriver imageDriver,
         ApiContext apiContext,
         ScenarioContext scenarioContext)
     {
         _postDriver = postDriver;
         _tagDriver = tagDriver;
+        _imageDriver = imageDriver;
         _apiContext = apiContext;
         _scenarioContext = scenarioContext;
     }
@@ -247,9 +250,13 @@ public sealed class PostSteps
     [Given("a draft post {string} exists with a featured image")]
     public async Task GivenADraftPostExistsWithAFeaturedImage(string title)
     {
-        await _postDriver.CreatePost(title, "Content for featured image preview test.");
+        await _postDriver.CreatePost(title, "Content for featured image test.");
         CapturePostIdFromResponse();
         StorePostIdByTitle(title);
+
+        var slug = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("slug").GetString()!;
+        await _imageDriver.SetFeaturedImage(slug, "https://ik.imagekit.io/test/featured.png");
     }
 
     [Then("the preview displays the featured image")]

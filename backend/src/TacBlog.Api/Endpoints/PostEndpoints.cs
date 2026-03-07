@@ -143,7 +143,7 @@ public static class PostEndpoints
         return errorMessage;
     }
 
-    private static PostResponse ToResponse(BlogPost post) =>
+    internal static PostResponse ToResponse(BlogPost post) =>
         new(
             Id: post.Id.Value,
             Title: post.Title.Value,
@@ -153,6 +153,7 @@ public static class PostEndpoints
             CreatedAt: post.CreatedAt,
             UpdatedAt: post.UpdatedAt,
             PublishedAt: post.PublishedAt?.ToString("o"),
+            FeaturedImageUrl: post.FeaturedImageUrl?.Value,
             Tags: post.Tags.Select(t => t.Name.ToString()).ToArray());
 }
 

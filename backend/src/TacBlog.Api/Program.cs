@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TacBlog.Api.Endpoints;
 using TacBlog.Application.Features.Auth;
+using TacBlog.Application.Features.Images;
 using TacBlog.Application.Features.Posts;
 using TacBlog.Application.Features.Tags;
 using TacBlog.Application.Ports.Driven;
@@ -12,6 +13,7 @@ using TacBlog.Infrastructure;
 using TacBlog.Infrastructure.Clock;
 using TacBlog.Infrastructure.Identity;
 using TacBlog.Infrastructure.Persistence;
+using TacBlog.Infrastructure.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +38,20 @@ builder.Services.AddScoped<CreateTag>();
 builder.Services.AddScoped<ListTags>();
 builder.Services.AddScoped<RenameTag>();
 builder.Services.AddScoped<DeleteTag>();
+
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var section = config.GetSection("ImageKit");
+    return new ImageKitSettings(
+        section["UrlEndpoint"] ?? "https://ik.imagekit.io/default",
+        section["PublicKey"] ?? "public_key_not_configured",
+        section["PrivateKey"] ?? "private_key_not_configured");
+});
+builder.Services.AddSingleton<IImageStorage, ImageKitImageStorage>();
+builder.Services.AddScoped<UploadImage>();
+builder.Services.AddScoped<SetFeaturedImage>();
+builder.Services.AddScoped<RemoveFeaturedImage>();
 
 builder.Services.AddSingleton(sp =>
 {
@@ -107,6 +123,7 @@ app.UseAuthorization();
 app.MapPostEndpoints();
 app.MapAuthEndpoints();
 app.MapTagEndpoints();
+app.MapImageEndpoints();
 
 app.Run();
 
