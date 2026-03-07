@@ -64,7 +64,9 @@ public static class PostEndpoints
             Content: post.Content.Value,
             Status: post.Status.ToString(),
             CreatedAt: post.CreatedAt,
-            UpdatedAt: post.UpdatedAt);
+            UpdatedAt: post.UpdatedAt,
+            PublishedAt: post.PublishedAt?.ToString("o"),
+            Tags: post.Tags.Select(t => t.Name.ToString()).ToArray());
 }
 
 public sealed record CreatePostRequest(string Title, string Content);
