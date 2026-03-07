@@ -9,7 +9,7 @@ public sealed class BrowsePublicTags(ITagRepository repository)
 {
     public async Task<BrowsePublicTagsResult> ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var allTags = await repository.GetAllWithPostCountsAsync(cancellationToken);
+        var allTags = await repository.GetPublicTagsWithPostCountsAsync(cancellationToken);
 
         var publicTags = allTags
             .Where(tagWithCount => tagWithCount.PostCount > 0)

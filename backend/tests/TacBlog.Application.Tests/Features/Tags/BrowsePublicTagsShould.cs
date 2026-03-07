@@ -25,7 +25,7 @@ public class BrowsePublicTagsShould
         var csharp = Tag.Create(new TagName("C#"));
         var unused = Tag.Create(new TagName("Unused"));
 
-        _repository.GetAllWithPostCountsAsync(Arg.Any<CancellationToken>())
+        _repository.GetPublicTagsWithPostCountsAsync(Arg.Any<CancellationToken>())
             .Returns([
                 new TagWithPostCount(tdd, 3),
                 new TagWithPostCount(architecture, 12),
@@ -46,7 +46,7 @@ public class BrowsePublicTagsShould
     {
         var orphan = Tag.Create(new TagName("Orphan"));
 
-        _repository.GetAllWithPostCountsAsync(Arg.Any<CancellationToken>())
+        _repository.GetPublicTagsWithPostCountsAsync(Arg.Any<CancellationToken>())
             .Returns([new TagWithPostCount(orphan, 0)]);
 
         var result = await _useCase.ExecuteAsync();
@@ -57,7 +57,7 @@ public class BrowsePublicTagsShould
     [Fact]
     public async Task return_empty_list_when_no_tags_exist()
     {
-        _repository.GetAllWithPostCountsAsync(Arg.Any<CancellationToken>())
+        _repository.GetPublicTagsWithPostCountsAsync(Arg.Any<CancellationToken>())
             .Returns(new List<TagWithPostCount>());
 
         var result = await _useCase.ExecuteAsync();
