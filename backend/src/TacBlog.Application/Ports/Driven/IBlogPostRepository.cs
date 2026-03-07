@@ -11,4 +11,6 @@ public interface IBlogPostRepository
     Task<bool> ExistsBySlugAsync(Slug slug, CancellationToken cancellationToken);
     Task DeleteAsync(PostId id, CancellationToken cancellationToken);
     Task<Tag?> FindTagBySlugAsync(Slug slug, CancellationToken cancellationToken);
+    Task<IReadOnlyList<BlogPost>> FindPublishedAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<BlogPost>> FindPublishedByTagSlugAsync(Slug tagSlug, CancellationToken cancellationToken);
 }

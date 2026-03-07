@@ -1,4 +1,5 @@
 using TacBlog.Application.Features.Tags;
+using TacBlog.Application.Ports.Driven;
 
 namespace TacBlog.Api.Endpoints;
 
@@ -10,6 +11,7 @@ public static class TagEndpoints
         app.MapGet("/api/tags", ListTagsAsync).AllowAnonymous();
         app.MapPut("/api/tags/{slug}", RenameTagAsync).RequireAuthorization();
         app.MapDelete("/api/tags/{slug}", DeleteTagAsync).RequireAuthorization();
+        app.MapGet("/api/admin/tags", ListAllTagsAsync).RequireAuthorization();
     }
 
     private static async Task<IResult> CreateTagAsync(
@@ -30,11 +32,11 @@ public static class TagEndpoints
     }
 
     private static async Task<IResult> ListTagsAsync(
-        ListTags listTags,
+        BrowsePublicTags browsePublicTags,
         CancellationToken cancellationToken)
     {
-        var result = await listTags.ExecuteAsync(cancellationToken);
-        return Results.Ok(result.Tags.Select(ToResponseWithCount));
+        var result = await browsePublicTags.ExecuteAsync(cancellationToken);
+        return Results.Ok(result.Tags.Select(ToPublicTagResponse));
     }
 
     private static async Task<IResult> RenameTagAsync(
@@ -70,12 +72,19 @@ public static class TagEndpoints
         return Results.NoContent();
     }
 
+    private static async Task<IResult> ListAllTagsAsync(
+        ListTags listTags,
+        CancellationToken cancellationToken)
+    {
+        var result = await listTags.ExecuteAsync(cancellationToken);
+        return Results.Ok(result.Tags.Select(t => ToResponse(t.Tag)));
+    }
+
     private static TagResponse ToResponse(Domain.Tag tag) =>
         new(tag.Name.ToString(), tag.Slug.Value);
 
-    private static TagWithPostCountResponse ToResponseWithCount(
-        Application.Ports.Driven.TagWithPostCount tagWithCount) =>
-        new(tagWithCount.Tag.Name.ToString(), tagWithCount.Tag.Slug.Value, tagWithCount.PostCount);
+    private static TagWithPostCountResponse ToPublicTagResponse(PublicTagResult tag) =>
+        new(tag.Name, tag.Slug, tag.PostCount);
 }
 
 public sealed record CreateTagRequest(string Name);

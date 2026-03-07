@@ -1,4 +1,4 @@
-@epic4 @skip @api
+@epic4 @api
 Feature: Browse all posts
   As a reader
   I want to browse all published blog posts

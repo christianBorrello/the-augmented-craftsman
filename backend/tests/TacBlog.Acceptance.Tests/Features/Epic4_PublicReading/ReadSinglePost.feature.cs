@@ -18,7 +18,6 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [Xunit.TraitAttribute("Category", "epic4")]
-    [Xunit.TraitAttribute("Category", "skip")]
     [Xunit.TraitAttribute("Category", "api")]
     public partial class ReadASingleBlogPostFeature : object, Xunit.IClassFixture<ReadASingleBlogPostFeature.FixtureData>, Xunit.IAsyncLifetime
     {
@@ -27,7 +26,6 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
         
         private static string[] featureTags = new string[] {
                 "epic4",
-                "skip",
                 "api"};
         
         private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en"), "Features/Epic4_PublicReading", "Read a single blog post", "  As a reader\n  I want to read the full content of a blog post\n  So that I can le" +

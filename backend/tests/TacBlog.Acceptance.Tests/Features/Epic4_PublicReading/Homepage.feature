@@ -1,4 +1,4 @@
-@epic4 @skip @api
+@epic4 @api
 Feature: View homepage with latest posts
   As a developer interested in Software Craftsmanship
   I want to see the latest posts on the homepage

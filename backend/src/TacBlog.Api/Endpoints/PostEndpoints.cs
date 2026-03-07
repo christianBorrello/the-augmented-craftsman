@@ -9,21 +9,35 @@ public static class PostEndpoints
     public static void MapPostEndpoints(this WebApplication app)
     {
         app.MapPost("/api/posts", CreatePostAsync).RequireAuthorization();
-        app.MapGet("/api/posts", ListPublishedPostsAsync).AllowAnonymous();
-        app.MapGet("/api/posts/{slug}", GetPostBySlugAsync).AllowAnonymous();
+        app.MapGet("/api/posts", BrowsePostsAsync).AllowAnonymous();
+        app.MapGet("/api/posts/{slug}", ReadPostBySlugAsync).AllowAnonymous();
+        app.MapGet("/api/posts/{slug}/related", GetRelatedPostsAsync).AllowAnonymous();
         app.MapPut("/api/posts/{id:guid}", EditPostAsync).RequireAuthorization();
         app.MapDelete("/api/posts/{id:guid}", DeletePostAsync).RequireAuthorization();
         app.MapPost("/api/posts/{id:guid}/publish", PublishPostAsync).RequireAuthorization();
         app.MapGet("/api/posts/{id:guid}/preview", PreviewPostAsync).RequireAuthorization();
         app.MapGet("/api/admin/posts", ListAllPostsAsync).RequireAuthorization();
+        app.MapGet("/api/admin/posts/{slug}", GetAdminPostBySlugAsync).RequireAuthorization();
     }
 
-    private static async Task<IResult> ListPublishedPostsAsync(
-        IBlogPostRepository repository,
+    private static async Task<IResult> BrowsePostsAsync(
+        string? tag,
+        BrowsePublishedPosts browsePublishedPosts,
+        FilterPostsByTag filterPostsByTag,
         CancellationToken cancellationToken)
     {
-        var posts = await repository.FindAllAsync(cancellationToken);
-        return Results.Ok(posts.Select(ToResponse));
+        if (!string.IsNullOrEmpty(tag))
+        {
+            var filterResult = await filterPostsByTag.ExecuteAsync(tag, cancellationToken);
+
+            if (filterResult.IsNotFound)
+                return Results.NotFound(new { error = "Tag not found" });
+
+            return Results.Ok(filterResult.Posts!.Select(ToSummaryResponse));
+        }
+
+        var result = await browsePublishedPosts.ExecuteAsync(cancellationToken);
+        return Results.Ok(result.Posts.Select(ToSummaryResponse));
     }
 
     private static async Task<IResult> CreatePostAsync(
@@ -47,17 +61,30 @@ public static class PostEndpoints
         return Results.Created($"/api/posts/{response.Slug}", response);
     }
 
-    private static async Task<IResult> GetPostBySlugAsync(
+    private static async Task<IResult> ReadPostBySlugAsync(
         string slug,
-        GetPostBySlug getPostBySlug,
+        ReadPublishedPost readPublishedPost,
         CancellationToken cancellationToken)
     {
-        var result = await getPostBySlug.ExecuteAsync(slug, cancellationToken);
+        var result = await readPublishedPost.ExecuteAsync(slug, cancellationToken);
 
         if (!result.IsSuccess)
             return Results.NotFound(new { error = "Post not found" });
 
         return Results.Ok(ToResponse(result.Post!));
+    }
+
+    private static async Task<IResult> GetRelatedPostsAsync(
+        string slug,
+        GetRelatedPosts getRelatedPosts,
+        CancellationToken cancellationToken)
+    {
+        var result = await getRelatedPosts.ExecuteAsync(slug, cancellationToken);
+
+        if (result.IsNotFound)
+            return Results.NotFound(new { error = "Post not found" });
+
+        return Results.Ok(result.Posts!.Select(ToSummaryResponse));
     }
 
     private static async Task<IResult> EditPostAsync(
@@ -124,6 +151,19 @@ public static class PostEndpoints
         return Results.Ok(ToResponse(result.Post!));
     }
 
+    private static async Task<IResult> GetAdminPostBySlugAsync(
+        string slug,
+        GetPostBySlug getPostBySlug,
+        CancellationToken cancellationToken)
+    {
+        var result = await getPostBySlug.ExecuteAsync(slug, cancellationToken);
+
+        if (!result.IsSuccess)
+            return Results.NotFound(new { error = "Post not found" });
+
+        return Results.Ok(ToResponse(result.Post!));
+    }
+
     private static async Task<IResult> ListAllPostsAsync(
         ListPosts listPosts,
         CancellationToken cancellationToken)
@@ -155,6 +195,14 @@ public static class PostEndpoints
             PublishedAt: post.PublishedAt?.ToString("o"),
             FeaturedImageUrl: post.FeaturedImageUrl?.Value,
             Tags: post.Tags.Select(t => t.Name.ToString()).ToArray());
+
+    private static PostSummaryResponse ToSummaryResponse(BlogPost post) =>
+        new(
+            Title: post.Title.Value,
+            Slug: post.Slug.Value,
+            PublishedAt: post.PublishedAt?.ToString("o"),
+            FeaturedImageUrl: post.FeaturedImageUrl?.Value,
+            Tags: post.Tags.Select(t => t.Name.ToString()).ToArray());
 }
 
 public sealed record CreatePostRequest(string Title, string Content, string[]? Tags = null);
@@ -172,3 +220,10 @@ public sealed record PostResponse(
     string? PublishedAt = null,
     string? FeaturedImageUrl = null,
     string[]? Tags = null);
+
+public sealed record PostSummaryResponse(
+    string Title,
+    string Slug,
+    string? PublishedAt,
+    string? FeaturedImageUrl,
+    string[]? Tags);

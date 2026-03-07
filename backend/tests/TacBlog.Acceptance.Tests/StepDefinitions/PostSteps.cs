@@ -12,6 +12,7 @@ public sealed class PostSteps
     private readonly PostApiDriver _postDriver;
     private readonly TagApiDriver _tagDriver;
     private readonly ImageApiDriver _imageDriver;
+    private readonly AuthApiDriver _authDriver;
     private readonly ApiContext _apiContext;
     private readonly ScenarioContext _scenarioContext;
 
@@ -20,17 +21,20 @@ public sealed class PostSteps
     private const string LastCreatedContentKey = "LastCreatedContent";
     private const string PendingTitleKey = "PendingTitle";
     private const string PendingContentKey = "PendingContent";
+    private const string LastCreatedSlugKey = "LastCreatedSlug";
 
     public PostSteps(
         PostApiDriver postDriver,
         TagApiDriver tagDriver,
         ImageApiDriver imageDriver,
+        AuthApiDriver authDriver,
         ApiContext apiContext,
         ScenarioContext scenarioContext)
     {
         _postDriver = postDriver;
         _tagDriver = tagDriver;
         _imageDriver = imageDriver;
+        _authDriver = authDriver;
         _apiContext = apiContext;
         _scenarioContext = scenarioContext;
     }
@@ -78,7 +82,7 @@ public sealed class PostSteps
         }
         else if (path == "/api/tags")
         {
-            await _tagDriver.ListTags();
+            await _tagDriver.ListPublicTags();
         }
     }
 
@@ -304,6 +308,7 @@ public sealed class PostSteps
     [Given("a draft post {string} exists")]
     public async Task GivenADraftPostExists(string title)
     {
+        await EnsureAuthenticated();
         await _postDriver.CreatePost(title, "Draft content for publish test.");
         CapturePostIdFromResponse();
         StorePostIdByTitle(title);
@@ -630,19 +635,77 @@ public sealed class PostSteps
     [Given("these published posts exist:")]
     public async Task GivenThesePublishedPostsExist(DataTable table)
     {
-        throw new PendingStepException();
+        await _authDriver.Authenticate();
+
+        var rows = table.Rows.ToList();
+
+        var hasDateColumn = table.Header.Contains("date");
+        if (hasDateColumn)
+            rows = rows.OrderBy(r => r["date"]).ToList();
+
+        foreach (var row in rows)
+        {
+            var title = row["title"];
+            var tags = table.Header.Contains("tags")
+                ? row["tags"].Split(',', StringSplitOptions.TrimEntries)
+                : Array.Empty<string>();
+
+            var content = table.Header.Contains("content")
+                ? row["content"]
+                : $"Content for {title}.";
+
+            if (tags.Length > 0)
+                await _postDriver.CreatePostWithTags(title, content, tags);
+            else
+                await _postDriver.CreatePost(title, content);
+
+            CapturePostIdFromResponse();
+            StorePostIdByTitle(title);
+
+            if (table.Header.Contains("image"))
+            {
+                var imageUrl = row["image"];
+                if (!string.IsNullOrWhiteSpace(imageUrl))
+                {
+                    var slug = _apiContext.LastResponseJson!.RootElement
+                        .GetProperty("slug").GetString()!;
+                    await _imageDriver.SetFeaturedImage(slug, imageUrl);
+                }
+            }
+
+            var postId = GetLastCreatedPostId();
+            await _postDriver.PublishPost(postId);
+        }
     }
 
     [Then("the posts are returned in reverse chronological order")]
     public void ThenThePostsAreReturnedInReverseChronologicalOrder()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        posts.Count.Should().BeGreaterThan(1);
+
+        var dates = posts
+            .Select(p => DateTimeOffset.Parse(p.GetProperty("publishedAt").GetString()!))
+            .ToList();
+
+        dates.Should().BeInDescendingOrder();
     }
 
     [Then("each post contains title, slug, date, tags, and excerpt")]
     public void ThenEachPostContainsTitleSlugDateTagsAndExcerpt()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        foreach (var post in posts)
+        {
+            post.TryGetProperty("title", out _).Should().BeTrue();
+            post.TryGetProperty("slug", out _).Should().BeTrue();
+            post.TryGetProperty("publishedAt", out _).Should().BeTrue();
+            post.TryGetProperty("tags", out _).Should().BeTrue();
+        }
     }
 
     [Given("no published posts exist")]
@@ -655,43 +718,90 @@ public sealed class PostSteps
     [Given("{int} published posts and {int} draft posts exist")]
     public async Task GivenPublishedPostsAndDraftPostsExist(int published, int drafts)
     {
-        throw new PendingStepException();
+        await _authDriver.Authenticate();
+
+        for (var i = 1; i <= published; i++)
+        {
+            await _postDriver.CreatePost($"Published Post {i}", $"Content for published post {i}.");
+            CapturePostIdFromResponse();
+            var postId = GetLastCreatedPostId();
+            await _postDriver.PublishPost(postId);
+        }
+
+        for (var i = 1; i <= drafts; i++)
+        {
+            await _postDriver.CreatePost($"Draft Post {i}", $"Draft content {i}.");
+            CapturePostIdFromResponse();
+        }
     }
 
     [When("a reader requests all published posts")]
     public async Task WhenAReaderRequestsAllPublishedPosts()
     {
-        throw new PendingStepException();
+        await _postDriver.ListPublishedPosts();
     }
 
     [Then("only the {int} published posts are returned")]
     public void ThenOnlyThePublishedPostsAreReturned(int count)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+        posts.Count.Should().Be(count);
     }
 
     [Then("draft posts are not included")]
     public void ThenDraftPostsAreNotIncluded()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        foreach (var post in posts)
+        {
+            if (post.TryGetProperty("status", out var status))
+                status.GetString().Should().NotBe("Draft");
+
+            post.GetProperty("title").GetString().Should().NotStartWith("Draft Post");
+        }
     }
 
     [Given("a published post {string} exists with tags {string} and {string}")]
     public async Task GivenAPublishedPostExistsWithTags(string title, string tag1, string tag2)
     {
-        throw new PendingStepException();
+        await _authDriver.Authenticate();
+
+        await _postDriver.CreatePostWithTags(title, $"Content for {title}.", [tag1, tag2]);
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
+
+        var postId = GetLastCreatedPostId();
+        await _postDriver.PublishPost(postId);
     }
 
     [Then("each post contains title, slug, publishedAt, tags, and excerpt")]
     public void ThenEachPostContainsTitleSlugPublishedAtTagsAndExcerpt()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        foreach (var post in posts)
+        {
+            post.TryGetProperty("title", out _).Should().BeTrue();
+            post.TryGetProperty("slug", out _).Should().BeTrue();
+            post.TryGetProperty("publishedAt", out _).Should().BeTrue();
+            post.TryGetProperty("tags", out _).Should().BeTrue();
+        }
     }
 
     [Then("post content is not included in the list response")]
     public void ThenPostContentIsNotIncludedInTheListResponse()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        foreach (var post in posts)
+        {
+            post.TryGetProperty("content", out _).Should().BeFalse();
+        }
     }
 
     // ── Epic 4: FilterPostsByTag (US-042) ──
@@ -699,24 +809,41 @@ public sealed class PostSteps
     [When("a reader filters posts by tag {string}")]
     public async Task WhenAReaderFiltersPostsByTag(string tag)
     {
-        throw new PendingStepException();
+        var tagSlug = ToSlug(tag);
+        await _postDriver.FilterByTag(tagSlug);
     }
 
     [Then("only posts tagged {string} are returned:")]
     public void ThenOnlyPostsTaggedAreReturned(string tag, DataTable table)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        var expectedTitles = new List<string>();
+        expectedTitles.Add(table.Header.First().Trim());
+        expectedTitles.AddRange(table.Rows.Select(r => r[0].Trim()));
+
+        var actualTitles = posts.Select(p => p.GetProperty("title").GetString()).ToList();
+
+        actualTitles.Should().BeEquivalentTo(expectedTitles);
     }
 
     [Then("{string} is not included")]
     public void ThenIsNotIncluded(string title)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var titles = _apiContext.LastResponseJson!.RootElement.EnumerateArray()
+            .Select(p => p.GetProperty("title").GetString())
+            .ToList();
+
+        titles.Should().NotContain(title);
     }
 
     [Given("no posts are tagged {string}")]
-    public void GivenNoPostsAreTagged(string tag)
+    public async Task GivenNoPostsAreTagged(string tag)
     {
+        await _authDriver.Authenticate();
+        await _tagDriver.CreateTag(tag);
     }
 
     // ── Epic 4: ReadSinglePost (US-043) ──
@@ -724,19 +851,59 @@ public sealed class PostSteps
     [Given("a published post exists:")]
     public async Task GivenAPublishedPostExistsTable(DataTable table)
     {
-        throw new PendingStepException();
+        await _authDriver.Authenticate();
+
+        var data = ParseVerticalTable(table);
+        var title = data["title"];
+        var content = data.GetValueOrDefault("content", $"Content for {title}.");
+        var tags = data.TryGetValue("tags", out var tagsRaw)
+            ? tagsRaw.Split(',', StringSplitOptions.TrimEntries)
+            : Array.Empty<string>();
+
+        if (tags.Length > 0)
+            await _postDriver.CreatePostWithTags(title, content, tags);
+        else
+            await _postDriver.CreatePost(title, content);
+
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
+
+        if (data.TryGetValue("image", out var imageUrl) && !string.IsNullOrWhiteSpace(imageUrl))
+        {
+            var slug = _apiContext.LastResponseJson!.RootElement
+                .GetProperty("slug").GetString()!;
+            await _imageDriver.SetFeaturedImage(slug, imageUrl);
+        }
+
+        var postId = GetLastCreatedPostId();
+        await _postDriver.PublishPost(postId);
+
+        _scenarioContext[LastCreatedContentKey] = content;
     }
 
     [When("a reader requests the post with slug {string}")]
     public async Task WhenAReaderRequestsThePostWithSlug(string slug)
     {
-        throw new PendingStepException();
+        await _postDriver.ReadPost(slug);
     }
 
     [Then("the response contains the full post with title, content, tags, image, and publishedAt")]
     public void ThenTheResponseContainsTheFullPost()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var root = _apiContext.LastResponseJson!.RootElement;
+
+        root.TryGetProperty("title", out _).Should().BeTrue();
+        root.TryGetProperty("content", out _).Should().BeTrue();
+        root.TryGetProperty("tags", out _).Should().BeTrue();
+        root.TryGetProperty("publishedAt", out _).Should().BeTrue();
+
+        root.GetProperty("title").GetString().Should().NotBeNullOrWhiteSpace();
+        root.GetProperty("content").GetString().Should().NotBeNullOrWhiteSpace();
+        root.GetProperty("publishedAt").GetString().Should().NotBeNullOrWhiteSpace();
+
+        var tags = root.GetProperty("tags").EnumerateArray().ToList();
+        tags.Should().NotBeEmpty();
     }
 
     // ── Epic 4: RelatedPosts (US-044) ──
@@ -744,55 +911,96 @@ public sealed class PostSteps
     [When("a reader requests related posts for {string}")]
     public async Task WhenAReaderRequestsRelatedPostsFor(string slug)
     {
-        throw new PendingStepException();
+        await _postDriver.GetRelatedPosts(slug);
     }
 
     [Then("the related posts include:")]
     public void ThenTheRelatedPostsInclude(DataTable table)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var titles = _apiContext.LastResponseJson!.RootElement.EnumerateArray()
+            .Select(p => p.GetProperty("title").GetString())
+            .ToList();
+
+        var expectedTitles = table.Rows.Select(r => r[0]).ToList();
+
+        foreach (var expected in expectedTitles)
+        {
+            titles.Should().Contain(expected);
+        }
     }
 
     [Then("{string} is not in the related posts")]
     public void ThenIsNotInTheRelatedPosts(string title)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var titles = _apiContext.LastResponseJson!.RootElement.EnumerateArray()
+            .Select(p => p.GetProperty("title").GetString())
+            .ToList();
+
+        titles.Should().NotContain(title);
     }
 
     [Then("the first related post is {string}")]
     public void ThenTheFirstRelatedPostIs(string title)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        posts.Should().NotBeEmpty();
+        posts[0].GetProperty("title").GetString().Should().Be(title);
     }
 
     [Then("{string} appears before {string}")]
     public void ThenAppearsBefore(string title1, string title2)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var titles = _apiContext.LastResponseJson!.RootElement.EnumerateArray()
+            .Select(p => p.GetProperty("title").GetString())
+            .ToList();
+
+        var index1 = titles.IndexOf(title1);
+        var index2 = titles.IndexOf(title2);
+
+        index1.Should().BeGreaterOrEqualTo(0, $"'{title1}' should be in the list");
+        index2.Should().BeGreaterOrEqualTo(0, $"'{title2}' should be in the list");
+        index1.Should().BeLessThan(index2, $"'{title1}' should appear before '{title2}'");
     }
 
     [Then("exactly {int} related posts are returned")]
     public void ThenExactlyRelatedPostsAreReturned(int count)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+        posts.Count.Should().Be(count);
     }
 
     [Given("only one post exists tagged {string}")]
     public async Task GivenOnlyOnePostExistsTagged(string tag)
     {
-        throw new PendingStepException();
+        await _authDriver.Authenticate();
+
+        await _postDriver.CreatePostWithTags($"Solo {tag} Post", $"Content about {tag}.", [tag]);
+        CapturePostIdFromResponse();
+        CaptureSlugFromResponse();
+
+        var postId = GetLastCreatedPostId();
+        await _postDriver.PublishPost(postId);
     }
 
     [When("a reader requests related posts for that post")]
     public async Task WhenAReaderRequestsRelatedPostsForThatPost()
     {
-        throw new PendingStepException();
+        var slug = (string)_scenarioContext[LastCreatedSlugKey];
+        await _postDriver.GetRelatedPosts(slug);
     }
 
     [Then("the related posts list is empty")]
     public void ThenTheRelatedPostsListIsEmpty()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+        posts.Should().BeEmpty();
     }
 
     [Then("the post is still accessible")]
@@ -836,6 +1044,18 @@ public sealed class PostSteps
     private string GetLastCreatedPostId() =>
         (string)_scenarioContext[LastCreatedPostIdKey];
 
+    private void CaptureSlugFromResponse()
+    {
+        if (_apiContext.LastResponseJson is null)
+            return;
+
+        var root = _apiContext.LastResponseJson.RootElement;
+        if (root.TryGetProperty("slug", out var slugElement))
+        {
+            _scenarioContext[LastCreatedSlugKey] = slugElement.GetString()!;
+        }
+    }
+
     private void StorePostIdByTitle(string title)
     {
         if (!_scenarioContext.TryGetValue(PostIdsByTitleKey, out var existing))
@@ -857,6 +1077,14 @@ public sealed class PostSteps
     private static string SlugToTitle(string slug) =>
         string.Join(' ', slug.Split('-').Select(word =>
             char.ToUpper(word[0]) + word[1..]));
+
+    private static string ToSlug(string name) =>
+        Support.SlugHelper.ToSlug(name);
+
+    private async Task EnsureAuthenticated()
+    {
+        await _authDriver.Authenticate();
+    }
 
     private static Dictionary<string, string> ParseVerticalTable(DataTable table)
     {

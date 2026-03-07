@@ -9,11 +9,14 @@ public sealed class TagApiDriver(HttpClient client, ApiContext apiContext, AuthC
         await SendAuthenticatedAsync(HttpMethod.Post, "/api/tags",
             JsonContent.Create(new { name }));
 
-    public async Task ListTags()
+    public async Task ListPublicTags()
     {
         var response = await client.GetAsync("/api/tags");
         await apiContext.CaptureResponse(response);
     }
+
+    public async Task ListAdminTags() =>
+        await SendAuthenticatedAsync(HttpMethod.Get, "/api/admin/tags");
 
     public async Task RenameTag(string slug, string newName) =>
         await SendAuthenticatedAsync(HttpMethod.Put, $"/api/tags/{slug}",

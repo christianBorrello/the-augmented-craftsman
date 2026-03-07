@@ -51,4 +51,24 @@ public sealed class EfTagRepository(TacBlogDbContext context) : ITagRepository
             await context.SaveChangesAsync(cancellationToken);
         }
     }
+
+    public async Task<IReadOnlyList<TagWithPostCount>> GetPublicTagsWithPostCountsAsync(CancellationToken cancellationToken)
+    {
+        var tags = await context.Tags.ToListAsync(cancellationToken);
+
+        var publishedPostCounts = await context.Posts
+            .Where(p => p.Status == PostStatus.Published)
+            .SelectMany(p => p.Tags)
+            .GroupBy(t => t.Id)
+            .Select(g => new { TagId = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var countByTagId = publishedPostCounts.ToDictionary(x => x.TagId, x => x.Count);
+
+        return tags
+            .Where(tag => countByTagId.ContainsKey(tag.Id))
+            .Select(tag => new TagWithPostCount(tag, countByTagId[tag.Id]))
+            .ToList()
+            .AsReadOnly();
+    }
 }

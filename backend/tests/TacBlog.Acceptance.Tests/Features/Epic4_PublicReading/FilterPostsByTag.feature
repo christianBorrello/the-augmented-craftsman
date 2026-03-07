@@ -1,4 +1,4 @@
-@epic4 @skip @api
+@epic4 @api
 Feature: Filter posts by tag
   As a reader
   I want to filter posts by tag

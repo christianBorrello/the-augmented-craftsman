@@ -43,4 +43,16 @@ public sealed class EfBlogPostRepository(TacBlogDbContext context) : IBlogPostRe
 
     public async Task<Tag?> FindTagBySlugAsync(Slug slug, CancellationToken cancellationToken) =>
         await context.Tags.SingleOrDefaultAsync(t => t.Slug == slug, cancellationToken);
+
+    public async Task<IReadOnlyList<BlogPost>> FindPublishedAsync(CancellationToken cancellationToken) =>
+        await context.Posts.Include(p => p.Tags)
+            .Where(p => p.Status == PostStatus.Published)
+            .OrderByDescending(p => p.PublishedAt)
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<BlogPost>> FindPublishedByTagSlugAsync(Slug tagSlug, CancellationToken cancellationToken) =>
+        await context.Posts.Include(p => p.Tags)
+            .Where(p => p.Status == PostStatus.Published && p.Tags.Any(t => t.Slug == tagSlug))
+            .OrderByDescending(p => p.PublishedAt)
+            .ToListAsync(cancellationToken);
 }
