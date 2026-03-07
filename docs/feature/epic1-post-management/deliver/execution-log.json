@@ -1,0 +1,251 @@
+{
+  "schema_version": "3.0",
+  "project_id": "epic1-post-management",
+  "events": [
+    {
+      "sid": "02-01",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T00:02:50Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "RED_ACCEPTANCE",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: use case layer, acceptance tests are step 04-02",
+      "t": "2026-03-07T00:02:51Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "RED_UNIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 3 new tests: create_post_with_tags_attached, create_post_without_tags_for_backward_compatibility, return_conflict_when_slug_already_exists",
+      "t": "2026-03-07T00:02:51Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 26/26 application tests, 48/48 domain tests",
+      "t": "2026-03-07T00:02:51Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 commit ef2fe0d",
+      "t": "2026-03-07T00:02:51Z"
+    },
+    {
+      "sid": "02-02",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T00:06:14Z"
+    },
+    {
+      "sid": "02-02",
+      "p": "RED_ACCEPTANCE",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: use case layer, acceptance tests are step 04-02",
+      "t": "2026-03-07T00:06:17Z"
+    },
+    {
+      "sid": "02-02",
+      "p": "RED_UNIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 5 new tests: update_title_and_content, preserve_slug, replace_tags, not_found, validation_error",
+      "t": "2026-03-07T00:06:21Z"
+    },
+    {
+      "sid": "02-02",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 33/33 application tests, 48/48 domain tests",
+      "t": "2026-03-07T00:06:25Z"
+    },
+    {
+      "sid": "02-02",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 commit 8eb81a5",
+      "t": "2026-03-07T00:06:29Z"
+    },
+    {
+      "sid": "02-03",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T00:09:13Z"
+    },
+    {
+      "sid": "02-03",
+      "p": "RED_ACCEPTANCE",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: use case layer, acceptance tests are step 04-02",
+      "t": "2026-03-07T00:09:16Z"
+    },
+    {
+      "sid": "02-03",
+      "p": "RED_UNIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 2 new tests: remove_existing_post_from_repository, return_not_found_for_nonexistent_post",
+      "t": "2026-03-07T00:09:20Z"
+    },
+    {
+      "sid": "02-03",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 35/35 application tests, 48/48 domain tests",
+      "t": "2026-03-07T00:09:23Z"
+    },
+    {
+      "sid": "02-03",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 commit 6752c47",
+      "t": "2026-03-07T00:09:26Z"
+    },
+    {
+      "sid": "03-02",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 read CreatePost, IBlogPostRepository, CreatePostShould, BlogPost patterns",
+      "t": "2026-03-07T00:13:13Z"
+    },
+    {
+      "sid": "03-02",
+      "p": "RED_ACCEPTANCE",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: use case layer, acceptance tests are step 04-02",
+      "t": "2026-03-07T00:13:16Z"
+    },
+    {
+      "sid": "03-02",
+      "p": "RED_UNIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 2 new tests: return_all_posts_sorted_by_created_date_descending, return_empty_list_when_no_posts_exist. Budget: 2 behaviors x 2 = 4 max, used 2.",
+      "t": "2026-03-07T00:13:20Z"
+    },
+    {
+      "sid": "03-02",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 40/40 application tests, 48/48 domain tests",
+      "t": "2026-03-07T00:13:24Z"
+    },
+    {
+      "sid": "03-02",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 commit cd8e32a",
+      "t": "2026-03-07T00:13:27Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 read EditPost, CreatePost, BlogPost.Publish, PostEndpoints, CreatePostShould patterns",
+      "t": "2026-03-07T00:13:57Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "RED_ACCEPTANCE",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: use case layer, acceptance tests are step 04-02",
+      "t": "2026-03-07T00:14:01Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "RED_UNIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 3 new tests: transition_draft_post_to_published_with_timestamp, return_not_found_for_nonexistent_post, return_conflict_for_already_published_post. Budget: 3 behaviors x 2 = 6 max, used 3.",
+      "t": "2026-03-07T00:14:06Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 40/40 application tests, 48/48 domain tests. ToResponse updated with PublishedAt and Tags.",
+      "t": "2026-03-07T00:14:10Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 commit 279aca2",
+      "t": "2026-03-07T00:14:14Z"
+    },
+    {
+      "sid": "04-01",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 read all existing code: PostEndpoints, Program.cs, use cases, domain entities, EF configs, AuthEndpointsShould pattern",
+      "t": "2026-03-07T00:23:46Z"
+    },
+    {
+      "sid": "04-01",
+      "p": "RED_ACCEPTANCE",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: acceptance tests are step 04-02",
+      "t": "2026-03-07T00:23:50Z"
+    },
+    {
+      "sid": "04-01",
+      "p": "RED_UNIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 15 new integration tests in PostEndpointsShould: update_post_and_return_200, return_404_when_updating_nonexistent_post, return_400_when_updating_with_empty_title, delete_post_and_return_204, return_404_when_deleting_nonexistent_post, publish_post_and_return_200, return_404_when_publishing_nonexistent_post, return_409_when_publishing_already_published_post, list_all_posts_for_admin, require_auth_for_admin_list, create_post_with_tags, update_post_with_tags, require_auth_for_write_endpoints(PUT/DELETE), require_auth_for_publish",
+      "t": "2026-03-07T00:23:53Z"
+    },
+    {
+      "sid": "04-01",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 48 domain, 40 application, 19 api tests green. Wired: PUT/DELETE/POST-publish/GET-admin endpoints. EF migration AddTagsAndPostTags created.",
+      "t": "2026-03-07T00:23:58Z"
+    },
+    {
+      "sid": "04-01",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 commit fcfd323",
+      "t": "2026-03-07T00:24:00Z"
+    },
+    {
+      "sid": "04-02",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T12:12:19Z"
+    },
+    {
+      "sid": "04-02",
+      "p": "RED_ACCEPTANCE",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T12:12:24Z"
+    },
+    {
+      "sid": "04-02",
+      "p": "RED_UNIT",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: acceptance test wiring step, no unit tests needed",
+      "t": "2026-03-07T12:12:24Z"
+    },
+    {
+      "sid": "04-02",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T12:12:24Z"
+    },
+    {
+      "sid": "04-02",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T12:12:24Z"
+    }
+  ]
+}
