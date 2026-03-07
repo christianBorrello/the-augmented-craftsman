@@ -7,44 +7,29 @@ using TacBlog.Acceptance.Tests.Drivers;
 namespace TacBlog.Acceptance.Tests.StepDefinitions;
 
 [Binding]
-public sealed class TagSteps
+public sealed class TagSteps(
+    TagApiDriver tagDriver,
+    PostApiDriver postDriver,
+    AuthApiDriver authDriver,
+    ApiContext apiContext,
+    ScenarioContext scenarioContext)
 {
-    private readonly TagApiDriver _tagDriver;
-    private readonly PostApiDriver _postDriver;
-    private readonly AuthApiDriver _authDriver;
-    private readonly ApiContext _apiContext;
-    private readonly ScenarioContext _scenarioContext;
-
     private const string CreatedPostIdsKey = "TagSteps_CreatedPostIds";
     private const string TagSlugMapKey = "TagSteps_TagSlugMap";
-
-    public TagSteps(
-        TagApiDriver tagDriver,
-        PostApiDriver postDriver,
-        AuthApiDriver authDriver,
-        ApiContext apiContext,
-        ScenarioContext scenarioContext)
-    {
-        _tagDriver = tagDriver;
-        _postDriver = postDriver;
-        _authDriver = authDriver;
-        _apiContext = apiContext;
-        _scenarioContext = scenarioContext;
-    }
 
     // ── Epic 2: CreateTag (US-020) ──
 
     [When("Christian creates a tag with name {string}")]
     public async Task WhenChristianCreatesATagWithName(string name)
     {
-        await _tagDriver.CreateTag(name);
+        await tagDriver.CreateTag(name);
     }
 
     [Then("the tag {string} is created with slug {string}")]
     public async Task ThenTheTagIsCreatedWithSlug(string name, string slug)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var root = _apiContext.LastResponseJson!.RootElement;
+        apiContext.LastResponseJson.Should().NotBeNull();
+        var root = apiContext.LastResponseJson!.RootElement;
 
         if (root.TryGetProperty("name", out _))
         {
@@ -53,13 +38,13 @@ public sealed class TagSteps
             return;
         }
 
-        await _tagDriver.ListTags();
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var tag = _apiContext.LastResponseJson!.RootElement
+        await tagDriver.ListTags();
+        apiContext.LastResponseJson.Should().NotBeNull();
+        var tag = apiContext.LastResponseJson!.RootElement
             .EnumerateArray()
             .FirstOrDefault(t => t.GetProperty("name").GetString() == name);
 
-        tag.ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Undefined,
+        tag.ValueKind.Should().NotBe(JsonValueKind.Undefined,
             $"tag '{name}' should exist in the tag list");
         tag.GetProperty("slug").GetString().Should().Be(slug);
     }
@@ -67,21 +52,20 @@ public sealed class TagSteps
     [Given("a tag {string} already exists")]
     public async Task GivenATagAlreadyExists(string name)
     {
-        await _tagDriver.CreateTag(name);
-        StoreTagSlug(name);
+        await CreateAndStoreTag(name);
     }
 
     [When("Christian creates a tag with an empty name")]
     public async Task WhenChristianCreatesATagWithAnEmptyName()
     {
-        await _tagDriver.CreateTag("");
+        await tagDriver.CreateTag("");
     }
 
     [When("Christian creates a tag with a name of {int} characters")]
     public async Task WhenChristianCreatesATagWithANameOfNCharacters(int length)
     {
         var name = new string('A', length);
-        await _tagDriver.CreateTag(name);
+        await tagDriver.CreateTag(name);
     }
 
     // ── Epic 2: ListTags (US-021) ──
@@ -89,32 +73,23 @@ public sealed class TagSteps
     [Given("these tags exist with post counts:")]
     public async Task GivenTheseTagsExistWithPostCounts(DataTable table)
     {
-        await _authDriver.Authenticate();
+        await authDriver.Authenticate();
 
         foreach (var row in table.Rows)
         {
             var tagName = row["name"];
             var postCount = int.Parse(row["post_count"]);
 
-            await _tagDriver.CreateTag(tagName);
-            StoreTagSlug(tagName);
-
-            for (var i = 0; i < postCount; i++)
-            {
-                await _postDriver.CreatePostWithTags(
-                    $"{tagName} Post {i + 1}",
-                    $"Content for {tagName} post {i + 1}.",
-                    [tagName]);
-                CaptureCreatedPostId();
-            }
+            await CreateAndStoreTag(tagName);
+            await CreatePostsWithTag(tagName, postCount);
         }
     }
 
     [Then("all tags are returned alphabetically with their post counts")]
     public void ThenAllTagsAreReturnedAlphabeticallyWithTheirPostCounts()
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var tags = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+        apiContext.LastResponseJson.Should().NotBeNull();
+        var tags = apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
 
         tags.Count.Should().Be(4);
 
@@ -140,8 +115,8 @@ public sealed class TagSteps
     [Then("the tag list is empty")]
     public void ThenTheTagListIsEmpty()
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var tags = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+        apiContext.LastResponseJson.Should().NotBeNull();
+        var tags = apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
         tags.Should().BeEmpty();
     }
 
@@ -150,80 +125,57 @@ public sealed class TagSteps
     [Given("a tag {string} exists linked to {int} posts")]
     public async Task GivenATagExistsLinkedToPosts(string name, int postCount)
     {
-        await _tagDriver.CreateTag(name);
-        StoreTagSlug(name);
-
-        for (var i = 0; i < postCount; i++)
-        {
-            await _postDriver.CreatePostWithTags(
-                $"{name} Post {i + 1}",
-                $"Content for {name} post {i + 1}.",
-                [name]);
-            CaptureCreatedPostId();
-        }
+        await CreateAndStoreTag(name);
+        await CreatePostsWithTag(name, postCount);
     }
 
     [When("Christian renames the tag {string} to {string}")]
     public async Task WhenChristianRenamesTheTagTo(string oldName, string newName)
     {
         var slug = ToSlug(oldName);
-        await _tagDriver.RenameTag(slug, newName);
+        await tagDriver.RenameTag(slug, newName);
     }
 
     [Then("the tag name is updated to {string}")]
     public void ThenTheTagNameIsUpdatedTo(string name)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        _apiContext.LastResponseJson!.RootElement
+        apiContext.LastResponseJson.Should().NotBeNull();
+        apiContext.LastResponseJson!.RootElement
             .GetProperty("name").GetString().Should().Be(name);
     }
 
     [Then("the tag slug is updated to {string}")]
     public void ThenTheTagSlugIsUpdatedTo(string slug)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        _apiContext.LastResponseJson!.RootElement
+        apiContext.LastResponseJson.Should().NotBeNull();
+        apiContext.LastResponseJson!.RootElement
             .GetProperty("slug").GetString().Should().Be(slug);
     }
 
     [Then("all {int} linked posts now show {string}")]
     public async Task ThenAllLinkedPostsNowShow(int count, string tagName)
     {
-        await _postDriver.GetAdminPosts();
-
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
-
-        var postIds = GetCreatedPostIds();
-        var linkedPosts = posts
-            .Where(p => postIds.Contains(p.GetProperty("id").GetGuid().ToString()))
-            .ToList();
-
-        linkedPosts.Count.Should().Be(count);
+        var linkedPosts = await FetchTrackedPosts();
+        linkedPosts.Should().HaveCount(count);
 
         foreach (var post in linkedPosts)
         {
-            var tags = post.GetProperty("tags").EnumerateArray()
-                .Select(t => t.GetString())
-                .ToList();
-            tags.Should().Contain(tagName);
+            ParsePostTags(post).Should().Contain(tagName);
         }
     }
 
     [Given("tags {string} and {string} exist")]
     public async Task GivenTagsExist(string tag1, string tag2)
     {
-        await _tagDriver.CreateTag(tag1);
-        StoreTagSlug(tag1);
-        await _tagDriver.CreateTag(tag2);
-        StoreTagSlug(tag2);
+        await CreateAndStoreTag(tag1);
+        await CreateAndStoreTag(tag2);
     }
 
     [When("Christian renames {string} to {string}")]
     public async Task WhenChristianRenamesTo(string oldName, string newName)
     {
         var slug = ToSlug(oldName);
-        await _tagDriver.RenameTag(slug, newName);
+        await tagDriver.RenameTag(slug, newName);
     }
 
     // ── Epic 2: DeleteTag (US-023) ──
@@ -232,67 +184,39 @@ public sealed class TagSteps
     public async Task WhenChristianDeletesTheTag(string name)
     {
         var slug = ToSlug(name);
-        await _tagDriver.DeleteTag(slug);
+        await tagDriver.DeleteTag(slug);
     }
 
     [Then("the tag {string} is removed")]
     public async Task ThenTheTagIsRemoved(string name)
     {
-        await _tagDriver.ListTags();
-
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var tagNames = _apiContext.LastResponseJson!.RootElement
-            .EnumerateArray()
-            .Select(t => t.GetProperty("name").GetString())
-            .ToList();
-
+        var tagNames = await FetchTagNames();
         tagNames.Should().NotContain(name);
     }
 
     [Then("the {int} previously linked posts no longer have the tag {string}")]
     public async Task ThenTheLinkedPostsNoLongerHaveTheTag(int count, string tagName)
     {
-        await _postDriver.GetAdminPosts();
-
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
-
-        var postIds = GetCreatedPostIds();
-        var linkedPosts = posts
-            .Where(p => postIds.Contains(p.GetProperty("id").GetGuid().ToString()))
-            .ToList();
-
-        linkedPosts.Count.Should().Be(count);
+        var linkedPosts = await FetchTrackedPosts();
+        linkedPosts.Should().HaveCount(count);
 
         foreach (var post in linkedPosts)
         {
-            var tags = post.GetProperty("tags").EnumerateArray()
-                .Select(t => t.GetString())
-                .ToList();
-            tags.Should().NotContain(tagName);
+            ParsePostTags(post).Should().NotContain(tagName);
         }
     }
 
     [Then("the {int} posts still exist")]
     public async Task ThenThePostsStillExist(int count)
     {
-        await _postDriver.GetAdminPosts();
-
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
-
-        var postIds = GetCreatedPostIds();
-        var existingPosts = posts
-            .Where(p => postIds.Contains(p.GetProperty("id").GetGuid().ToString()))
-            .ToList();
-
-        existingPosts.Count.Should().Be(count);
+        var trackedPosts = await FetchTrackedPosts();
+        trackedPosts.Should().HaveCount(count);
     }
 
     [When("Christian tries to delete a non-existent tag")]
     public async Task WhenChristianTriesToDeleteANonExistentTag()
     {
-        await _tagDriver.DeleteTag("non-existent-tag-slug");
+        await tagDriver.DeleteTag("non-existent-tag-slug");
     }
 
     // ── Epic 2: AssociateTagsWithPosts (US-024) ──
@@ -300,12 +224,9 @@ public sealed class TagSteps
     [Given("tags {string}, {string}, and {string} exist")]
     public async Task GivenThreeTagsExist(string tag1, string tag2, string tag3)
     {
-        await _tagDriver.CreateTag(tag1);
-        StoreTagSlug(tag1);
-        await _tagDriver.CreateTag(tag2);
-        StoreTagSlug(tag2);
-        await _tagDriver.CreateTag(tag3);
-        StoreTagSlug(tag3);
+        await CreateAndStoreTag(tag1);
+        await CreateAndStoreTag(tag2);
+        await CreateAndStoreTag(tag3);
     }
 
     [When("Christian adds tags {string} and {string} to the post")]
@@ -313,7 +234,7 @@ public sealed class TagSteps
     {
         var postId = GetLastCreatedPostId();
         var (title, content) = await GetPostTitleAndContent(postId);
-        await _postDriver.UpdatePost(postId, new { title, content, tags = new[] { tag1, tag2 } });
+        await postDriver.UpdatePost(postId, new { title, content, tags = new[] { tag1, tag2 } });
     }
 
     [Given("the tag {string} does not exist")]
@@ -326,19 +247,19 @@ public sealed class TagSteps
     {
         var postId = GetLastCreatedPostId();
         var (title, content) = await GetPostTitleAndContent(postId);
-        await _postDriver.UpdatePost(postId, new { title, content, tags = new[] { name } });
-        _scenarioContext["AssociatedTagName"] = name;
+        await postDriver.UpdatePost(postId, new { title, content, tags = new[] { name } });
+        scenarioContext["AssociatedTagName"] = name;
     }
 
     [Then("the tag is associated with the post")]
     public async Task ThenTheTagIsAssociatedWithThePost()
     {
         var postId = GetLastCreatedPostId();
-        await _postDriver.PreviewPost(postId);
+        await postDriver.PreviewPost(postId);
 
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var tagName = (string)_scenarioContext["AssociatedTagName"];
-        var tags = _apiContext.LastResponseJson!.RootElement
+        apiContext.LastResponseJson.Should().NotBeNull();
+        var tagName = (string)scenarioContext["AssociatedTagName"];
+        var tags = apiContext.LastResponseJson!.RootElement
             .GetProperty("tags").EnumerateArray()
             .Select(t => t.GetString())
             .ToList();
@@ -351,20 +272,20 @@ public sealed class TagSteps
         var postId = GetLastCreatedPostId();
         var (title, content) = await GetPostTitleAndContent(postId);
 
-        var currentTags = _apiContext.LastResponseJson!.RootElement
+        var currentTags = apiContext.LastResponseJson!.RootElement
             .GetProperty("tags").EnumerateArray()
             .Select(t => t.GetString()!)
             .Where(t => t != name)
             .ToArray();
 
-        await _postDriver.UpdatePost(postId, new { title, content, tags = currentTags });
+        await postDriver.UpdatePost(postId, new { title, content, tags = currentTags });
     }
 
     [Then("the post has only the tag {string}")]
     public void ThenThePostHasOnlyTheTag(string tag)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var tags = _apiContext.LastResponseJson!.RootElement
+        apiContext.LastResponseJson.Should().NotBeNull();
+        var tags = apiContext.LastResponseJson!.RootElement
             .GetProperty("tags").EnumerateArray()
             .Select(t => t.GetString())
             .ToList();
@@ -374,28 +295,14 @@ public sealed class TagSteps
     [Then("the tag {string} still exists")]
     public async Task ThenTheTagStillExists(string name)
     {
-        await _tagDriver.ListTags();
-
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var tagNames = _apiContext.LastResponseJson!.RootElement
-            .EnumerateArray()
-            .Select(t => t.GetProperty("name").GetString())
-            .ToList();
-
+        var tagNames = await FetchTagNames();
         tagNames.Should().Contain(name);
     }
 
     [Then("the tags {string} and {string} still exist")]
     public async Task ThenTheTagsStillExist(string tag1, string tag2)
     {
-        await _tagDriver.ListTags();
-
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var tagNames = _apiContext.LastResponseJson!.RootElement
-            .EnumerateArray()
-            .Select(t => t.GetProperty("name").GetString())
-            .ToList();
-
+        var tagNames = await FetchTagNames();
         tagNames.Should().Contain(tag1);
         tagNames.Should().Contain(tag2);
     }
@@ -452,13 +359,58 @@ public sealed class TagSteps
 
     // ── Helpers ──
 
+    private async Task<List<string?>> FetchTagNames()
+    {
+        await tagDriver.ListTags();
+        apiContext.LastResponseJson.Should().NotBeNull();
+        return apiContext.LastResponseJson!.RootElement
+            .EnumerateArray()
+            .Select(t => t.GetProperty("name").GetString())
+            .ToList();
+    }
+
+    private async Task<List<JsonElement>> FetchTrackedPosts()
+    {
+        await postDriver.GetAdminPosts();
+        apiContext.LastResponseJson.Should().NotBeNull();
+
+        var postIds = GetCreatedPostIds();
+        return apiContext.LastResponseJson!.RootElement
+            .EnumerateArray()
+            .Where(p => postIds.Contains(p.GetProperty("id").GetGuid().ToString()))
+            .ToList();
+    }
+
+    private static List<string?> ParsePostTags(JsonElement post) =>
+        post.GetProperty("tags").EnumerateArray()
+            .Select(t => t.GetString())
+            .ToList();
+
+    private async Task CreateAndStoreTag(string name)
+    {
+        await tagDriver.CreateTag(name);
+        StoreTagSlug(name);
+    }
+
+    private async Task CreatePostsWithTag(string tagName, int count)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            await postDriver.CreatePostWithTags(
+                $"{tagName} Post {i + 1}",
+                $"Content for {tagName} post {i + 1}.",
+                [tagName]);
+            CaptureCreatedPostId();
+        }
+    }
+
     private string GetLastCreatedPostId() =>
-        (string)_scenarioContext["LastCreatedPostId"];
+        (string)scenarioContext["LastCreatedPostId"];
 
     private async Task<(string Title, string Content)> GetPostTitleAndContent(string postId)
     {
-        await _postDriver.PreviewPost(postId);
-        var root = _apiContext.LastResponseJson!.RootElement;
+        await postDriver.PreviewPost(postId);
+        var root = apiContext.LastResponseJson!.RootElement;
         return (root.GetProperty("title").GetString()!, root.GetProperty("content").GetString()!);
     }
 
@@ -470,19 +422,19 @@ public sealed class TagSteps
 
     private Dictionary<string, string> GetOrCreateTagSlugMap()
     {
-        if (!_scenarioContext.TryGetValue(TagSlugMapKey, out var existing))
+        if (!scenarioContext.TryGetValue(TagSlugMapKey, out var existing))
         {
             existing = new Dictionary<string, string>();
-            _scenarioContext[TagSlugMapKey] = existing;
+            scenarioContext[TagSlugMapKey] = existing;
         }
         return (Dictionary<string, string>)existing;
     }
 
     private void CaptureCreatedPostId()
     {
-        if (_apiContext.LastResponseJson is null) return;
+        if (apiContext.LastResponseJson is null) return;
 
-        var root = _apiContext.LastResponseJson.RootElement;
+        var root = apiContext.LastResponseJson.RootElement;
         if (!root.TryGetProperty("id", out var idElement)) return;
 
         var ids = GetOrCreatePostIds();
@@ -491,17 +443,17 @@ public sealed class TagSteps
 
     private List<string> GetOrCreatePostIds()
     {
-        if (!_scenarioContext.TryGetValue(CreatedPostIdsKey, out var existing))
+        if (!scenarioContext.TryGetValue(CreatedPostIdsKey, out var existing))
         {
             existing = new List<string>();
-            _scenarioContext[CreatedPostIdsKey] = existing;
+            scenarioContext[CreatedPostIdsKey] = existing;
         }
         return (List<string>)existing;
     }
 
     private List<string> GetCreatedPostIds()
     {
-        if (_scenarioContext.TryGetValue(CreatedPostIdsKey, out var existing))
+        if (scenarioContext.TryGetValue(CreatedPostIdsKey, out var existing))
             return (List<string>)existing;
         return [];
     }

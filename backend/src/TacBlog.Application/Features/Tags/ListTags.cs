@@ -9,7 +9,7 @@ public sealed class ListTags(ITagRepository repository)
     public async Task<ListTagsResult> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var tags = await repository.GetAllWithPostCountsAsync(cancellationToken);
-        var sorted = tags.OrderBy(t => t.Tag.Name.ToString()).ToList();
+        var sorted = tags.OrderBy(tagWithCount => tagWithCount.Tag.Name.ToString()).ToList();
         return new ListTagsResult(sorted);
     }
 }
