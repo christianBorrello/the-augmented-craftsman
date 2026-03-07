@@ -132,13 +132,16 @@ public static class PostEndpoints
         return Results.Ok(result.Posts.Select(ToResponse));
     }
 
-    private static string ToUserFacingMessage(string errorMessage) =>
-        errorMessage switch
-        {
-            _ when errorMessage.Contains("Title cannot be empty") => "Title is required",
-            _ when errorMessage.Contains("Content cannot be empty") => "Content is required",
-            _ => errorMessage
-        };
+    private static string ToUserFacingMessage(string errorMessage)
+    {
+        if (errorMessage.Contains("Title cannot be empty"))
+            return "Title is required";
+
+        if (errorMessage.Contains("Content cannot be empty"))
+            return "Content is required";
+
+        return errorMessage;
+    }
 
     private static PostResponse ToResponse(BlogPost post) =>
         new(

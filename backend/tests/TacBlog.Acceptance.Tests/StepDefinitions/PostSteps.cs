@@ -82,9 +82,7 @@ public sealed class PostSteps
     [Then("the response contains a post with slug {string}")]
     public void ThenTheResponseContainsAPostWithSlug(string expectedSlug)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        _apiContext.LastResponseJson!.RootElement
-            .GetProperty("slug").GetString().Should().Be(expectedSlug);
+        GetResponseProperty("slug").Should().Be(expectedSlug);
     }
 
     [Then("the post can be retrieved")]
@@ -95,15 +93,13 @@ public sealed class PostSteps
     [Then("the response contains title {string}")]
     public void ThenTheResponseContainsTitle(string expectedTitle)
     {
-        _apiContext.LastResponseJson!.RootElement
-            .GetProperty("title").GetString().Should().Be(expectedTitle);
+        GetResponseProperty("title").Should().Be(expectedTitle);
     }
 
     [Then("the response contains content {string}")]
     public void ThenTheResponseContainsContent(string expectedContent)
     {
-        _apiContext.LastResponseJson!.RootElement
-            .GetProperty("content").GetString().Should().Be(expectedContent);
+        GetResponseProperty("content").Should().Be(expectedContent);
     }
 
     // ── Epic 1: CreatePost (US-011, US-012) ──
@@ -139,28 +135,19 @@ public sealed class PostSteps
     [Then("a draft post is created with slug {string}")]
     public void ThenADraftPostIsCreatedWithSlug(string slug)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        _apiContext.LastResponseJson!.RootElement
-            .GetProperty("slug").GetString().Should().Be(slug);
+        GetResponseProperty("slug").Should().Be(slug);
     }
 
     [Then("the post status is {string}")]
     public void ThenThePostStatusIs(string status)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        _apiContext.LastResponseJson!.RootElement
-            .GetProperty("status").GetString().Should().Be(status);
+        GetResponseProperty("status").Should().Be(status);
     }
 
     [Then("the post has tags {string} and {string}")]
     public void ThenThePostHasTags(string tag1, string tag2)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var tags = _apiContext.LastResponseJson!.RootElement
-            .GetProperty("tags").EnumerateArray()
-            .Select(t => t.GetString())
-            .ToList();
-
+        var tags = GetTagsFromResponse();
         tags.Should().Contain(tag1);
         tags.Should().Contain(tag2);
     }
@@ -207,12 +194,8 @@ public sealed class PostSteps
     [Then("the post content is stored with the raw content preserved")]
     public void ThenThePostContentIsStoredWithTheRawContentPreserved()
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var storedContent = _apiContext.LastResponseJson!.RootElement
-            .GetProperty("content").GetString();
-
         var expectedContent = (string)_scenarioContext[LastCreatedContentKey];
-        storedContent.Should().Be(expectedContent);
+        GetResponseProperty("content").Should().Be(expectedContent);
     }
 
     [When("Christian creates a post with title {string}")]
@@ -232,9 +215,7 @@ public sealed class PostSteps
     [Then("the generated slug is {string}")]
     public void ThenTheGeneratedSlugIs(string expectedSlug)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        _apiContext.LastResponseJson!.RootElement
-            .GetProperty("slug").GetString().Should().Be(expectedSlug);
+        GetResponseProperty("slug").Should().Be(expectedSlug);
     }
 
     // ── Epic 1: PreviewPost (US-013) ──
@@ -259,12 +240,8 @@ public sealed class PostSteps
     [Then("the preview shows formatted content with highlighted code examples")]
     public void ThenThePreviewShowsFormattedContentWithHighlightedCodeExamples()
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var content = _apiContext.LastResponseJson!.RootElement
-            .GetProperty("content").GetString();
-
         var expectedContent = (string)_scenarioContext[LastCreatedContentKey];
-        content.Should().Be(expectedContent);
+        GetResponseProperty("content").Should().Be(expectedContent);
     }
 
     [Given("a draft post {string} exists with a featured image")]
@@ -303,12 +280,7 @@ public sealed class PostSteps
     [Then("the preview displays tag badges for {string} and {string}")]
     public void ThenThePreviewDisplaysTagBadgesFor(string tag1, string tag2)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var tags = _apiContext.LastResponseJson!.RootElement
-            .GetProperty("tags").EnumerateArray()
-            .Select(t => t.GetString())
-            .ToList();
-
+        var tags = GetTagsFromResponse();
         tags.Should().Contain(tag1);
         tags.Should().Contain(tag2);
     }
@@ -348,18 +320,13 @@ public sealed class PostSteps
     [Then("the post status changes to {string}")]
     public void ThenThePostStatusChangesTo(string status)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        _apiContext.LastResponseJson!.RootElement
-            .GetProperty("status").GetString().Should().Be(status);
+        GetResponseProperty("status").Should().Be(status);
     }
 
     [Then("the post has a publish date of today")]
     public void ThenThePostHasAPublishDateOfToday()
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var publishedAt = _apiContext.LastResponseJson!.RootElement
-            .GetProperty("publishedAt").GetString();
-
+        var publishedAt = GetResponseProperty("publishedAt");
         publishedAt.Should().NotBeNull();
         var publishedDate = DateTimeOffset.Parse(publishedAt!);
         publishedDate.UtcDateTime.Date.Should().Be(DateTime.UtcNow.Date);
@@ -378,32 +345,21 @@ public sealed class PostSteps
     [Then("the post title is {string}")]
     public void ThenThePostTitleIs(string title)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        _apiContext.LastResponseJson!.RootElement
-            .GetProperty("title").GetString().Should().Be(title);
+        GetResponseProperty("title").Should().Be(title);
     }
 
     [Then("the post tags include {string}")]
     public void ThenThePostTagsInclude(string tag)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var tags = _apiContext.LastResponseJson!.RootElement
-            .GetProperty("tags").EnumerateArray()
-            .Select(t => t.GetString())
-            .ToList();
-
+        var tags = GetTagsFromResponse();
         tags.Should().Contain(tag);
     }
 
     [Then("the post content is unchanged")]
     public void ThenThePostContentIsUnchanged()
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        var storedContent = _apiContext.LastResponseJson!.RootElement
-            .GetProperty("content").GetString();
-
         var expectedContent = (string)_scenarioContext[LastCreatedContentKey];
-        storedContent.Should().Be(expectedContent);
+        GetResponseProperty("content").Should().Be(expectedContent);
     }
 
     [Given("a published post {string} exists")]
@@ -449,9 +405,7 @@ public sealed class PostSteps
     [Then("the slug remains {string}")]
     public void ThenTheSlugRemains(string slug)
     {
-        _apiContext.LastResponseJson.Should().NotBeNull();
-        _apiContext.LastResponseJson!.RootElement
-            .GetProperty("slug").GetString().Should().Be(slug);
+        GetResponseProperty("slug").Should().Be(slug);
     }
 
     [Given("a draft post exists with title {string} and slug {string}")]
@@ -841,6 +795,22 @@ public sealed class PostSteps
     }
 
     // ── Helpers ──
+
+    private string? GetResponseProperty(string propertyName)
+    {
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        return _apiContext.LastResponseJson!.RootElement
+            .GetProperty(propertyName).GetString();
+    }
+
+    private List<string?> GetTagsFromResponse()
+    {
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        return _apiContext.LastResponseJson!.RootElement
+            .GetProperty("tags").EnumerateArray()
+            .Select(t => t.GetString())
+            .ToList();
+    }
 
     private void CapturePostIdFromResponse()
     {
