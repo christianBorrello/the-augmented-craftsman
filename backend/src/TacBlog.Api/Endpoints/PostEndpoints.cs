@@ -26,7 +26,7 @@ public static class PostEndpoints
         CreatePost createPost,
         CancellationToken cancellationToken)
     {
-        var result = await createPost.ExecuteAsync(request.Title, request.Content, cancellationToken);
+        var result = await createPost.ExecuteAsync(request.Title, request.Content, cancellationToken: cancellationToken);
 
         if (!result.IsSuccess)
             return Results.BadRequest(new { error = ToUserFacingMessage(result.ErrorMessage!) });

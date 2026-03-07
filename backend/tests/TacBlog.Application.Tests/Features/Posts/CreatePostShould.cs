@@ -72,4 +72,48 @@ public class CreatePostShould
             Arg.Any<BlogPost>(),
             Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task create_post_with_tags_attached()
+    {
+        _repository.ExistsBySlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var tagNames = new List<string> { "TDD", "Clean Code" };
+
+        var result = await _useCase.ExecuteAsync("Tagged Post", "Content with tags", tagNames);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Post!.Tags.Should().HaveCount(2);
+        result.Post.Tags.Select(t => t.Name.ToString()).Should().BeEquivalentTo("TDD", "Clean Code");
+    }
+
+    [Fact]
+    public async Task create_post_without_tags_for_backward_compatibility()
+    {
+        _repository.ExistsBySlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var result = await _useCase.ExecuteAsync("No Tags Post", "Content without tags");
+
+        result.IsSuccess.Should().BeTrue();
+        result.Post!.Tags.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task return_conflict_when_slug_already_exists()
+    {
+        _repository.ExistsBySlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        var result = await _useCase.ExecuteAsync("Duplicate Post", "Some content");
+
+        result.IsSuccess.Should().BeFalse();
+        result.IsConflict.Should().BeTrue();
+        result.ErrorMessage.Should().Contain("already exists");
+
+        await _repository.DidNotReceive().SaveAsync(
+            Arg.Any<BlogPost>(),
+            Arg.Any<CancellationToken>());
+    }
 }
