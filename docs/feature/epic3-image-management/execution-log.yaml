@@ -51,3 +51,28 @@ events:
     status: EXECUTED
     data: PASS
     timestamp: "2026-03-07T12:00:04Z"
+  - step_id: "02-01"
+    phase: PREPARE
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T14:00:00Z"
+  - step_id: "02-01"
+    phase: RED_ACCEPTANCE
+    status: SKIPPED
+    data: "NOT_APPLICABLE: use case layer step, no acceptance test"
+    timestamp: "2026-03-07T14:00:01Z"
+  - step_id: "02-01"
+    phase: RED_UNIT
+    status: EXECUTED
+    data: "PASS — 4 tests (2 parametrized theories, 2 facts), compilation failure confirmed"
+    timestamp: "2026-03-07T14:00:02Z"
+  - step_id: "02-01"
+    phase: GREEN
+    status: EXECUTED
+    data: "PASS — 64 domain tests green, 50 application tests green"
+    timestamp: "2026-03-07T14:00:03Z"
+  - step_id: "02-01"
+    phase: COMMIT
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T14:00:04Z"
