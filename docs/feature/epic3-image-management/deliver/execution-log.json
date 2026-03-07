@@ -99,6 +99,48 @@
       "s": "EXECUTED",
       "d": "PASS",
       "t": "2026-03-07T14:54:18Z"
+    },
+    {
+      "sid": "02-02",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T14:54:38Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T14:54:41Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "RED_ACCEPTANCE",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: use case layer step, no acceptance test",
+      "t": "2026-03-07T14:54:44Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "RED_UNIT",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 4 tests (2 parametrized theories, 2 facts), compilation failure confirmed",
+      "t": "2026-03-07T14:54:49Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 64 domain tests green, 50 application tests green",
+      "t": "2026-03-07T14:54:52Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T14:54:55Z"
     }
   ],
   "project_id": "epic3-image-management"

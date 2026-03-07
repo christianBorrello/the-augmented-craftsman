@@ -64,6 +64,14 @@ public sealed class BlogPostConfiguration : IEntityTypeConfiguration<BlogPost>
         builder.Property(p => p.PublishedAt)
             .HasColumnName("published_at");
 
+        builder.Property(p => p.FeaturedImageUrl)
+            .HasColumnName("featured_image_url")
+            .HasMaxLength(2048)
+            .IsRequired(false)
+            .HasConversion(
+                url => url != null ? url.Value.Value : null,
+                value => value != null ? new FeaturedImageUrl(value) : null);
+
         builder.HasMany(p => p.Tags)
             .WithMany()
             .UsingEntity("post_tags",

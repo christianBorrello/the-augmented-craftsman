@@ -76,3 +76,28 @@ events:
     status: EXECUTED
     data: PASS
     timestamp: "2026-03-07T14:00:04Z"
+  - step_id: "03-01"
+    phase: PREPARE
+    status: EXECUTED
+    data: "PASS — reviewed BlogPostConfiguration, Infrastructure.csproj, Program.cs, IImageStorage, FeaturedImageUrl, existing use cases"
+    timestamp: "2026-03-07T14:58:00Z"
+  - step_id: "03-01"
+    phase: RED_ACCEPTANCE
+    status: SKIPPED
+    data: "NOT_APPLICABLE: infrastructure adapter step, tested via acceptance tests in later steps"
+    timestamp: "2026-03-07T14:58:01Z"
+  - step_id: "03-01"
+    phase: RED_UNIT
+    status: SKIPPED
+    data: "NOT_APPLICABLE: adapter wraps external ImageKit SDK, no meaningful unit test without integration"
+    timestamp: "2026-03-07T14:58:02Z"
+  - step_id: "03-01"
+    phase: GREEN
+    status: EXECUTED
+    data: "PASS — ImageKitImageStorage adapter, EF FeaturedImageUrl mapping, migration, DI wiring. Build green, 133 tests green (64 domain + 50 application + 19 API)"
+    timestamp: "2026-03-07T14:58:03Z"
+  - step_id: "03-01"
+    phase: COMMIT
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T14:58:18Z"
