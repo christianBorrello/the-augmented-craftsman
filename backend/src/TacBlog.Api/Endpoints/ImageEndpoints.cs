@@ -21,7 +21,7 @@ public static class ImageEndpoints
             stream, file.FileName, file.ContentType, cancellationToken);
 
         if (result.IsServiceUnavailable)
-            return Results.StatusCode(503);
+            return Results.Json(new { error = "Upload failed. Try again." }, statusCode: 503);
 
         if (!result.IsSuccess)
             return Results.BadRequest(new { error = result.ErrorMessage });
@@ -42,7 +42,7 @@ public static class ImageEndpoints
             return Results.NotFound(new { error = "Post not found" });
 
         if (result.IsValidationError)
-            return Results.BadRequest(new { error = result.ErrorMessage });
+            return Results.BadRequest(new { error = "Invalid image URL" });
 
         return Results.Ok(PostEndpoints.ToResponse(result.Post!));
     }

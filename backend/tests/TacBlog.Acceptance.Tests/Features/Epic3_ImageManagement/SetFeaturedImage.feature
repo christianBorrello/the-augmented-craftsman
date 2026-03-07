@@ -1,4 +1,4 @@
-@epic3 @skip @api
+@epic3 @api
 Feature: Set featured image for a blog post
   As Christian (the author)
   I want to set a featured image on my posts

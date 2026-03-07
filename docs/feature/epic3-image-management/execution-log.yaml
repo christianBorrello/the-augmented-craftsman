@@ -101,3 +101,23 @@ events:
     status: EXECUTED
     data: PASS
     timestamp: "2026-03-07T14:58:18Z"
+  - step_id: "04-01"
+    phase: PREPARE
+    status: EXECUTED
+    data: "PASS — reviewed ImageSteps, ImageApiDriver, PostSteps, CommonSteps, AuthSteps, feature files, IImageStorage, ImageEndpoints, UploadImage use case, SetFeaturedImage use case, factory, DI config"
+    timestamp: "2026-03-07T16:00:00Z"
+  - step_id: "04-01"
+    phase: RED_ACCEPTANCE
+    status: EXECUTED
+    data: "PASS — removed @skip from all 3 feature files, 8 of 9 scenarios fail with PendingStepException (1 passes via existing PostSteps)"
+    timestamp: "2026-03-07T16:01:00Z"
+  - step_id: "04-01"
+    phase: RED_UNIT
+    status: SKIPPED
+    data: "NOT_APPLICABLE: acceptance test step, no inner unit test loop"
+    timestamp: "2026-03-07T16:01:01Z"
+  - step_id: "04-01"
+    phase: GREEN
+    status: EXECUTED
+    data: "PASS — 9/9 Epic 3 acceptance scenarios green, 64 domain + 50 application + 19 API + 48 acceptance (non-epic4) all green"
+    timestamp: "2026-03-07T16:10:00Z"

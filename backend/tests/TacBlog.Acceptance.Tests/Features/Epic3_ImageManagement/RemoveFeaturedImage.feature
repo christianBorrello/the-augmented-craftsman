@@ -1,4 +1,4 @@
-@epic3 @skip @api
+@epic3 @api
 Feature: Remove featured image from a blog post
   As Christian (the author)
   I want to remove a featured image from a post

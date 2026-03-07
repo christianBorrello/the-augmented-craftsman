@@ -22,8 +22,7 @@ public sealed class UploadImage(IImageStorage imageStorage)
         CancellationToken cancellationToken = default)
     {
         if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
-            return UploadImageResult.ValidationError(
-                $"Content type '{contentType}' is not a supported image format");
+            return UploadImageResult.ValidationError("Only image files are allowed");
 
         try
         {
