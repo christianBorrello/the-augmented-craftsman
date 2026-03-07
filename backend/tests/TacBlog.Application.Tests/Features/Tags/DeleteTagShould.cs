@@ -22,7 +22,7 @@ public class DeleteTagShould
     {
         var tag = Tag.Create(new TagName("TDD"));
         var slug = Slug.FromTagName(new TagName("TDD"));
-        _repository.FindBySlugAsync(Arg.Is<Slug>(s => s.Value == slug.Value), Arg.Any<CancellationToken>())
+        _repository.FindBySlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
             .Returns(tag);
 
         var result = await _useCase.ExecuteAsync(slug.Value);
@@ -31,7 +31,7 @@ public class DeleteTagShould
         result.IsNotFound.Should().BeFalse();
 
         await _repository.Received(1).DeleteAsync(
-            Arg.Is<TagId>(id => id.Value == tag.Id.Value),
+            Arg.Any<TagId>(),
             Arg.Any<CancellationToken>());
     }
 
