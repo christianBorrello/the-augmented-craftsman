@@ -26,3 +26,28 @@ events:
     status: EXECUTED
     data: PASS
     timestamp: "2026-03-07T00:00:04Z"
+  - step_id: "01-02"
+    phase: PREPARE
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T12:00:00Z"
+  - step_id: "01-02"
+    phase: RED_ACCEPTANCE
+    status: SKIPPED
+    data: "NOT_APPLICABLE: domain-only step, no acceptance test"
+    timestamp: "2026-03-07T12:00:01Z"
+  - step_id: "01-02"
+    phase: RED_UNIT
+    status: EXECUTED
+    data: "PASS — 4 tests (set image, remove image, idempotent remove, null default), compilation failure confirmed"
+    timestamp: "2026-03-07T12:00:02Z"
+  - step_id: "01-02"
+    phase: GREEN
+    status: EXECUTED
+    data: "PASS — 64 domain tests green, 35 application tests green"
+    timestamp: "2026-03-07T12:00:03Z"
+  - step_id: "01-02"
+    phase: COMMIT
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T12:00:04Z"
