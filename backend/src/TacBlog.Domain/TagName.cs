@@ -8,12 +8,12 @@ public readonly record struct TagName
     public TagName(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Tag name cannot be empty or whitespace.", nameof(value));
+            throw new ArgumentException("Tag name is required", nameof(value));
 
         var trimmed = value.Trim();
 
         if (trimmed.Length > MaxLength)
-            throw new ArgumentException($"Tag name cannot exceed {MaxLength} characters.", nameof(value));
+            throw new ArgumentException($"Tag name must be {MaxLength} characters or fewer", nameof(value));
 
         _value = trimmed;
     }

@@ -44,4 +44,19 @@ public class TagShould
 
         tag1.Should().NotBe(tag2);
     }
+
+    [Theory]
+    [InlineData("TDD", "Clean Code", "clean-code")]
+    [InlineData("Old Name", "New Name", "new-name")]
+    public void update_name_and_slug_on_rename(string originalName, string newName, string expectedSlug)
+    {
+        var tag = Tag.Create(new TagName(originalName));
+        var originalId = tag.Id;
+
+        tag.Rename(new TagName(newName));
+
+        tag.Name.ToString().Should().Be(newName);
+        tag.Slug.ToString().Should().Be(expectedSlug);
+        tag.Id.Should().Be(originalId);
+    }
 }

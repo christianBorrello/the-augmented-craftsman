@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using TacBlog.Api.Endpoints;
 using TacBlog.Application.Features.Auth;
 using TacBlog.Application.Features.Posts;
+using TacBlog.Application.Features.Tags;
 using TacBlog.Application.Ports.Driven;
 using TacBlog.Infrastructure;
 using TacBlog.Infrastructure.Clock;
@@ -22,6 +23,7 @@ builder.Services.AddDbContext<TacBlogDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IBlogPostRepository, EfBlogPostRepository>();
+builder.Services.AddScoped<ITagRepository, EfTagRepository>();
 builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddScoped<CreatePost>();
 builder.Services.AddScoped<GetPostBySlug>();
@@ -30,6 +32,10 @@ builder.Services.AddScoped<DeletePost>();
 builder.Services.AddScoped<PublishPost>();
 builder.Services.AddScoped<ListPosts>();
 builder.Services.AddScoped<PreviewPost>();
+builder.Services.AddScoped<CreateTag>();
+builder.Services.AddScoped<ListTags>();
+builder.Services.AddScoped<RenameTag>();
+builder.Services.AddScoped<DeleteTag>();
 
 builder.Services.AddSingleton(sp =>
 {

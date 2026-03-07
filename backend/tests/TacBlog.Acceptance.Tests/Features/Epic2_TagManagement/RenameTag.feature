@@ -1,4 +1,4 @@
-@epic2 @skip @api
+@epic2 @api
 Feature: Rename a tag
   As Christian (the author)
   I want to rename tags

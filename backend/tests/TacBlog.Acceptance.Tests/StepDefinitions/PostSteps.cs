@@ -789,9 +789,11 @@ public sealed class PostSteps
     }
 
     [Then("the post is still accessible")]
-    public void ThenThePostIsStillAccessible()
+    public async Task ThenThePostIsStillAccessible()
     {
-        throw new PendingStepException();
+        var postId = GetLastCreatedPostId();
+        await _postDriver.PreviewPost(postId);
+        _apiContext.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
     }
 
     // ── Helpers ──

@@ -1,0 +1,233 @@
+{
+  "roadmap": {
+    "project_id": "epic2-tag-management",
+    "created_at": "2026-03-07T13:15:26Z",
+    "total_steps": 9,
+    "phases": 5
+  },
+  "phases": [
+    {
+      "id": "01",
+      "name": "ITagRepository port and CreateTag use case",
+      "steps": [
+        {
+          "id": "01-01",
+          "name": "ITagRepository driven port",
+          "description": "Define dedicated tag repository interface following ISP. Separate from IBlogPostRepository. Methods driven by use case needs across all tag operations.",
+          "criteria": [
+            "Port exposes FindBySlugAsync, FindByIdAsync, ExistsBySlugAsync",
+            "Port exposes GetAllWithPostCountsAsync returning tag + count pairs",
+            "Port exposes SaveAsync and DeleteAsync",
+            "Port lives in Application/Ports/Driven, not Infrastructure"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Application/Ports/Driven/ITagRepository.cs"
+          ],
+          "dependencies": [],
+          "estimated_hours": 0.5
+        },
+        {
+          "id": "01-02",
+          "name": "CreateTag use case",
+          "description": "Standalone tag creation validating TagName, checking slug uniqueness via ITagRepository, and persisting. Follows CreatePostResult pattern for result type.",
+          "criteria": [
+            "Valid tag name creates and persists tag with generated slug",
+            "Duplicate slug returns conflict error",
+            "Empty or whitespace name returns validation error",
+            "Name exceeding max length returns validation error",
+            "Result type has Success, ValidationError, Conflict factory methods"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Application/Features/Tags/CreateTag.cs",
+            "backend/tests/TacBlog.Application.Tests/Features/Tags/CreateTagShould.cs"
+          ],
+          "dependencies": ["01-01"],
+          "estimated_hours": 1.5
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "name": "ListTags and RenameTag use cases",
+      "steps": [
+        {
+          "id": "02-01",
+          "name": "ListTags use case with post counts",
+          "description": "Return all tags with post counts sorted alphabetically. Post count derived from ITagRepository.GetAllWithPostCountsAsync.",
+          "criteria": [
+            "All tags returned with their associated post counts",
+            "Tags sorted alphabetically by name",
+            "Empty list returned when no tags exist",
+            "Response includes name, slug, and postCount per tag"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Application/Features/Tags/ListTags.cs",
+            "backend/tests/TacBlog.Application.Tests/Features/Tags/ListTagsShould.cs"
+          ],
+          "dependencies": ["01-01"],
+          "estimated_hours": 1.0
+        },
+        {
+          "id": "02-02",
+          "name": "RenameTag use case with domain rename support",
+          "description": "Add Rename(TagName) method to Tag entity (domain layer, preserves TagId, regenerates slug). Then TDD the RenameTag use case: find tag by slug, validate new name, check uniqueness of new slug, call Tag.Rename(), persist. Posts retain association through Tag entity reference.",
+          "criteria": [
+            "Tag entity has Rename(TagName) method that updates name and slug",
+            "Renamed tag preserves its identity (TagId unchanged)",
+            "Invalid new name rejected at domain level",
+            "Tag name and slug updated after rename via use case",
+            "Rename to existing tag slug returns conflict error",
+            "Non-existent source tag returns not-found error",
+            "Result type has Success, NotFound, Conflict, ValidationError"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Domain/Tag.cs",
+            "backend/tests/TacBlog.Domain.Tests/TagShould.cs",
+            "backend/src/TacBlog.Application/Features/Tags/RenameTag.cs",
+            "backend/tests/TacBlog.Application.Tests/Features/Tags/RenameTagShould.cs"
+          ],
+          "dependencies": ["01-01"],
+          "estimated_hours": 1.5
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "name": "DeleteTag use case",
+      "steps": [
+        {
+          "id": "03-01",
+          "name": "DeleteTag use case with post unlinking",
+          "description": "Delete tag by slug. Remove tag-post associations before deleting. Posts survive tag deletion. Non-existent tag returns not-found.",
+          "criteria": [
+            "Tag removed from repository after delete",
+            "Posts previously linked to tag no longer have it",
+            "Posts still exist after tag deletion",
+            "Non-existent tag returns not-found error",
+            "Tag with zero linked posts deletes successfully"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Application/Features/Tags/DeleteTag.cs",
+            "backend/tests/TacBlog.Application.Tests/Features/Tags/DeleteTagShould.cs"
+          ],
+          "dependencies": ["01-01"],
+          "estimated_hours": 1.5
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "name": "EF adapter, API endpoints, and DI wiring",
+      "steps": [
+        {
+          "id": "04-01",
+          "name": "EfTagRepository adapter",
+          "description": "Implement ITagRepository using EF Core. GetAllWithPostCountsAsync uses join count query. Reuse existing TagConfiguration and post_tags join table.",
+          "criteria": [
+            "All ITagRepository methods implemented against PostgreSQL",
+            "Post count query uses efficient join rather than loading posts",
+            "Delete cascades removal from post_tags join table",
+            "Integration test validates persistence round-trip"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Infrastructure/Persistence/EfTagRepository.cs",
+            "backend/tests/TacBlog.Api.Tests/Persistence/EfTagRepositoryShould.cs"
+          ],
+          "dependencies": ["01-01"],
+          "estimated_hours": 2.0
+        },
+        {
+          "id": "04-02",
+          "name": "Tag API endpoints and Program.cs wiring",
+          "description": "Add POST /api/tags, PUT /api/tags/{slug}, DELETE /api/tags/{slug} to TagEndpoints.cs. Enhance GET /api/tags with post counts. Register ITagRepository and use cases in Program.cs.",
+          "criteria": [
+            "POST /api/tags returns 201 with tag, or 400/409",
+            "PUT /api/tags/{slug} returns 200, 404, or 409",
+            "DELETE /api/tags/{slug} returns 204 or 404",
+            "GET /api/tags returns tags with postCount field",
+            "All mutating endpoints require authentication"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Api/Endpoints/TagEndpoints.cs",
+            "backend/src/TacBlog.Api/Program.cs"
+          ],
+          "dependencies": ["01-02", "02-01", "02-02", "03-01", "04-01"],
+          "notes": "All use cases and adapter must be complete before wiring endpoints",
+          "estimated_hours": 2.0
+        }
+      ]
+    },
+    {
+      "id": "05",
+      "name": "Acceptance tests GREEN and full regression",
+      "steps": [
+        {
+          "id": "05-01",
+          "name": "Tag management acceptance tests GREEN (US-020 to US-023)",
+          "description": "Implement TagSteps.cs step definitions for CreateTag, ListTags, RenameTag, DeleteTag. Remove @skip from 4 feature files. 11 scenarios total.",
+          "criteria": [
+            "All 4 CreateTag.feature scenarios pass",
+            "All 2 ListTags.feature scenarios pass",
+            "All 2 RenameTag.feature scenarios pass",
+            "All 3 DeleteTag.feature scenarios pass"
+          ],
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/TagSteps.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Drivers/TagApiDriver.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Features/Epic2_TagManagement/CreateTag.feature",
+            "backend/tests/TacBlog.Acceptance.Tests/Features/Epic2_TagManagement/ListTags.feature",
+            "backend/tests/TacBlog.Acceptance.Tests/Features/Epic2_TagManagement/RenameTag.feature",
+            "backend/tests/TacBlog.Acceptance.Tests/Features/Epic2_TagManagement/DeleteTag.feature"
+          ],
+          "dependencies": ["04-02"],
+          "estimated_hours": 3.0
+        },
+        {
+          "id": "05-02",
+          "name": "AssociateTagsWithPosts acceptance tests GREEN and full regression",
+          "description": "Implement US-024 step definitions (tag-post association via EditPost). Remove @skip. Run full regression across Epic 0, Epic 1, Auth, and Epic 2.",
+          "criteria": [
+            "All 4 AssociateTagsWithPosts.feature scenarios pass",
+            "All 15 Epic 2 acceptance scenarios pass (4+2+2+3+4)",
+            "All Epic 1 acceptance scenarios still pass",
+            "All Epic 0 and Auth scenarios still pass"
+          ],
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/TagSteps.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Features/Epic2_TagManagement/AssociateTagsWithPosts.feature"
+          ],
+          "dependencies": ["05-01"],
+          "estimated_hours": 2.0
+        }
+      ]
+    }
+  ],
+  "implementation_scope": {
+    "source_directories": [
+      "backend/src/TacBlog.Domain/",
+      "backend/src/TacBlog.Application/Features/Tags/",
+      "backend/src/TacBlog.Application/Ports/Driven/",
+      "backend/src/TacBlog.Infrastructure/Persistence/",
+      "backend/src/TacBlog.Api/Endpoints/"
+    ],
+    "test_directories": [
+      "backend/tests/TacBlog.Domain.Tests/",
+      "backend/tests/TacBlog.Application.Tests/Features/Tags/",
+      "backend/tests/TacBlog.Api.Tests/Persistence/",
+      "backend/tests/TacBlog.Acceptance.Tests/Features/Epic2_TagManagement/",
+      "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/",
+      "backend/tests/TacBlog.Acceptance.Tests/Drivers/"
+    ],
+    "excluded_patterns": [
+      "**/obj/**",
+      "**/bin/**",
+      "**/Migrations/**"
+    ]
+  },
+  "validation": {
+    "status": "approved",
+    "reviewer": "orchestrator-quality-gate",
+    "approved_at": "2026-03-07T13:20:00Z",
+    "review_notes": "Merged step 03-02 (Tag domain rename) into 02-02 (RenameTag use case) to fix dependency ordering. Quality gate checks passed: no AC coupling, step ratio 1.12, no identical patterns, all step IDs valid NN-NN format."
+  }
+}
