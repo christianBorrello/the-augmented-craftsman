@@ -40,4 +40,7 @@ public sealed class EfBlogPostRepository(TacBlogDbContext context) : IBlogPostRe
             await context.SaveChangesAsync(cancellationToken);
         }
     }
+
+    public async Task<Tag?> FindTagBySlugAsync(Slug slug, CancellationToken cancellationToken) =>
+        await context.Tags.SingleOrDefaultAsync(t => t.Slug == slug, cancellationToken);
 }

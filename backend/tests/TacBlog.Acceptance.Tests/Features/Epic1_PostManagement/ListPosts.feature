@@ -1,4 +1,4 @@
-@epic1 @skip @api
+@epic1 @api
 Feature: List all posts in admin view
   As Christian (the author)
   I want to see all posts (drafts and published)

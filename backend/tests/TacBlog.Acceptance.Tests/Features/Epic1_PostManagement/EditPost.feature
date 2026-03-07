@@ -1,4 +1,4 @@
-@epic1 @skip @api
+@epic1 @api
 Feature: Edit an existing blog post
   As Christian (the author)
   I want to edit posts after creation

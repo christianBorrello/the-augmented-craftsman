@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentAssertions;
 using Reqnroll;
 using TacBlog.Acceptance.Tests.Contexts;
@@ -11,12 +12,24 @@ public sealed class PostSteps
     private readonly PostApiDriver _postDriver;
     private readonly TagApiDriver _tagDriver;
     private readonly ApiContext _apiContext;
+    private readonly ScenarioContext _scenarioContext;
 
-    public PostSteps(PostApiDriver postDriver, TagApiDriver tagDriver, ApiContext apiContext)
+    private const string LastCreatedPostIdKey = "LastCreatedPostId";
+    private const string PostIdsByTitleKey = "PostIdsByTitle";
+    private const string LastCreatedContentKey = "LastCreatedContent";
+    private const string PendingTitleKey = "PendingTitle";
+    private const string PendingContentKey = "PendingContent";
+
+    public PostSteps(
+        PostApiDriver postDriver,
+        TagApiDriver tagDriver,
+        ApiContext apiContext,
+        ScenarioContext scenarioContext)
     {
         _postDriver = postDriver;
         _tagDriver = tagDriver;
         _apiContext = apiContext;
+        _scenarioContext = scenarioContext;
     }
 
     // ── Epic 0: Walking Skeleton (US-001, US-002) ──
@@ -98,79 +111,130 @@ public sealed class PostSteps
     [When("Christian creates a post with:")]
     public async Task WhenChristianCreatesAPostWith(DataTable table)
     {
-        throw new PendingStepException();
+        var data = ParseVerticalTable(table);
+        var title = data["title"];
+        var content = data["content"];
+
+        _scenarioContext[PendingTitleKey] = title;
+        _scenarioContext[PendingContentKey] = content;
+        _scenarioContext[LastCreatedContentKey] = content;
+
+        await _postDriver.CreatePost(title, content);
+        CapturePostIdFromResponse();
     }
 
     [When("assigns tags {string} and {string} to the post")]
     public async Task WhenAssignsTagsToThePost(string tag1, string tag2)
     {
-        throw new PendingStepException();
+        var postId = GetLastCreatedPostId();
+        await _postDriver.DeletePost(postId);
+
+        var title = (string)_scenarioContext[PendingTitleKey];
+        var content = (string)_scenarioContext[PendingContentKey];
+
+        await _postDriver.CreatePostWithTags(title, content, [tag1, tag2]);
+        CapturePostIdFromResponse();
     }
 
     [Then("a draft post is created with slug {string}")]
     public void ThenADraftPostIsCreatedWithSlug(string slug)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        _apiContext.LastResponseJson!.RootElement
+            .GetProperty("slug").GetString().Should().Be(slug);
     }
 
     [Then("the post status is {string}")]
     public void ThenThePostStatusIs(string status)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        _apiContext.LastResponseJson!.RootElement
+            .GetProperty("status").GetString().Should().Be(status);
     }
 
     [Then("the post has tags {string} and {string}")]
     public void ThenThePostHasTags(string tag1, string tag2)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tags = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("tags").EnumerateArray()
+            .Select(t => t.GetString())
+            .ToList();
+
+        tags.Should().Contain(tag1);
+        tags.Should().Contain(tag2);
     }
 
     [Then("the post has no tags")]
     public void ThenThePostHasNoTags()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tags = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("tags").EnumerateArray().ToList();
+
+        tags.Should().BeEmpty();
     }
 
     [Then("the post has no featured image")]
     public void ThenThePostHasNoFeaturedImage()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var root = _apiContext.LastResponseJson!.RootElement;
+
+        if (root.TryGetProperty("featuredImageUrl", out var imageUrl))
+        {
+            imageUrl.ValueKind.Should().Be(JsonValueKind.Null);
+        }
     }
 
     [Given("a post exists with slug {string}")]
     public async Task GivenAPostExistsWithSlug(string slug)
     {
-        throw new PendingStepException();
+        var title = SlugToTitle(slug);
+        await _postDriver.CreatePost(title, "Default content for setup.");
+        CapturePostIdFromResponse();
     }
 
     [When("Christian creates a post with content including a code example")]
     public async Task WhenChristianCreatesAPostWithContentIncludingACodeExample()
     {
-        throw new PendingStepException();
+        var content = "Here is a code example:\n\n```csharp\npublic class Hello\n{\n    public string Greet() => \"Hello\";\n}\n```";
+        _scenarioContext[LastCreatedContentKey] = content;
+        await _postDriver.CreatePost("Code Example Post", content);
+        CapturePostIdFromResponse();
     }
 
     [Then("the post content is stored with the raw content preserved")]
     public void ThenThePostContentIsStoredWithTheRawContentPreserved()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var storedContent = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("content").GetString();
+
+        var expectedContent = (string)_scenarioContext[LastCreatedContentKey];
+        storedContent.Should().Be(expectedContent);
     }
 
     [When("Christian creates a post with title {string}")]
     public async Task WhenChristianCreatesAPostWithTitle(string title)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePost(title, "Default content for slug test.");
+        CapturePostIdFromResponse();
     }
 
     [When("Christian creates a post with title {string} and no image")]
     public async Task WhenChristianCreatesAPostWithTitleAndNoImage(string title)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePost(title, "Default content.");
+        CapturePostIdFromResponse();
     }
 
     [Then("the generated slug is {string}")]
     public void ThenTheGeneratedSlugIs(string expectedSlug)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        _apiContext.LastResponseJson!.RootElement
+            .GetProperty("slug").GetString().Should().Be(expectedSlug);
     }
 
     // ── Epic 1: PreviewPost (US-013) ──
@@ -208,13 +272,17 @@ public sealed class PostSteps
     [Given("a draft post {string} exists with tags {string} and {string}")]
     public async Task GivenADraftPostExistsWithTags(string title, string tag1, string tag2)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePostWithTags(title, "Content for preview test.", [tag1, tag2]);
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
     }
 
     [Given("a draft post {string} exists with tags {string}")]
     public async Task GivenADraftPostExistsWithOneTag(string title, string tag)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePostWithTags(title, "Content for tag test.", [tag]);
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
     }
 
     [Then("the preview displays tag badges for {string} and {string}")]
@@ -234,67 +302,103 @@ public sealed class PostSteps
     [Given("a draft post {string} exists")]
     public async Task GivenADraftPostExists(string title)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePost(title, "Draft content for publish test.");
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
     }
 
     [Given("a draft post {string} exists without a featured image")]
     public async Task GivenADraftPostExistsWithoutAFeaturedImage(string title)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePost(title, "Draft content without image.");
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
     }
 
     [When("Christian publishes the post")]
     public async Task WhenChristianPublishesThePost()
     {
-        throw new PendingStepException();
+        var postId = GetLastCreatedPostId();
+        await _postDriver.PublishPost(postId);
     }
 
     [Then("the post status changes to {string}")]
     public void ThenThePostStatusChangesTo(string status)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        _apiContext.LastResponseJson!.RootElement
+            .GetProperty("status").GetString().Should().Be(status);
     }
 
     [Then("the post has a publish date of today")]
     public void ThenThePostHasAPublishDateOfToday()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var publishedAt = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("publishedAt").GetString();
+
+        publishedAt.Should().NotBeNull();
+        var publishedDate = DateTimeOffset.Parse(publishedAt!);
+        publishedDate.UtcDateTime.Date.Should().Be(DateTime.UtcNow.Date);
     }
 
     [Given("a draft post {string} exists with tags {string} and content about walking skeletons")]
     public async Task GivenADraftPostExistsWithTagsAndContent(string title, string tag)
     {
-        throw new PendingStepException();
+        var content = "The Walking Skeleton pattern is an architectural approach that proves the system works end-to-end.";
+        _scenarioContext[LastCreatedContentKey] = content;
+        await _postDriver.CreatePostWithTags(title, content, [tag]);
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
     }
 
     [Then("the post title is {string}")]
     public void ThenThePostTitleIs(string title)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        _apiContext.LastResponseJson!.RootElement
+            .GetProperty("title").GetString().Should().Be(title);
     }
 
     [Then("the post tags include {string}")]
     public void ThenThePostTagsInclude(string tag)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tags = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("tags").EnumerateArray()
+            .Select(t => t.GetString())
+            .ToList();
+
+        tags.Should().Contain(tag);
     }
 
     [Then("the post content is unchanged")]
     public void ThenThePostContentIsUnchanged()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var storedContent = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("content").GetString();
+
+        var expectedContent = (string)_scenarioContext[LastCreatedContentKey];
+        storedContent.Should().Be(expectedContent);
     }
 
     [Given("a published post {string} exists")]
     public async Task GivenAPublishedPostExists(string title)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePost(title, "Published content.");
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
+
+        var postId = GetLastCreatedPostId();
+        await _postDriver.PublishPost(postId);
     }
 
     [When("Christian attempts to publish the post again")]
     public async Task WhenChristianAttemptsToPublishThePostAgain()
     {
-        throw new PendingStepException();
+        var postId = GetLastCreatedPostId();
+        await _postDriver.PublishPost(postId);
     }
 
     // ── Epic 1: EditPost (US-015) ──
@@ -302,43 +406,73 @@ public sealed class PostSteps
     [Given("a published post {string} exists with slug {string}")]
     public async Task GivenAPublishedPostExistsWithSlug(string title, string slug)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePost(title, "Content for edit test.");
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
+
+        var postId = GetLastCreatedPostId();
+        await _postDriver.PublishPost(postId);
     }
 
     [When("Christian updates the post with:")]
     public async Task WhenChristianUpdatesThePostWith(DataTable table)
     {
-        throw new PendingStepException();
+        var data = ParseVerticalTable(table);
+        var postId = GetLastCreatedPostId();
+
+        await _postDriver.UpdatePost(postId, new { title = data["title"], content = data["content"] });
     }
 
     [Then("the slug remains {string}")]
     public void ThenTheSlugRemains(string slug)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        _apiContext.LastResponseJson!.RootElement
+            .GetProperty("slug").GetString().Should().Be(slug);
     }
 
     [Given("a draft post exists with title {string} and slug {string}")]
     public async Task GivenADraftPostExistsWithTitleAndSlug(string title, string slug)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePost(title, "Content for slug immutability test.");
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
     }
 
     [When("Christian updates the post title to {string}")]
     public async Task WhenChristianUpdatesThePostTitleTo(string title)
     {
-        throw new PendingStepException();
+        var postId = GetLastCreatedPostId();
+        await _postDriver.UpdatePost(postId, new { title, content = "Content for slug immutability test." });
     }
 
     [Given("a post exists with:")]
     public async Task GivenAPostExistsWith(DataTable table)
     {
-        throw new PendingStepException();
+        var data = ParseVerticalTable(table);
+        var title = data["title"];
+
+        if (data.TryGetValue("tags", out var tagsRaw) && !string.IsNullOrWhiteSpace(tagsRaw))
+        {
+            var tags = tagsRaw.Split(',', StringSplitOptions.TrimEntries);
+            await _postDriver.CreatePostWithTags(title, "Content for edit form test.", tags);
+        }
+        else
+        {
+            await _postDriver.CreatePost(title, "Content for edit form test.");
+        }
+
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
     }
 
     [When("Christian retrieves the post for editing")]
     public async Task WhenChristianRetrievesThePostForEditing()
     {
-        throw new PendingStepException();
+        var slug = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("slug").GetString()!;
+
+        await _postDriver.GetPostBySlug(slug);
     }
 
     [Then("the response contains:")]
@@ -347,10 +481,7 @@ public sealed class PostSteps
         _apiContext.LastResponseJson.Should().NotBeNull();
         var root = _apiContext.LastResponseJson!.RootElement;
 
-        var data = table.Rows.ToDictionary(r => r[0], r => r[1]);
-        var headerKey = table.Header.First();
-        var headerValue = table.Header.Last();
-        data[headerKey] = headerValue;
+        var data = ParseVerticalTable(table);
 
         foreach (var (key, expected) in data)
         {
@@ -361,13 +492,15 @@ public sealed class PostSteps
     [When("Christian tries to update a non-existent post")]
     public async Task WhenChristianTriesToUpdateANonExistentPost()
     {
-        throw new PendingStepException();
+        var randomId = Guid.NewGuid().ToString();
+        await _postDriver.UpdatePost(randomId, new { title = "Ghost Post", content = "Does not exist." });
     }
 
     [When("Christian updates the post with an empty title")]
     public async Task WhenChristianUpdatesThePostWithAnEmptyTitle()
     {
-        throw new PendingStepException();
+        var postId = GetLastCreatedPostId();
+        await _postDriver.UpdatePost(postId, new { title = "", content = "Some content." });
     }
 
     // ── Epic 1: DeletePost (US-016) ──
@@ -375,31 +508,45 @@ public sealed class PostSteps
     [Given("a post {string} exists")]
     public async Task GivenAPostExists(string title)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePost(title, "Content for delete test.");
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
     }
 
     [Given("a post {string} exists with tags {string} and {string}")]
     public async Task GivenAPostExistsWithTags(string title, string tag1, string tag2)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePostWithTags(title, "Content for tag preservation test.", [tag1, tag2]);
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
     }
 
     [When("Christian deletes the post {string}")]
     public async Task WhenChristianDeletesThePost(string title)
     {
-        throw new PendingStepException();
+        var postId = GetPostIdByTitle(title);
+        await _postDriver.DeletePost(postId);
     }
 
     [Then("{string} no longer appears in the post list")]
-    public void ThenNoLongerAppearsInThePostList(string title)
+    public async Task ThenNoLongerAppearsInThePostList(string title)
     {
-        throw new PendingStepException();
+        await _postDriver.GetAdminPosts();
+
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var titles = _apiContext.LastResponseJson!.RootElement
+            .EnumerateArray()
+            .Select(p => p.GetProperty("title").GetString())
+            .ToList();
+
+        titles.Should().NotContain(title);
     }
 
     [When("Christian tries to delete a non-existent post")]
     public async Task WhenChristianTriesToDeleteANonExistentPost()
     {
-        throw new PendingStepException();
+        var randomId = Guid.NewGuid().ToString();
+        await _postDriver.DeletePost(randomId);
     }
 
     // ── Epic 1: ListPosts (US-017) ──
@@ -407,43 +554,91 @@ public sealed class PostSteps
     [Given("these posts exist:")]
     public async Task GivenThesePostsExist(DataTable table)
     {
-        throw new PendingStepException();
+        foreach (var row in table.Rows)
+        {
+            var title = row["title"];
+            var status = row["status"];
+
+            await _postDriver.CreatePost(title, $"Content for {title}.");
+            CapturePostIdFromResponse();
+            StorePostIdByTitle(title);
+
+            if (status == "Published")
+            {
+                var postId = GetLastCreatedPostId();
+                await _postDriver.PublishPost(postId);
+            }
+        }
     }
 
     [When("Christian requests the admin post list")]
     public async Task WhenChristianRequestsTheAdminPostList()
     {
-        throw new PendingStepException();
+        await _postDriver.GetAdminPosts();
     }
 
     [Then("posts are returned in reverse chronological order")]
     public void ThenPostsAreReturnedInReverseChronologicalOrder()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        posts.Count.Should().BeGreaterThan(1);
+
+        var dates = posts
+            .Select(p => DateTime.Parse(p.GetProperty("createdAt").GetString()!))
+            .ToList();
+
+        dates.Should().BeInDescendingOrder();
     }
 
     [Then("each post contains title, status, date, and id")]
     public void ThenEachPostContainsTitleStatusDateAndId()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        foreach (var post in posts)
+        {
+            post.TryGetProperty("title", out _).Should().BeTrue();
+            post.TryGetProperty("status", out _).Should().BeTrue();
+            post.TryGetProperty("createdAt", out _).Should().BeTrue();
+            post.TryGetProperty("id", out _).Should().BeTrue();
+        }
     }
 
     [Given("{int} draft posts and {int} published posts exist")]
     public async Task GivenDraftPostsAndPublishedPostsExist(int drafts, int published)
     {
-        throw new PendingStepException();
+        for (var i = 1; i <= drafts; i++)
+        {
+            await _postDriver.CreatePost($"Draft Post {i}", $"Draft content {i}.");
+            CapturePostIdFromResponse();
+        }
+
+        for (var i = 1; i <= published; i++)
+        {
+            await _postDriver.CreatePost($"Published Post {i}", $"Published content {i}.");
+            CapturePostIdFromResponse();
+            var postId = GetLastCreatedPostId();
+            await _postDriver.PublishPost(postId);
+        }
     }
 
     [Then("{int} posts are returned")]
     public void ThenPostsAreReturned(int count)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+        posts.Count.Should().Be(count);
     }
 
     [Then("the post list is empty")]
     public void ThenThePostListIsEmpty()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+        posts.Should().BeEmpty();
     }
 
     // ── Epic 4: Homepage (US-040) ──
@@ -620,5 +815,53 @@ public sealed class PostSteps
     public void ThenThePostIsStillAccessible()
     {
         throw new PendingStepException();
+    }
+
+    // ── Helpers ──
+
+    private void CapturePostIdFromResponse()
+    {
+        if (_apiContext.LastResponseJson is null)
+            return;
+
+        var root = _apiContext.LastResponseJson.RootElement;
+        if (root.TryGetProperty("id", out var idElement))
+        {
+            _scenarioContext[LastCreatedPostIdKey] = idElement.GetGuid().ToString();
+        }
+    }
+
+    private string GetLastCreatedPostId() =>
+        (string)_scenarioContext[LastCreatedPostIdKey];
+
+    private void StorePostIdByTitle(string title)
+    {
+        if (!_scenarioContext.TryGetValue(PostIdsByTitleKey, out var existing))
+        {
+            existing = new Dictionary<string, string>();
+            _scenarioContext[PostIdsByTitleKey] = existing;
+        }
+
+        var dict = (Dictionary<string, string>)existing;
+        dict[title] = GetLastCreatedPostId();
+    }
+
+    private string GetPostIdByTitle(string title)
+    {
+        var dict = (Dictionary<string, string>)_scenarioContext[PostIdsByTitleKey];
+        return dict[title];
+    }
+
+    private static string SlugToTitle(string slug) =>
+        string.Join(' ', slug.Split('-').Select(word =>
+            char.ToUpper(word[0]) + word[1..]));
+
+    private static Dictionary<string, string> ParseVerticalTable(DataTable table)
+    {
+        var data = table.Rows.ToDictionary(r => r[0], r => r[1]);
+        var headerKey = table.Header.First();
+        var headerValue = table.Header.Last();
+        data[headerKey] = headerValue;
+        return data;
     }
 }

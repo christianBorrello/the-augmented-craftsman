@@ -1,4 +1,4 @@
-@epic1 @skip @api
+@epic1 @api
 Feature: Publish a draft blog post
   As Christian (the author)
   I want to publish draft posts

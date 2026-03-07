@@ -1,4 +1,4 @@
-@epic1 @skip @api
+@epic1 @api
 Feature: Delete a blog post
   As Christian (the author)
   I want to delete posts I no longer need

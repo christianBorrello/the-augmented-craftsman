@@ -18,7 +18,6 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [Xunit.TraitAttribute("Category", "epic1")]
-    [Xunit.TraitAttribute("Category", "skip")]
     [Xunit.TraitAttribute("Category", "api")]
     public partial class PublishADraftBlogPostFeature : object, Xunit.IClassFixture<PublishADraftBlogPostFeature.FixtureData>, Xunit.IAsyncLifetime
     {
@@ -27,7 +26,6 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
         
         private static string[] featureTags = new string[] {
                 "epic1",
-                "skip",
                 "api"};
         
         private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en"), "Features/Epic1_PostManagement", "Publish a draft blog post", "  As Christian (the author)\n  I want to publish draft posts\n  So that readers can" +

@@ -36,6 +36,9 @@ public static class PostEndpoints
             request.Tags?.ToList(),
             cancellationToken);
 
+        if (result.IsConflict)
+            return Results.Conflict(new { error = result.ErrorMessage });
+
         if (!result.IsSuccess)
             return Results.BadRequest(new { error = ToUserFacingMessage(result.ErrorMessage!) });
 
@@ -51,7 +54,7 @@ public static class PostEndpoints
         var result = await getPostBySlug.ExecuteAsync(slug, cancellationToken);
 
         if (!result.IsSuccess)
-            return Results.NotFound();
+            return Results.NotFound(new { error = "Post not found" });
 
         return Results.Ok(ToResponse(result.Post!));
     }
@@ -70,7 +73,7 @@ public static class PostEndpoints
             cancellationToken);
 
         if (result.IsNotFound)
-            return Results.NotFound();
+            return Results.NotFound(new { error = "Post not found" });
 
         if (!result.IsSuccess)
             return Results.BadRequest(new { error = ToUserFacingMessage(result.ErrorMessage!) });
@@ -86,7 +89,7 @@ public static class PostEndpoints
         var result = await deletePost.ExecuteAsync(id, cancellationToken);
 
         if (result.IsNotFound)
-            return Results.NotFound();
+            return Results.NotFound(new { error = "Post not found" });
 
         return Results.NoContent();
     }
@@ -99,7 +102,7 @@ public static class PostEndpoints
         var result = await publishPost.ExecuteAsync(id, cancellationToken);
 
         if (result.IsNotFound)
-            return Results.NotFound();
+            return Results.NotFound(new { error = "Post not found" });
 
         if (result.IsConflict)
             return Results.Conflict(new { error = result.ErrorMessage });

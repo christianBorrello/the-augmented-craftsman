@@ -99,6 +99,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapPostEndpoints();
 app.MapAuthEndpoints();
+app.MapTagEndpoints();
 
 app.Run();
 

@@ -1,4 +1,4 @@
-@epic1 @skip @api
+@epic1 @api
 Feature: Create blog post with full content
   As Christian (the author)
   I want to create blog posts with rich content, tags, and images

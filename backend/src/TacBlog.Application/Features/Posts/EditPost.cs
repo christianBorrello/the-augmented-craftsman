@@ -42,7 +42,12 @@ public sealed class EditPost(IBlogPostRepository repository, IClock clock)
         if (tagNames is not null)
         {
             foreach (var name in tagNames)
-                post.AddTag(Tag.Create(new TagName(name)));
+            {
+                var tagName = new TagName(name);
+                var slug = Slug.FromTagName(tagName);
+                var existingTag = await repository.FindTagBySlugAsync(slug, cancellationToken);
+                post.AddTag(existingTag ?? Tag.Create(tagName));
+            }
         }
 
         await repository.SaveAsync(post, cancellationToken);

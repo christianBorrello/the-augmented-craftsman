@@ -28,6 +28,18 @@ public sealed class PostApiDriver
         await _apiContext.CaptureResponse(response);
     }
 
+    public async Task CreatePostWithTags(string title, string content, string[] tags)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/posts")
+        {
+            Content = JsonContent.Create(new { title, content, tags })
+        };
+        ApplyAuth(request);
+
+        var response = await _client.SendAsync(request);
+        await _apiContext.CaptureResponse(response);
+    }
+
     public async Task GetPostBySlug(string slug)
     {
         var response = await _client.GetAsync($"/api/posts/{slug}");
@@ -37,6 +49,15 @@ public sealed class PostApiDriver
     public async Task ListPosts()
     {
         var response = await _client.GetAsync("/api/posts");
+        await _apiContext.CaptureResponse(response);
+    }
+
+    public async Task GetAdminPosts()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, "/api/admin/posts");
+        ApplyAuth(request);
+
+        var response = await _client.SendAsync(request);
         await _apiContext.CaptureResponse(response);
     }
 

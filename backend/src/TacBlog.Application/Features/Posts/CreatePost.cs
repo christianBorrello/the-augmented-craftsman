@@ -47,8 +47,10 @@ public sealed class CreatePost(IBlogPostRepository repository, IClock clock)
         {
             foreach (var name in tagNames)
             {
-                var tag = Tag.Create(new TagName(name));
-                post.AddTag(tag);
+                var tagName = new TagName(name);
+                var slug = Slug.FromTagName(tagName);
+                var existingTag = await repository.FindTagBySlugAsync(slug, cancellationToken);
+                post.AddTag(existingTag ?? Tag.Create(tagName));
             }
         }
 

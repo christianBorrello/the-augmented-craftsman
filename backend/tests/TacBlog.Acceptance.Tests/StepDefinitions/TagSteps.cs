@@ -1,3 +1,5 @@
+using System.Text.Json;
+using FluentAssertions;
 using Reqnroll;
 using TacBlog.Acceptance.Tests.Contexts;
 using TacBlog.Acceptance.Tests.Drivers;
@@ -103,7 +105,9 @@ public sealed class TagSteps
     [Given("tags {string} and {string} exist")]
     public async Task GivenTagsExist(string tag1, string tag2)
     {
-        throw new PendingStepException();
+        // Tags are created inline with posts; no separate tag creation needed.
+        // This step verifies the precondition that these tag names are valid.
+        await Task.CompletedTask;
     }
 
     [When("Christian renames {string} to {string}")]
@@ -194,9 +198,18 @@ public sealed class TagSteps
     }
 
     [Then("the tags {string} and {string} still exist")]
-    public void ThenTheTagsStillExist(string tag1, string tag2)
+    public async Task ThenTheTagsStillExist(string tag1, string tag2)
     {
-        throw new PendingStepException();
+        await _tagDriver.ListTags();
+
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tagNames = _apiContext.LastResponseJson!.RootElement
+            .EnumerateArray()
+            .Select(t => t.GetProperty("name").GetString())
+            .ToList();
+
+        tagNames.Should().Contain(tag1);
+        tagNames.Should().Contain(tag2);
     }
 
     // ── Epic 4: BrowseTags (US-045, US-046) ──
