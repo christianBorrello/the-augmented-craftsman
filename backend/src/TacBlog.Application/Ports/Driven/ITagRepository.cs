@@ -10,6 +10,7 @@ public interface ITagRepository
     Task<IReadOnlyList<TagWithPostCount>> GetAllWithPostCountsAsync(CancellationToken cancellationToken);
     Task SaveAsync(Tag tag, CancellationToken cancellationToken);
     Task DeleteAsync(TagId id, CancellationToken cancellationToken);
+    Task<IReadOnlyList<TagWithPostCount>> GetPublicTagsWithPostCountsAsync(CancellationToken cancellationToken);
 }
 
 public sealed record TagWithPostCount(Tag Tag, int PostCount);
