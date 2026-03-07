@@ -34,10 +34,15 @@ builder.Services.AddScoped<DeletePost>();
 builder.Services.AddScoped<PublishPost>();
 builder.Services.AddScoped<ListPosts>();
 builder.Services.AddScoped<PreviewPost>();
+builder.Services.AddScoped<BrowsePublishedPosts>();
+builder.Services.AddScoped<ReadPublishedPost>();
+builder.Services.AddScoped<FilterPostsByTag>();
+builder.Services.AddScoped<GetRelatedPosts>();
 builder.Services.AddScoped<CreateTag>();
 builder.Services.AddScoped<ListTags>();
 builder.Services.AddScoped<RenameTag>();
 builder.Services.AddScoped<DeleteTag>();
+builder.Services.AddScoped<BrowsePublicTags>();
 
 builder.Services.AddSingleton(sp =>
 {
