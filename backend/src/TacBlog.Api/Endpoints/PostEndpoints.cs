@@ -14,6 +14,7 @@ public static class PostEndpoints
         app.MapPut("/api/posts/{id:guid}", EditPostAsync).RequireAuthorization();
         app.MapDelete("/api/posts/{id:guid}", DeletePostAsync).RequireAuthorization();
         app.MapPost("/api/posts/{id:guid}/publish", PublishPostAsync).RequireAuthorization();
+        app.MapGet("/api/posts/{id:guid}/preview", PreviewPostAsync).RequireAuthorization();
         app.MapGet("/api/admin/posts", ListAllPostsAsync).RequireAuthorization();
     }
 
@@ -106,6 +107,19 @@ public static class PostEndpoints
 
         if (result.IsConflict)
             return Results.Conflict(new { error = result.ErrorMessage });
+
+        return Results.Ok(ToResponse(result.Post!));
+    }
+
+    private static async Task<IResult> PreviewPostAsync(
+        Guid id,
+        PreviewPost previewPost,
+        CancellationToken cancellationToken)
+    {
+        var result = await previewPost.ExecuteAsync(id, cancellationToken);
+
+        if (result.IsNotFound)
+            return Results.NotFound(new { error = "Post not found" });
 
         return Results.Ok(ToResponse(result.Post!));
     }

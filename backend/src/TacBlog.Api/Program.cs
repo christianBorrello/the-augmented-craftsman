@@ -29,6 +29,7 @@ builder.Services.AddScoped<EditPost>();
 builder.Services.AddScoped<DeletePost>();
 builder.Services.AddScoped<PublishPost>();
 builder.Services.AddScoped<ListPosts>();
+builder.Services.AddScoped<PreviewPost>();
 
 builder.Services.AddSingleton(sp =>
 {
