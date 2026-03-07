@@ -25,6 +25,10 @@ builder.Services.AddScoped<IBlogPostRepository, EfBlogPostRepository>();
 builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddScoped<CreatePost>();
 builder.Services.AddScoped<GetPostBySlug>();
+builder.Services.AddScoped<EditPost>();
+builder.Services.AddScoped<DeletePost>();
+builder.Services.AddScoped<PublishPost>();
+builder.Services.AddScoped<ListPosts>();
 
 builder.Services.AddSingleton(sp =>
 {

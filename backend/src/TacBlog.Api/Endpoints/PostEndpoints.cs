@@ -9,11 +9,15 @@ public static class PostEndpoints
     public static void MapPostEndpoints(this WebApplication app)
     {
         app.MapPost("/api/posts", CreatePostAsync).RequireAuthorization();
-        app.MapGet("/api/posts", ListPostsAsync).AllowAnonymous();
+        app.MapGet("/api/posts", ListPublishedPostsAsync).AllowAnonymous();
         app.MapGet("/api/posts/{slug}", GetPostBySlugAsync).AllowAnonymous();
+        app.MapPut("/api/posts/{id:guid}", EditPostAsync).RequireAuthorization();
+        app.MapDelete("/api/posts/{id:guid}", DeletePostAsync).RequireAuthorization();
+        app.MapPost("/api/posts/{id:guid}/publish", PublishPostAsync).RequireAuthorization();
+        app.MapGet("/api/admin/posts", ListAllPostsAsync).RequireAuthorization();
     }
 
-    private static async Task<IResult> ListPostsAsync(
+    private static async Task<IResult> ListPublishedPostsAsync(
         IBlogPostRepository repository,
         CancellationToken cancellationToken)
     {
@@ -26,7 +30,11 @@ public static class PostEndpoints
         CreatePost createPost,
         CancellationToken cancellationToken)
     {
-        var result = await createPost.ExecuteAsync(request.Title, request.Content, cancellationToken: cancellationToken);
+        var result = await createPost.ExecuteAsync(
+            request.Title,
+            request.Content,
+            request.Tags?.ToList(),
+            cancellationToken);
 
         if (!result.IsSuccess)
             return Results.BadRequest(new { error = ToUserFacingMessage(result.ErrorMessage!) });
@@ -46,6 +54,65 @@ public static class PostEndpoints
             return Results.NotFound();
 
         return Results.Ok(ToResponse(result.Post!));
+    }
+
+    private static async Task<IResult> EditPostAsync(
+        Guid id,
+        EditPostRequest request,
+        EditPost editPost,
+        CancellationToken cancellationToken)
+    {
+        var result = await editPost.ExecuteAsync(
+            id,
+            request.Title,
+            request.Content,
+            request.Tags?.ToList(),
+            cancellationToken);
+
+        if (result.IsNotFound)
+            return Results.NotFound();
+
+        if (!result.IsSuccess)
+            return Results.BadRequest(new { error = ToUserFacingMessage(result.ErrorMessage!) });
+
+        return Results.Ok(ToResponse(result.Post!));
+    }
+
+    private static async Task<IResult> DeletePostAsync(
+        Guid id,
+        DeletePost deletePost,
+        CancellationToken cancellationToken)
+    {
+        var result = await deletePost.ExecuteAsync(id, cancellationToken);
+
+        if (result.IsNotFound)
+            return Results.NotFound();
+
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> PublishPostAsync(
+        Guid id,
+        PublishPost publishPost,
+        CancellationToken cancellationToken)
+    {
+        var result = await publishPost.ExecuteAsync(id, cancellationToken);
+
+        if (result.IsNotFound)
+            return Results.NotFound();
+
+        if (result.IsConflict)
+            return Results.Conflict(new { error = result.ErrorMessage });
+
+        return Results.Ok(ToResponse(result.Post!));
+    }
+
+    private static async Task<IResult> ListAllPostsAsync(
+        ListPosts listPosts,
+        CancellationToken cancellationToken)
+    {
+        var result = await listPosts.ExecuteAsync(cancellationToken);
+        return Results.Ok(result.Posts.Select(ToResponse));
     }
 
     private static string ToUserFacingMessage(string errorMessage) =>
@@ -69,7 +136,9 @@ public static class PostEndpoints
             Tags: post.Tags.Select(t => t.Name.ToString()).ToArray());
 }
 
-public sealed record CreatePostRequest(string Title, string Content);
+public sealed record CreatePostRequest(string Title, string Content, string[]? Tags = null);
+
+public sealed record EditPostRequest(string Title, string Content, string[]? Tags = null);
 
 public sealed record PostResponse(
     Guid Id,

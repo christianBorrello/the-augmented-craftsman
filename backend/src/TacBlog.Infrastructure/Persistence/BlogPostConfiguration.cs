@@ -60,5 +60,14 @@ public sealed class BlogPostConfiguration : IEntityTypeConfiguration<BlogPost>
         builder.Property(p => p.UpdatedAt)
             .HasColumnName("updated_at")
             .IsRequired();
+
+        builder.Property(p => p.PublishedAt)
+            .HasColumnName("published_at");
+
+        builder.HasMany(p => p.Tags)
+            .WithMany()
+            .UsingEntity("post_tags",
+                right => right.HasOne(typeof(Tag)).WithMany().HasForeignKey("tag_id"),
+                left => left.HasOne(typeof(BlogPost)).WithMany().HasForeignKey("post_id"));
     }
 }

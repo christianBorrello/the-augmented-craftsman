@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TacBlog.Infrastructure;
@@ -11,9 +12,11 @@ using TacBlog.Infrastructure;
 namespace TacBlog.Infrastructure.Migrations
 {
     [DbContext(typeof(TacBlogDbContext))]
-    partial class TacBlogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260307001908_AddTagsAndPostTags")]
+    partial class AddTagsAndPostTags
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

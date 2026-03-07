@@ -8,18 +8,25 @@ public sealed class EfBlogPostRepository(TacBlogDbContext context) : IBlogPostRe
 {
     public async Task SaveAsync(BlogPost post, CancellationToken cancellationToken)
     {
-        context.Posts.Add(post);
+        var entry = context.Entry(post);
+
+        if (entry.State == EntityState.Detached)
+            context.Posts.Add(post);
+
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<BlogPost?> FindBySlugAsync(Slug slug, CancellationToken cancellationToken) =>
-        await context.Posts.SingleOrDefaultAsync(p => p.Slug == slug, cancellationToken);
+        await context.Posts.Include(p => p.Tags)
+            .SingleOrDefaultAsync(p => p.Slug == slug, cancellationToken);
 
     public async Task<BlogPost?> FindByIdAsync(PostId id, CancellationToken cancellationToken) =>
-        await context.Posts.SingleOrDefaultAsync(p => p.Id == id, cancellationToken);
+        await context.Posts.Include(p => p.Tags)
+            .SingleOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<BlogPost>> FindAllAsync(CancellationToken cancellationToken) =>
-        await context.Posts.OrderByDescending(p => p.CreatedAt).ToListAsync(cancellationToken);
+        await context.Posts.Include(p => p.Tags)
+            .OrderByDescending(p => p.CreatedAt).ToListAsync(cancellationToken);
 
     public async Task<bool> ExistsBySlugAsync(Slug slug, CancellationToken cancellationToken) =>
         await context.Posts.AnyAsync(p => p.Slug == slug, cancellationToken);
