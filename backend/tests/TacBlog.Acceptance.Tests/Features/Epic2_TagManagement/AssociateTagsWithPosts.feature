@@ -1,4 +1,4 @@
-@epic2 @skip @api
+@epic2 @api
 Feature: Associate and disassociate tags with posts
   As Christian (the author)
   I want to add and remove tags from posts

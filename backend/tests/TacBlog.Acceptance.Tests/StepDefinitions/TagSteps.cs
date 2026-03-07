@@ -41,12 +41,27 @@ public sealed class TagSteps
     }
 
     [Then("the tag {string} is created with slug {string}")]
-    public void ThenTheTagIsCreatedWithSlug(string name, string slug)
+    public async Task ThenTheTagIsCreatedWithSlug(string name, string slug)
     {
         _apiContext.LastResponseJson.Should().NotBeNull();
         var root = _apiContext.LastResponseJson!.RootElement;
-        root.GetProperty("name").GetString().Should().Be(name);
-        root.GetProperty("slug").GetString().Should().Be(slug);
+
+        if (root.TryGetProperty("name", out _))
+        {
+            root.GetProperty("name").GetString().Should().Be(name);
+            root.GetProperty("slug").GetString().Should().Be(slug);
+            return;
+        }
+
+        await _tagDriver.ListTags();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tag = _apiContext.LastResponseJson!.RootElement
+            .EnumerateArray()
+            .FirstOrDefault(t => t.GetProperty("name").GetString() == name);
+
+        tag.ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Undefined,
+            $"tag '{name}' should exist in the tag list");
+        tag.GetProperty("slug").GetString().Should().Be(slug);
     }
 
     [Given("a tag {string} already exists")]
@@ -285,13 +300,20 @@ public sealed class TagSteps
     [Given("tags {string}, {string}, and {string} exist")]
     public async Task GivenThreeTagsExist(string tag1, string tag2, string tag3)
     {
-        throw new PendingStepException();
+        await _tagDriver.CreateTag(tag1);
+        StoreTagSlug(tag1);
+        await _tagDriver.CreateTag(tag2);
+        StoreTagSlug(tag2);
+        await _tagDriver.CreateTag(tag3);
+        StoreTagSlug(tag3);
     }
 
     [When("Christian adds tags {string} and {string} to the post")]
     public async Task WhenChristianAddsTagsToThePost(string tag1, string tag2)
     {
-        throw new PendingStepException();
+        var postId = GetLastCreatedPostId();
+        var (title, content) = await GetPostTitleAndContent(postId);
+        await _postDriver.UpdatePost(postId, new { title, content, tags = new[] { tag1, tag2 } });
     }
 
     [Given("the tag {string} does not exist")]
@@ -302,31 +324,65 @@ public sealed class TagSteps
     [When("Christian adds a new tag {string} to the post")]
     public async Task WhenChristianAddsANewTagToThePost(string name)
     {
-        throw new PendingStepException();
+        var postId = GetLastCreatedPostId();
+        var (title, content) = await GetPostTitleAndContent(postId);
+        await _postDriver.UpdatePost(postId, new { title, content, tags = new[] { name } });
+        _scenarioContext["AssociatedTagName"] = name;
     }
 
     [Then("the tag is associated with the post")]
-    public void ThenTheTagIsAssociatedWithThePost()
+    public async Task ThenTheTagIsAssociatedWithThePost()
     {
-        throw new PendingStepException();
+        var postId = GetLastCreatedPostId();
+        await _postDriver.PreviewPost(postId);
+
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tagName = (string)_scenarioContext["AssociatedTagName"];
+        var tags = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("tags").EnumerateArray()
+            .Select(t => t.GetString())
+            .ToList();
+        tags.Should().Contain(tagName);
     }
 
     [When("Christian removes the tag {string} from the post")]
     public async Task WhenChristianRemovesTheTagFromThePost(string name)
     {
-        throw new PendingStepException();
+        var postId = GetLastCreatedPostId();
+        var (title, content) = await GetPostTitleAndContent(postId);
+
+        var currentTags = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("tags").EnumerateArray()
+            .Select(t => t.GetString()!)
+            .Where(t => t != name)
+            .ToArray();
+
+        await _postDriver.UpdatePost(postId, new { title, content, tags = currentTags });
     }
 
     [Then("the post has only the tag {string}")]
     public void ThenThePostHasOnlyTheTag(string tag)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tags = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("tags").EnumerateArray()
+            .Select(t => t.GetString())
+            .ToList();
+        tags.Should().ContainSingle().Which.Should().Be(tag);
     }
 
     [Then("the tag {string} still exists")]
-    public void ThenTheTagStillExists(string name)
+    public async Task ThenTheTagStillExists(string name)
     {
-        throw new PendingStepException();
+        await _tagDriver.ListTags();
+
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tagNames = _apiContext.LastResponseJson!.RootElement
+            .EnumerateArray()
+            .Select(t => t.GetProperty("name").GetString())
+            .ToList();
+
+        tagNames.Should().Contain(name);
     }
 
     [Then("the tags {string} and {string} still exist")]
@@ -395,6 +451,16 @@ public sealed class TagSteps
     }
 
     // ── Helpers ──
+
+    private string GetLastCreatedPostId() =>
+        (string)_scenarioContext["LastCreatedPostId"];
+
+    private async Task<(string Title, string Content)> GetPostTitleAndContent(string postId)
+    {
+        await _postDriver.PreviewPost(postId);
+        var root = _apiContext.LastResponseJson!.RootElement;
+        return (root.GetProperty("title").GetString()!, root.GetProperty("content").GetString()!);
+    }
 
     private void StoreTagSlug(string tagName)
     {
