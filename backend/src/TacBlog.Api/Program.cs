@@ -22,6 +22,7 @@ builder.Services.AddDbContext<TacBlogDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IBlogPostRepository, EfBlogPostRepository>();
+builder.Services.AddScoped<ITagRepository, EfTagRepository>();
 builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddScoped<CreatePost>();
 builder.Services.AddScoped<GetPostBySlug>();
