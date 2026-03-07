@@ -31,6 +31,8 @@ public class PublishPostShould
         var result = await _useCase.ExecuteAsync(post.Id.Value);
 
         result.IsSuccess.Should().BeTrue();
+        result.IsNotFound.Should().BeFalse();
+        result.IsConflict.Should().BeFalse();
         result.Post!.Status.Should().Be(PostStatus.Published);
         result.Post.PublishedAt.Should().Be(FixedNow);
 
@@ -48,6 +50,8 @@ public class PublishPostShould
         var result = await _useCase.ExecuteAsync(Guid.NewGuid());
 
         result.IsNotFound.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
+        result.IsConflict.Should().BeFalse();
         result.Post.Should().BeNull();
 
         await _repository.DidNotReceive().SaveAsync(
@@ -65,6 +69,8 @@ public class PublishPostShould
         var result = await _useCase.ExecuteAsync(post.Id.Value);
 
         result.IsConflict.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
+        result.IsNotFound.Should().BeFalse();
         result.ErrorMessage.Should().Contain("already published");
         result.Post.Should().BeNull();
 

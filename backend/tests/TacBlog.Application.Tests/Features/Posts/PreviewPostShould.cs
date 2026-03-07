@@ -30,6 +30,7 @@ public class PreviewPostShould
         var result = await _useCase.ExecuteAsync(post.Id.Value);
 
         result.IsSuccess.Should().BeTrue();
+        result.IsNotFound.Should().BeFalse();
         result.Post.Should().NotBeNull();
         result.Post!.Content.Value.Should().Contain("```code blocks```");
         result.Post.Tags.Should().HaveCount(1);
@@ -44,6 +45,7 @@ public class PreviewPostShould
         var result = await _useCase.ExecuteAsync(Guid.NewGuid());
 
         result.IsNotFound.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
         result.Post.Should().BeNull();
     }
 }

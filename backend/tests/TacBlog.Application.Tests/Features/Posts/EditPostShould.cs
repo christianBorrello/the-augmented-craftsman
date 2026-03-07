@@ -32,6 +32,7 @@ public class EditPostShould
             post.Id.Value, "Updated Title", "Updated content");
 
         result.IsSuccess.Should().BeTrue();
+        result.IsNotFound.Should().BeFalse();
         result.Post!.Title.ToString().Should().Be("Updated Title");
         result.Post.Content.ToString().Should().Be("Updated content");
         result.Post.UpdatedAt.Should().Be(FixedNow);
@@ -83,6 +84,7 @@ public class EditPostShould
         var result = await _useCase.ExecuteAsync(unknownId, "Title", "Content");
 
         result.IsNotFound.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
         result.Post.Should().BeNull();
 
         await _repository.DidNotReceive().SaveAsync(

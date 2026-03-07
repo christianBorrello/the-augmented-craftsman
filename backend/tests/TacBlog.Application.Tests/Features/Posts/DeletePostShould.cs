@@ -29,6 +29,7 @@ public class DeletePostShould
         var result = await _useCase.ExecuteAsync(post.Id.Value);
 
         result.IsSuccess.Should().BeTrue();
+        result.IsNotFound.Should().BeFalse();
 
         await _repository.Received(1).DeleteAsync(
             Arg.Is<PostId>(id => id.Value == post.Id.Value),
@@ -45,6 +46,7 @@ public class DeletePostShould
         var result = await _useCase.ExecuteAsync(unknownId);
 
         result.IsNotFound.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
 
         await _repository.DidNotReceive().DeleteAsync(
             Arg.Any<PostId>(),

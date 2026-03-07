@@ -27,6 +27,7 @@ public class CreatePostShould
         var result = await _useCase.ExecuteAsync("My First Post", "Some interesting content");
 
         result.IsSuccess.Should().BeTrue();
+        result.IsConflict.Should().BeFalse();
         result.Post.Should().NotBeNull();
         result.Post!.Title.ToString().Should().Be("My First Post");
         result.Post.Slug.ToString().Should().Be("my-first-post");
