@@ -4,77 +4,42 @@ using TacBlog.Acceptance.Tests.Contexts;
 
 namespace TacBlog.Acceptance.Tests.Drivers;
 
-public sealed class ImageApiDriver
+public sealed class ImageApiDriver(HttpClient client, ApiContext apiContext, AuthContext authContext)
 {
-    private readonly HttpClient _client;
-    private readonly ApiContext _apiContext;
-    private readonly AuthContext _authContext;
+    public Task UploadImage(string fileName, byte[] content) =>
+        SendMultipartUploadAsync(fileName, content, "image/png");
 
-    public ImageApiDriver(HttpClient client, ApiContext apiContext, AuthContext authContext)
-    {
-        _client = client;
-        _apiContext = apiContext;
-        _authContext = authContext;
-    }
+    public Task UploadNonImageFile(string fileName, byte[] content) =>
+        SendMultipartUploadAsync(fileName, content, "application/pdf");
 
-    public async Task UploadImage(string fileName, byte[] content)
-    {
-        using var form = new MultipartFormDataContent();
-        var fileContent = new ByteArrayContent(content);
-        fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
-        form.Add(fileContent, "file", fileName);
+    public Task SetFeaturedImage(string slug, string imageUrl) =>
+        SendAuthenticatedAsync(
+            new HttpRequestMessage(HttpMethod.Put, $"/api/posts/{slug}/featured-image")
+            {
+                Content = JsonContent.Create(new { imageUrl })
+            });
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/images")
-        {
-            Content = form
-        };
-        ApplyAuth(request);
+    public Task RemoveFeaturedImage(string slug) =>
+        SendAuthenticatedAsync(
+            new HttpRequestMessage(HttpMethod.Delete, $"/api/posts/{slug}/featured-image"));
 
-        var response = await _client.SendAsync(request);
-        await _apiContext.CaptureResponse(response);
-    }
-
-    public async Task UploadNonImageFile(string fileName, byte[] content)
+    private async Task SendMultipartUploadAsync(string fileName, byte[] content, string contentType)
     {
         using var form = new MultipartFormDataContent();
         var fileContent = new ByteArrayContent(content);
-        fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
         form.Add(fileContent, "file", fileName);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/images")
-        {
-            Content = form
-        };
-        ApplyAuth(request);
-
-        var response = await _client.SendAsync(request);
-        await _apiContext.CaptureResponse(response);
+        await SendAuthenticatedAsync(
+            new HttpRequestMessage(HttpMethod.Post, "/api/images") { Content = form });
     }
 
-    public async Task SetFeaturedImage(string slug, string imageUrl)
+    private async Task SendAuthenticatedAsync(HttpRequestMessage request)
     {
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/posts/{slug}/featured-image")
-        {
-            Content = JsonContent.Create(new { imageUrl })
-        };
-        ApplyAuth(request);
+        if (authContext.IsAuthenticated)
+            request.Headers.Authorization = new("Bearer", authContext.JwtToken);
 
-        var response = await _client.SendAsync(request);
-        await _apiContext.CaptureResponse(response);
-    }
-
-    public async Task RemoveFeaturedImage(string slug)
-    {
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/posts/{slug}/featured-image");
-        ApplyAuth(request);
-
-        var response = await _client.SendAsync(request);
-        await _apiContext.CaptureResponse(response);
-    }
-
-    private void ApplyAuth(HttpRequestMessage request)
-    {
-        if (_authContext.IsAuthenticated)
-            request.Headers.Authorization = new("Bearer", _authContext.JwtToken);
+        var response = await client.SendAsync(request);
+        await apiContext.CaptureResponse(response);
     }
 }

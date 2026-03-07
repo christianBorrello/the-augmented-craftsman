@@ -3,27 +3,19 @@ using TacBlog.Application.Ports.Driven;
 
 namespace TacBlog.Infrastructure.Storage;
 
-public sealed class ImageKitImageStorage : IImageStorage
+public sealed class ImageKitImageStorage(ImageKitSettings settings) : IImageStorage
 {
-    private readonly ImageKitSettings _settings;
-
-    public ImageKitImageStorage(ImageKitSettings settings)
-    {
-        _settings = settings;
-    }
-
     public async Task<string> UploadAsync(Stream content, string fileName, CancellationToken cancellationToken)
     {
         try
         {
-            var imagekit = new ImagekitClient(_settings.PublicKey, _settings.PrivateKey, _settings.UrlEndpoint);
+            var imagekit = new ImagekitClient(settings.PublicKey, settings.PrivateKey, settings.UrlEndpoint);
             using var memoryStream = new MemoryStream();
             await content.CopyToAsync(memoryStream, cancellationToken);
-            var fileBytes = memoryStream.ToArray();
 
             var request = new FileCreateRequest
             {
-                file = fileBytes,
+                file = memoryStream.ToArray(),
                 fileName = fileName,
                 useUniqueFileName = true
             };
