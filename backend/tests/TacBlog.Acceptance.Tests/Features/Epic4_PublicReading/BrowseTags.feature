@@ -1,4 +1,4 @@
-@epic4 @skip @api
+@epic4 @api
 Feature: Browse tags and navigate between tag pages
   As a reader
   I want to browse all tags and click through to filtered post lists

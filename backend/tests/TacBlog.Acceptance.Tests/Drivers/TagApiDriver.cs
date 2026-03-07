@@ -22,6 +22,12 @@ public sealed class TagApiDriver(HttpClient client, ApiContext apiContext, AuthC
     public async Task DeleteTag(string slug) =>
         await SendAuthenticatedAsync(HttpMethod.Delete, $"/api/tags/{slug}");
 
+    public async Task ListPublicTags()
+    {
+        var response = await client.GetAsync("/api/tags");
+        await apiContext.CaptureResponse(response);
+    }
+
     private async Task SendAuthenticatedAsync(
         HttpMethod method,
         string path,

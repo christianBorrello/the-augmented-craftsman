@@ -312,49 +312,92 @@ public sealed class TagSteps(
     [Given("these tags exist with published post counts:")]
     public async Task GivenTheseTagsExistWithPublishedPostCounts(DataTable table)
     {
-        throw new PendingStepException();
+        await authDriver.Authenticate();
+
+        foreach (var row in table.Rows)
+        {
+            var tagName = row["name"];
+            var postCount = int.Parse(row["post_count"]);
+
+            await CreateAndStoreTag(tagName);
+            await CreateAndPublishPostsWithTag(tagName, postCount);
+        }
     }
 
     [When("a reader requests all tags")]
     public async Task WhenAReaderRequestsAllTags()
     {
-        throw new PendingStepException();
+        await tagDriver.ListPublicTags();
     }
 
     [Then("all tags are returned with their post counts")]
     public void ThenAllTagsAreReturnedWithTheirPostCounts()
     {
-        throw new PendingStepException();
+        apiContext.LastResponseJson.Should().NotBeNull();
+        var tags = apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        var expectedCounts = new Dictionary<string, int>
+        {
+            ["Architecture"] = 2,
+            ["Clean Code"] = 3,
+            ["DDD"] = 1,
+            ["TDD"] = 5,
+        };
+
+        tags.Count.Should().Be(expectedCounts.Count);
+
+        foreach (var tag in tags)
+        {
+            var name = tag.GetProperty("name").GetString()!;
+            var postCount = tag.GetProperty("postCount").GetInt32();
+            postCount.Should().Be(expectedCounts[name], $"tag '{name}' should have correct post count");
+        }
     }
 
     [Then("tags are sorted alphabetically")]
     public void ThenTagsAreSortedAlphabetically()
     {
-        throw new PendingStepException();
+        apiContext.LastResponseJson.Should().NotBeNull();
+        var names = apiContext.LastResponseJson!.RootElement.EnumerateArray()
+            .Select(t => t.GetProperty("name").GetString())
+            .ToList();
+
+        names.Should().BeInAscendingOrder();
     }
 
     [Given("a tag {string} exists with slug {string} and {int} published posts")]
     public async Task GivenATagExistsWithSlugAndPublishedPosts(string name, string slug, int count)
     {
-        throw new PendingStepException();
+        await authDriver.Authenticate();
+
+        await CreateAndStoreTag(name);
+        await CreateAndPublishPostsWithTag(name, count);
     }
 
     [When("a reader requests posts filtered by tag slug {string}")]
     public async Task WhenAReaderRequestsPostsFilteredByTagSlug(string slug)
     {
-        throw new PendingStepException();
+        await postDriver.FilterByTag(slug);
     }
 
     [Given("a tag {string} exists with {int} published posts")]
     public async Task GivenATagExistsWithPublishedPosts(string name, int count)
     {
-        throw new PendingStepException();
+        await authDriver.Authenticate();
+
+        await CreateAndStoreTag(name);
+        await CreateAndPublishPostsWithTag(name, count);
     }
 
     [Then("{string} is not included in the public tag list")]
     public void ThenIsNotIncludedInThePublicTagList(string name)
     {
-        throw new PendingStepException();
+        apiContext.LastResponseJson.Should().NotBeNull();
+        var names = apiContext.LastResponseJson!.RootElement.EnumerateArray()
+            .Select(t => t.GetProperty("name").GetString())
+            .ToList();
+
+        names.Should().NotContain(name);
     }
 
     // ── Helpers ──
@@ -401,6 +444,22 @@ public sealed class TagSteps(
                 $"Content for {tagName} post {i + 1}.",
                 [tagName]);
             CaptureCreatedPostId();
+        }
+    }
+
+    private async Task CreateAndPublishPostsWithTag(string tagName, int count)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            await postDriver.CreatePostWithTags(
+                $"{tagName} Published {i + 1}",
+                $"Content for {tagName} published post {i + 1}.",
+                [tagName]);
+            CaptureCreatedPostId();
+
+            var root = apiContext.LastResponseJson!.RootElement;
+            var postId = root.GetProperty("id").GetGuid().ToString();
+            await postDriver.PublishPost(postId);
         }
     }
 

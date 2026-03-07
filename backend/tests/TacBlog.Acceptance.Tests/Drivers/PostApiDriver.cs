@@ -41,6 +41,30 @@ public sealed class PostApiDriver(HttpClient client, ApiContext apiContext, Auth
     public async Task DeletePost(string postId) =>
         await SendAuthenticatedAsync(HttpMethod.Delete, $"/api/posts/{postId}");
 
+    public async Task ListPublishedPosts()
+    {
+        var response = await client.GetAsync("/api/posts");
+        await apiContext.CaptureResponse(response);
+    }
+
+    public async Task FilterByTag(string tagSlug)
+    {
+        var response = await client.GetAsync($"/api/posts?tag={tagSlug}");
+        await apiContext.CaptureResponse(response);
+    }
+
+    public async Task ReadPost(string slug)
+    {
+        var response = await client.GetAsync($"/api/posts/{slug}");
+        await apiContext.CaptureResponse(response);
+    }
+
+    public async Task GetRelatedPosts(string slug)
+    {
+        var response = await client.GetAsync($"/api/posts/{slug}/related");
+        await apiContext.CaptureResponse(response);
+    }
+
     private async Task SendAuthenticatedAsync(
         HttpMethod method,
         string path,

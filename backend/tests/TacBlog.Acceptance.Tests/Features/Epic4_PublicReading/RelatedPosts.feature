@@ -1,4 +1,4 @@
-@epic4 @skip @api
+@epic4 @api
 Feature: See related posts
   As a reader
   I want to see related posts at the bottom of an article

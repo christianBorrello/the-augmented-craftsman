@@ -1,4 +1,4 @@
-@epic4 @skip @api
+@epic4 @api
 Feature: Read a single blog post
   As a reader
   I want to read the full content of a blog post

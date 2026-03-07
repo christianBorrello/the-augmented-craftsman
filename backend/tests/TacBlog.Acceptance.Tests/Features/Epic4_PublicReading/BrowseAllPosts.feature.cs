@@ -18,7 +18,6 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [Xunit.TraitAttribute("Category", "epic4")]
-    [Xunit.TraitAttribute("Category", "skip")]
     [Xunit.TraitAttribute("Category", "api")]
     public partial class BrowseAllPostsFeature : object, Xunit.IClassFixture<BrowseAllPostsFeature.FixtureData>, Xunit.IAsyncLifetime
     {
@@ -27,7 +26,6 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
         
         private static string[] featureTags = new string[] {
                 "epic4",
-                "skip",
                 "api"};
         
         private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en"), "Features/Epic4_PublicReading", "Browse all posts", "  As a reader\n  I want to browse all published blog posts\n  So that I can find co" +
