@@ -1,0 +1,28 @@
+schema_version: "2.0"
+project_id: "epic3-image-management"
+events:
+  - step_id: "01-01"
+    phase: PREPARE
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T00:00:00Z"
+  - step_id: "01-01"
+    phase: RED_ACCEPTANCE
+    status: SKIPPED
+    data: "NOT_APPLICABLE: domain-only step, no acceptance test"
+    timestamp: "2026-03-07T00:00:01Z"
+  - step_id: "01-01"
+    phase: RED_UNIT
+    status: EXECUTED
+    data: "PASS — 5 tests (3 parametrized, 2 facts), compilation failure confirmed"
+    timestamp: "2026-03-07T00:00:02Z"
+  - step_id: "01-01"
+    phase: GREEN
+    status: EXECUTED
+    data: "PASS — 60 domain tests green, 35 application tests green"
+    timestamp: "2026-03-07T00:00:03Z"
+  - step_id: "01-01"
+    phase: COMMIT
+    status: EXECUTED
+    data: PASS
+    timestamp: "2026-03-07T00:00:04Z"
