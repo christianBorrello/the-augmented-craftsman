@@ -117,6 +117,7 @@ app.UseAuthorization();
 app.MapPostEndpoints();
 app.MapAuthEndpoints();
 app.MapTagEndpoints();
+app.MapImageEndpoints();
 
 app.Run();
 
