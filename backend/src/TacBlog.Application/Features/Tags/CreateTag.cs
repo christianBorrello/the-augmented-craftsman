@@ -29,7 +29,7 @@ public sealed class CreateTag(ITagRepository repository)
         var tag = Tag.Create(validatedName);
 
         if (await repository.ExistsBySlugAsync(tag.Slug, cancellationToken))
-            return CreateTagResult.Conflict("A tag with this URL already exists");
+            return CreateTagResult.Conflict($"A tag named '{validatedName}' already exists");
 
         await repository.SaveAsync(tag, cancellationToken);
 

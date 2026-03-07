@@ -1,4 +1,4 @@
-@epic2 @skip @api
+@epic2 @api
 Feature: Create a new tag
   As Christian (the author)
   I want to create tags for organizing posts

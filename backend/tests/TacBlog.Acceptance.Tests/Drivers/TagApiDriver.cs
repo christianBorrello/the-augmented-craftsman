@@ -34,9 +34,9 @@ public sealed class TagApiDriver
         await _apiContext.CaptureResponse(response);
     }
 
-    public async Task RenameTag(string tagId, string newName)
+    public async Task RenameTag(string slug, string newName)
     {
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/tags/{tagId}")
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/tags/{slug}")
         {
             Content = JsonContent.Create(new { name = newName })
         };
@@ -46,9 +46,9 @@ public sealed class TagApiDriver
         await _apiContext.CaptureResponse(response);
     }
 
-    public async Task DeleteTag(string tagId)
+    public async Task DeleteTag(string slug)
     {
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/tags/{tagId}");
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/tags/{slug}");
         ApplyAuth(request);
 
         var response = await _client.SendAsync(request);

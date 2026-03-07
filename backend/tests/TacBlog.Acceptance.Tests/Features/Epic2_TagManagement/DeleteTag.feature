@@ -1,4 +1,4 @@
-@epic2 @skip @api
+@epic2 @api
 Feature: Delete a tag
   As Christian (the author)
   I want to delete tags I no longer need

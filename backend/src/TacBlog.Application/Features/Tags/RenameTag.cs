@@ -36,7 +36,7 @@ public sealed class RenameTag(ITagRepository repository)
         var newSlug = Slug.FromTagName(validatedName);
 
         if (await repository.ExistsBySlugAsync(newSlug, cancellationToken))
-            return RenameTagResult.Conflict("A tag with this slug already exists");
+            return RenameTagResult.Conflict($"A tag named '{validatedName}' already exists");
 
         tag.Rename(validatedName);
 

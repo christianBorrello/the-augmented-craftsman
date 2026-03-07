@@ -1,4 +1,4 @@
-@epic2 @skip @api
+@epic2 @api
 Feature: List all tags with post counts
   As Christian (the author)
   I want to see all tags and how many posts use each

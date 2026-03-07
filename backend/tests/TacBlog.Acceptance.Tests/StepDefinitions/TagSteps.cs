@@ -10,12 +10,26 @@ namespace TacBlog.Acceptance.Tests.StepDefinitions;
 public sealed class TagSteps
 {
     private readonly TagApiDriver _tagDriver;
+    private readonly PostApiDriver _postDriver;
+    private readonly AuthApiDriver _authDriver;
     private readonly ApiContext _apiContext;
+    private readonly ScenarioContext _scenarioContext;
 
-    public TagSteps(TagApiDriver tagDriver, ApiContext apiContext)
+    private const string CreatedPostIdsKey = "TagSteps_CreatedPostIds";
+    private const string TagSlugMapKey = "TagSteps_TagSlugMap";
+
+    public TagSteps(
+        TagApiDriver tagDriver,
+        PostApiDriver postDriver,
+        AuthApiDriver authDriver,
+        ApiContext apiContext,
+        ScenarioContext scenarioContext)
     {
         _tagDriver = tagDriver;
+        _postDriver = postDriver;
+        _authDriver = authDriver;
         _apiContext = apiContext;
+        _scenarioContext = scenarioContext;
     }
 
     // ── Epic 2: CreateTag (US-020) ──
@@ -23,31 +37,36 @@ public sealed class TagSteps
     [When("Christian creates a tag with name {string}")]
     public async Task WhenChristianCreatesATagWithName(string name)
     {
-        throw new PendingStepException();
+        await _tagDriver.CreateTag(name);
     }
 
     [Then("the tag {string} is created with slug {string}")]
     public void ThenTheTagIsCreatedWithSlug(string name, string slug)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var root = _apiContext.LastResponseJson!.RootElement;
+        root.GetProperty("name").GetString().Should().Be(name);
+        root.GetProperty("slug").GetString().Should().Be(slug);
     }
 
     [Given("a tag {string} already exists")]
     public async Task GivenATagAlreadyExists(string name)
     {
-        throw new PendingStepException();
+        await _tagDriver.CreateTag(name);
+        StoreTagSlug(name);
     }
 
     [When("Christian creates a tag with an empty name")]
     public async Task WhenChristianCreatesATagWithAnEmptyName()
     {
-        throw new PendingStepException();
+        await _tagDriver.CreateTag("");
     }
 
     [When("Christian creates a tag with a name of {int} characters")]
     public async Task WhenChristianCreatesATagWithANameOfNCharacters(int length)
     {
-        throw new PendingStepException();
+        var name = new string('A', length);
+        await _tagDriver.CreateTag(name);
     }
 
     // ── Epic 2: ListTags (US-021) ──
@@ -55,19 +74,60 @@ public sealed class TagSteps
     [Given("these tags exist with post counts:")]
     public async Task GivenTheseTagsExistWithPostCounts(DataTable table)
     {
-        throw new PendingStepException();
+        await _authDriver.Authenticate();
+
+        foreach (var row in table.Rows)
+        {
+            var tagName = row["name"];
+            var postCount = int.Parse(row["post_count"]);
+
+            await _tagDriver.CreateTag(tagName);
+            StoreTagSlug(tagName);
+
+            for (var i = 0; i < postCount; i++)
+            {
+                await _postDriver.CreatePostWithTags(
+                    $"{tagName} Post {i + 1}",
+                    $"Content for {tagName} post {i + 1}.",
+                    [tagName]);
+                CaptureCreatedPostId();
+            }
+        }
     }
 
     [Then("all tags are returned alphabetically with their post counts")]
     public void ThenAllTagsAreReturnedAlphabeticallyWithTheirPostCounts()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tags = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        tags.Count.Should().Be(4);
+
+        var names = tags.Select(t => t.GetProperty("name").GetString()).ToList();
+        names.Should().BeInAscendingOrder();
+
+        var expectedCounts = new Dictionary<string, int>
+        {
+            ["Architecture"] = 2,
+            ["Clean Code"] = 3,
+            ["DDD"] = 1,
+            ["TDD"] = 5,
+        };
+
+        foreach (var tag in tags)
+        {
+            var name = tag.GetProperty("name").GetString()!;
+            var postCount = tag.GetProperty("postCount").GetInt32();
+            postCount.Should().Be(expectedCounts[name], $"tag '{name}' should have correct post count");
+        }
     }
 
     [Then("the tag list is empty")]
     public void ThenTheTagListIsEmpty()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tags = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+        tags.Should().BeEmpty();
     }
 
     // ── Epic 2: RenameTag (US-022) ──
@@ -75,45 +135,80 @@ public sealed class TagSteps
     [Given("a tag {string} exists linked to {int} posts")]
     public async Task GivenATagExistsLinkedToPosts(string name, int postCount)
     {
-        throw new PendingStepException();
+        await _tagDriver.CreateTag(name);
+        StoreTagSlug(name);
+
+        for (var i = 0; i < postCount; i++)
+        {
+            await _postDriver.CreatePostWithTags(
+                $"{name} Post {i + 1}",
+                $"Content for {name} post {i + 1}.",
+                [name]);
+            CaptureCreatedPostId();
+        }
     }
 
     [When("Christian renames the tag {string} to {string}")]
     public async Task WhenChristianRenamesTheTagTo(string oldName, string newName)
     {
-        throw new PendingStepException();
+        var slug = ToSlug(oldName);
+        await _tagDriver.RenameTag(slug, newName);
     }
 
     [Then("the tag name is updated to {string}")]
     public void ThenTheTagNameIsUpdatedTo(string name)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        _apiContext.LastResponseJson!.RootElement
+            .GetProperty("name").GetString().Should().Be(name);
     }
 
     [Then("the tag slug is updated to {string}")]
     public void ThenTheTagSlugIsUpdatedTo(string slug)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        _apiContext.LastResponseJson!.RootElement
+            .GetProperty("slug").GetString().Should().Be(slug);
     }
 
     [Then("all {int} linked posts now show {string}")]
-    public void ThenAllLinkedPostsNowShow(int count, string tagName)
+    public async Task ThenAllLinkedPostsNowShow(int count, string tagName)
     {
-        throw new PendingStepException();
+        await _postDriver.GetAdminPosts();
+
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        var postIds = GetCreatedPostIds();
+        var linkedPosts = posts
+            .Where(p => postIds.Contains(p.GetProperty("id").GetGuid().ToString()))
+            .ToList();
+
+        linkedPosts.Count.Should().Be(count);
+
+        foreach (var post in linkedPosts)
+        {
+            var tags = post.GetProperty("tags").EnumerateArray()
+                .Select(t => t.GetString())
+                .ToList();
+            tags.Should().Contain(tagName);
+        }
     }
 
     [Given("tags {string} and {string} exist")]
     public async Task GivenTagsExist(string tag1, string tag2)
     {
-        // Tags are created inline with posts; no separate tag creation needed.
-        // This step verifies the precondition that these tag names are valid.
-        await Task.CompletedTask;
+        await _tagDriver.CreateTag(tag1);
+        StoreTagSlug(tag1);
+        await _tagDriver.CreateTag(tag2);
+        StoreTagSlug(tag2);
     }
 
     [When("Christian renames {string} to {string}")]
     public async Task WhenChristianRenamesTo(string oldName, string newName)
     {
-        throw new PendingStepException();
+        var slug = ToSlug(oldName);
+        await _tagDriver.RenameTag(slug, newName);
     }
 
     // ── Epic 2: DeleteTag (US-023) ──
@@ -121,31 +216,68 @@ public sealed class TagSteps
     [When("Christian deletes the tag {string}")]
     public async Task WhenChristianDeletesTheTag(string name)
     {
-        throw new PendingStepException();
+        var slug = ToSlug(name);
+        await _tagDriver.DeleteTag(slug);
     }
 
     [Then("the tag {string} is removed")]
-    public void ThenTheTagIsRemoved(string name)
+    public async Task ThenTheTagIsRemoved(string name)
     {
-        throw new PendingStepException();
+        await _tagDriver.ListTags();
+
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tagNames = _apiContext.LastResponseJson!.RootElement
+            .EnumerateArray()
+            .Select(t => t.GetProperty("name").GetString())
+            .ToList();
+
+        tagNames.Should().NotContain(name);
     }
 
     [Then("the {int} previously linked posts no longer have the tag {string}")]
-    public void ThenTheLinkedPostsNoLongerHaveTheTag(int count, string tagName)
+    public async Task ThenTheLinkedPostsNoLongerHaveTheTag(int count, string tagName)
     {
-        throw new PendingStepException();
+        await _postDriver.GetAdminPosts();
+
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        var postIds = GetCreatedPostIds();
+        var linkedPosts = posts
+            .Where(p => postIds.Contains(p.GetProperty("id").GetGuid().ToString()))
+            .ToList();
+
+        linkedPosts.Count.Should().Be(count);
+
+        foreach (var post in linkedPosts)
+        {
+            var tags = post.GetProperty("tags").EnumerateArray()
+                .Select(t => t.GetString())
+                .ToList();
+            tags.Should().NotContain(tagName);
+        }
     }
 
     [Then("the {int} posts still exist")]
-    public void ThenThePostsStillExist(int count)
+    public async Task ThenThePostsStillExist(int count)
     {
-        throw new PendingStepException();
+        await _postDriver.GetAdminPosts();
+
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var posts = _apiContext.LastResponseJson!.RootElement.EnumerateArray().ToList();
+
+        var postIds = GetCreatedPostIds();
+        var existingPosts = posts
+            .Where(p => postIds.Contains(p.GetProperty("id").GetGuid().ToString()))
+            .ToList();
+
+        existingPosts.Count.Should().Be(count);
     }
 
     [When("Christian tries to delete a non-existent tag")]
     public async Task WhenChristianTriesToDeleteANonExistentTag()
     {
-        throw new PendingStepException();
+        await _tagDriver.DeleteTag("non-existent-tag-slug");
     }
 
     // ── Epic 2: AssociateTagsWithPosts (US-024) ──
@@ -260,5 +392,60 @@ public sealed class TagSteps
     public void ThenIsNotIncludedInThePublicTagList(string name)
     {
         throw new PendingStepException();
+    }
+
+    // ── Helpers ──
+
+    private void StoreTagSlug(string tagName)
+    {
+        var map = GetOrCreateTagSlugMap();
+        map[tagName] = ToSlug(tagName);
+    }
+
+    private Dictionary<string, string> GetOrCreateTagSlugMap()
+    {
+        if (!_scenarioContext.TryGetValue(TagSlugMapKey, out var existing))
+        {
+            existing = new Dictionary<string, string>();
+            _scenarioContext[TagSlugMapKey] = existing;
+        }
+        return (Dictionary<string, string>)existing;
+    }
+
+    private void CaptureCreatedPostId()
+    {
+        if (_apiContext.LastResponseJson is null) return;
+
+        var root = _apiContext.LastResponseJson.RootElement;
+        if (!root.TryGetProperty("id", out var idElement)) return;
+
+        var ids = GetOrCreatePostIds();
+        ids.Add(idElement.GetGuid().ToString());
+    }
+
+    private List<string> GetOrCreatePostIds()
+    {
+        if (!_scenarioContext.TryGetValue(CreatedPostIdsKey, out var existing))
+        {
+            existing = new List<string>();
+            _scenarioContext[CreatedPostIdsKey] = existing;
+        }
+        return (List<string>)existing;
+    }
+
+    private List<string> GetCreatedPostIds()
+    {
+        if (_scenarioContext.TryGetValue(CreatedPostIdsKey, out var existing))
+            return (List<string>)existing;
+        return [];
+    }
+
+    private static string ToSlug(string name)
+    {
+        var slug = name.ToLowerInvariant();
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9-]", "");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-{2,}", "-");
+        return slug.Trim('-');
     }
 }
