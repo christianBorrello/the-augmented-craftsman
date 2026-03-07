@@ -1,4 +1,4 @@
-@epic1 @skip @api
+@epic1 @api
 Feature: Preview blog post before publishing
   As Christian (the author)
   I want to preview how my post will look

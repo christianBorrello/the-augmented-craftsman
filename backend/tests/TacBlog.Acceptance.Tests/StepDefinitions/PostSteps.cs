@@ -242,31 +242,46 @@ public sealed class PostSteps
     [Given("a draft post {string} exists with content containing a code example")]
     public async Task GivenADraftPostExistsWithContentContainingCodeExample(string title)
     {
-        throw new PendingStepException();
+        var content = "## Code Example\n\n```csharp\npublic void Test() { }\n```";
+        _scenarioContext[LastCreatedContentKey] = content;
+        await _postDriver.CreatePost(title, content);
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
     }
 
     [When("Christian requests a preview of the post")]
     public async Task WhenChristianRequestsAPreviewOfThePost()
     {
-        throw new PendingStepException();
+        var postId = GetLastCreatedPostId();
+        await _postDriver.PreviewPost(postId);
     }
 
     [Then("the preview shows formatted content with highlighted code examples")]
     public void ThenThePreviewShowsFormattedContentWithHighlightedCodeExamples()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var content = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("content").GetString();
+
+        var expectedContent = (string)_scenarioContext[LastCreatedContentKey];
+        content.Should().Be(expectedContent);
     }
 
     [Given("a draft post {string} exists with a featured image")]
     public async Task GivenADraftPostExistsWithAFeaturedImage(string title)
     {
-        throw new PendingStepException();
+        await _postDriver.CreatePost(title, "Content for featured image preview test.");
+        CapturePostIdFromResponse();
+        StorePostIdByTitle(title);
     }
 
     [Then("the preview displays the featured image")]
     public void ThenThePreviewDisplaysTheFeaturedImage()
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var root = _apiContext.LastResponseJson!.RootElement;
+
+        root.TryGetProperty("featuredImageUrl", out _).Should().BeTrue();
     }
 
     [Given("a draft post {string} exists with tags {string} and {string}")]
@@ -288,13 +303,21 @@ public sealed class PostSteps
     [Then("the preview displays tag badges for {string} and {string}")]
     public void ThenThePreviewDisplaysTagBadgesFor(string tag1, string tag2)
     {
-        throw new PendingStepException();
+        _apiContext.LastResponseJson.Should().NotBeNull();
+        var tags = _apiContext.LastResponseJson!.RootElement
+            .GetProperty("tags").EnumerateArray()
+            .Select(t => t.GetString())
+            .ToList();
+
+        tags.Should().Contain(tag1);
+        tags.Should().Contain(tag2);
     }
 
     [When("Christian requests a preview of a non-existent post")]
     public async Task WhenChristianRequestsAPreviewOfANonExistentPost()
     {
-        throw new PendingStepException();
+        var randomId = Guid.NewGuid().ToString();
+        await _postDriver.PreviewPost(randomId);
     }
 
     // ── Epic 1: PublishPost (US-014) ──

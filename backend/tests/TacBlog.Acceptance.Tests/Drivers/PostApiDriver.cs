@@ -82,6 +82,15 @@ public sealed class PostApiDriver
         await _apiContext.CaptureResponse(response);
     }
 
+    public async Task PreviewPost(string postId)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/posts/{postId}/preview");
+        ApplyAuth(request);
+
+        var response = await _client.SendAsync(request);
+        await _apiContext.CaptureResponse(response);
+    }
+
     public async Task DeletePost(string postId)
     {
         var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/posts/{postId}");
