@@ -60,4 +60,7 @@ public sealed class BlogPost
 
     public void RemoveTag(Tag tag) =>
         _tags.Remove(tag);
+
+    public void ClearTags() =>
+        _tags.Clear();
 }
