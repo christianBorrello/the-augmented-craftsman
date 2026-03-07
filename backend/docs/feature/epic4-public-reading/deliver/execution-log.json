@@ -218,6 +218,41 @@
       "s": "EXECUTED",
       "d": "PASS",
       "t": "2026-03-07T18:22:43Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T18:32:39Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "RED_ACCEPTANCE",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: endpoint wiring tested via acceptance tests in step 04-01",
+      "t": "2026-03-07T18:32:45Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "RED_UNIT",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: thin glue code tested through acceptance tests",
+      "t": "2026-03-07T18:32:45Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T18:32:45Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "PASS",
+      "t": "2026-03-07T18:32:45Z"
     }
   ]
 }
