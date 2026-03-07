@@ -22,7 +22,7 @@ public class GetRelatedPostsShould
     [Fact]
     public async Task return_not_found_when_slug_does_not_exist()
     {
-        _repository.FindBySlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
+        _repository.FindBySlugAsync(Arg.Is<Slug>(s => s.Value == "non-existent-slug"), Arg.Any<CancellationToken>())
             .Returns((BlogPost?)null);
 
         var result = await _useCase.ExecuteAsync("non-existent-slug");
@@ -86,6 +86,7 @@ public class GetRelatedPostsShould
 
         var result = await _useCase.ExecuteAsync("source-post");
 
+        result.IsSuccess.Should().BeTrue();
         result.Posts![0].Title.ToString().Should().Be("Three Shared");
         result.Posts[1].Title.ToString().Should().Be("Two Shared");
         result.Posts[2].Title.ToString().Should().Be("One Shared");
@@ -106,6 +107,7 @@ public class GetRelatedPostsShould
 
         var result = await _useCase.ExecuteAsync("source-post");
 
+        result.IsSuccess.Should().BeTrue();
         result.Posts![0].Title.ToString().Should().Be("Newer Post");
         result.Posts[1].Title.ToString().Should().Be("Older Post");
     }
@@ -124,13 +126,23 @@ public class GetRelatedPostsShould
 
         var result = await _useCase.ExecuteAsync("source-post");
 
+        result.IsSuccess.Should().BeTrue();
         result.Posts.Should().HaveCount(1);
         result.Posts![0].Title.ToString().Should().Be("Related Post");
     }
 
+    [Fact]
+    public async Task return_not_found_for_invalid_slug()
+    {
+        var result = await _useCase.ExecuteAsync("");
+
+        result.IsNotFound.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
+    }
+
     private void SetupSourcePost(BlogPost post)
     {
-        _repository.FindBySlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
+        _repository.FindBySlugAsync(Arg.Is<Slug>(s => s.Value == "source-post"), Arg.Any<CancellationToken>())
             .Returns(post);
     }
 

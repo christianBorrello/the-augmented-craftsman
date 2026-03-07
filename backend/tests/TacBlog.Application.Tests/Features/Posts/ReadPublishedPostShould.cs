@@ -24,7 +24,7 @@ public class ReadPublishedPostShould
     {
         var post = BlogPost.Create(new Title("My Published Post"), new PostContent("Content"), FixedNow);
         post.Publish(FixedNow);
-        _repository.FindBySlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
+        _repository.FindBySlugAsync(Arg.Is<Slug>(s => s.Value == "my-published-post"), Arg.Any<CancellationToken>())
             .Returns(post);
 
         var result = await _useCase.ExecuteAsync("my-published-post");
@@ -37,7 +37,7 @@ public class ReadPublishedPostShould
     public async Task return_not_found_when_post_is_draft()
     {
         var draftPost = BlogPost.Create(new Title("Draft Post"), new PostContent("Content"), FixedNow);
-        _repository.FindBySlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
+        _repository.FindBySlugAsync(Arg.Is<Slug>(s => s.Value == "draft-post"), Arg.Any<CancellationToken>())
             .Returns(draftPost);
 
         var result = await _useCase.ExecuteAsync("draft-post");
@@ -49,10 +49,19 @@ public class ReadPublishedPostShould
     [Fact]
     public async Task return_not_found_when_slug_does_not_exist()
     {
-        _repository.FindBySlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
+        _repository.FindBySlugAsync(Arg.Is<Slug>(s => s.Value == "non-existent-slug"), Arg.Any<CancellationToken>())
             .Returns((BlogPost?)null);
 
         var result = await _useCase.ExecuteAsync("non-existent-slug");
+
+        result.IsSuccess.Should().BeFalse();
+        result.Post.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task return_not_found_for_invalid_slug()
+    {
+        var result = await _useCase.ExecuteAsync("");
 
         result.IsSuccess.Should().BeFalse();
         result.Post.Should().BeNull();
