@@ -81,7 +81,7 @@ public sealed class TagSteps(
             var postCount = int.Parse(row["post_count"]);
 
             await CreateAndStoreTag(tagName);
-            await CreatePostsWithTag(tagName, postCount);
+            await CreateAndPublishPostsWithTag(tagName, postCount);
         }
     }
 
@@ -404,7 +404,7 @@ public sealed class TagSteps(
 
     private async Task<List<string?>> FetchTagNames()
     {
-        await tagDriver.ListTags();
+        await tagDriver.ListAdminTags();
         apiContext.LastResponseJson.Should().NotBeNull();
         return apiContext.LastResponseJson!.RootElement
             .EnumerateArray()

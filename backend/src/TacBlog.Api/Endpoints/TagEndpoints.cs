@@ -11,6 +11,7 @@ public static class TagEndpoints
         app.MapGet("/api/tags", ListTagsAsync).AllowAnonymous();
         app.MapPut("/api/tags/{slug}", RenameTagAsync).RequireAuthorization();
         app.MapDelete("/api/tags/{slug}", DeleteTagAsync).RequireAuthorization();
+        app.MapGet("/api/admin/tags", ListAllTagsAsync).RequireAuthorization();
     }
 
     private static async Task<IResult> CreateTagAsync(
@@ -69,6 +70,14 @@ public static class TagEndpoints
             return Results.NotFound(new { error = "Tag not found" });
 
         return Results.NoContent();
+    }
+
+    private static async Task<IResult> ListAllTagsAsync(
+        ListTags listTags,
+        CancellationToken cancellationToken)
+    {
+        var result = await listTags.ExecuteAsync(cancellationToken);
+        return Results.Ok(result.Tags.Select(t => ToResponse(t.Tag)));
     }
 
     private static TagResponse ToResponse(Domain.Tag tag) =>

@@ -17,6 +17,7 @@ public static class PostEndpoints
         app.MapPost("/api/posts/{id:guid}/publish", PublishPostAsync).RequireAuthorization();
         app.MapGet("/api/posts/{id:guid}/preview", PreviewPostAsync).RequireAuthorization();
         app.MapGet("/api/admin/posts", ListAllPostsAsync).RequireAuthorization();
+        app.MapGet("/api/admin/posts/{slug}", GetAdminPostBySlugAsync).RequireAuthorization();
     }
 
     private static async Task<IResult> BrowsePostsAsync(
@@ -145,6 +146,19 @@ public static class PostEndpoints
         var result = await previewPost.ExecuteAsync(id, cancellationToken);
 
         if (result.IsNotFound)
+            return Results.NotFound(new { error = "Post not found" });
+
+        return Results.Ok(ToResponse(result.Post!));
+    }
+
+    private static async Task<IResult> GetAdminPostBySlugAsync(
+        string slug,
+        GetPostBySlug getPostBySlug,
+        CancellationToken cancellationToken)
+    {
+        var result = await getPostBySlug.ExecuteAsync(slug, cancellationToken);
+
+        if (!result.IsSuccess)
             return Results.NotFound(new { error = "Post not found" });
 
         return Results.Ok(ToResponse(result.Post!));

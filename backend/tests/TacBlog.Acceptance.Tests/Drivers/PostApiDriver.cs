@@ -13,11 +13,8 @@ public sealed class PostApiDriver(HttpClient client, ApiContext apiContext, Auth
         await SendAuthenticatedAsync(HttpMethod.Post, "/api/posts",
             JsonContent.Create(new { title, content, tags }));
 
-    public async Task GetPostBySlug(string slug)
-    {
-        var response = await client.GetAsync($"/api/posts/{slug}");
-        await apiContext.CaptureResponse(response);
-    }
+    public async Task GetPostBySlug(string slug) =>
+        await SendAuthenticatedAsync(HttpMethod.Get, $"/api/admin/posts/{slug}");
 
     public async Task ListPosts()
     {

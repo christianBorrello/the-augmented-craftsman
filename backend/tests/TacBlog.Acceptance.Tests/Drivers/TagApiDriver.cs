@@ -15,6 +15,9 @@ public sealed class TagApiDriver(HttpClient client, ApiContext apiContext, AuthC
         await apiContext.CaptureResponse(response);
     }
 
+    public async Task ListAdminTags() =>
+        await SendAuthenticatedAsync(HttpMethod.Get, "/api/admin/tags");
+
     public async Task RenameTag(string slug, string newName) =>
         await SendAuthenticatedAsync(HttpMethod.Put, $"/api/tags/{slug}",
             JsonContent.Create(new { name = newName }));
