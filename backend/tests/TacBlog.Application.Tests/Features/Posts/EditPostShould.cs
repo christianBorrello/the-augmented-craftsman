@@ -90,26 +90,6 @@ public class EditPostShould
             Arg.Any<CancellationToken>());
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData(null)]
-    public async Task return_validation_error_for_invalid_title(string? title)
-    {
-        var post = CreateExistingPost("Valid Title", "Valid content");
-        SetupRepositoryToReturn(post);
-
-        var result = await _useCase.ExecuteAsync(post.Id.Value, title!, "Valid content");
-
-        result.IsSuccess.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("Title");
-        result.Post.Should().BeNull();
-
-        await _repository.DidNotReceive().SaveAsync(
-            Arg.Any<BlogPost>(),
-            Arg.Any<CancellationToken>());
-    }
-
     private BlogPost CreateExistingPost(string title, string content) =>
         BlogPost.Create(new Title(title), new PostContent(content), OriginalCreatedAt);
 

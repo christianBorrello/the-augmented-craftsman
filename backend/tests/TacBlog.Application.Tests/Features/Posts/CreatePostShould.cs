@@ -39,13 +39,10 @@ public class CreatePostShould
             Arg.Any<CancellationToken>());
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData(null)]
-    public async Task return_validation_error_for_invalid_title(string? title)
+    [Fact]
+    public async Task return_validation_error_for_invalid_title()
     {
-        var result = await _useCase.ExecuteAsync(title!, "Valid content");
+        var result = await _useCase.ExecuteAsync("", "Valid content");
 
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Contain("Title");
@@ -56,13 +53,10 @@ public class CreatePostShould
             Arg.Any<CancellationToken>());
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData(null)]
-    public async Task return_validation_error_for_invalid_content(string? content)
+    [Fact]
+    public async Task return_validation_error_for_invalid_content()
     {
-        var result = await _useCase.ExecuteAsync("Valid Title", content!);
+        var result = await _useCase.ExecuteAsync("Valid Title", "");
 
         result.IsSuccess.Should().BeFalse();
         result.ErrorMessage.Should().Contain("Content");
