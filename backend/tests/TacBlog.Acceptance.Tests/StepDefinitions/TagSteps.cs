@@ -38,7 +38,7 @@ public sealed class TagSteps(
             return;
         }
 
-        await tagDriver.ListTags();
+        await tagDriver.ListAdminTags();
         apiContext.LastResponseJson.Should().NotBeNull();
         var tag = apiContext.LastResponseJson!.RootElement
             .EnumerateArray()
@@ -517,12 +517,6 @@ public sealed class TagSteps(
         return [];
     }
 
-    private static string ToSlug(string name)
-    {
-        var slug = name.ToLowerInvariant();
-        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-");
-        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9-]", "");
-        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-{2,}", "-");
-        return slug.Trim('-');
-    }
+    private static string ToSlug(string name) =>
+        Support.SlugHelper.ToSlug(name);
 }

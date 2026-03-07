@@ -23,17 +23,12 @@ public sealed class FilterPostsByTag(IBlogPostRepository repository)
             return FilterPostsByTagResult.NotFound();
         }
 
-        var tag = await repository.FindTagBySlugAsync(validatedSlug, cancellationToken);
+        var tagExists = await repository.FindTagBySlugAsync(validatedSlug, cancellationToken);
 
-        if (tag is null)
+        if (tagExists is null)
             return FilterPostsByTagResult.NotFound();
 
-        var allPosts = await repository.FindAllAsync(cancellationToken);
-        var publishedPostsWithTag = allPosts
-            .Where(post => post.Status == PostStatus.Published)
-            .Where(post => post.Tags.Contains(tag))
-            .ToList();
-
-        return FilterPostsByTagResult.Success(publishedPostsWithTag);
+        var posts = await repository.FindPublishedByTagSlugAsync(validatedSlug, cancellationToken);
+        return FilterPostsByTagResult.Success(posts);
     }
 }

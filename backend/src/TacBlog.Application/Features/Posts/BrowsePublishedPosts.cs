@@ -9,11 +9,7 @@ public sealed class BrowsePublishedPosts(IBlogPostRepository repository)
 {
     public async Task<BrowsePublishedPostsResult> ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var allPosts = await repository.FindAllAsync(cancellationToken);
-        var publishedPosts = allPosts
-            .Where(post => post.Status == PostStatus.Published)
-            .OrderByDescending(post => post.PublishedAt)
-            .ToList();
+        var publishedPosts = await repository.FindPublishedAsync(cancellationToken);
         return new BrowsePublishedPostsResult(publishedPosts);
     }
 }

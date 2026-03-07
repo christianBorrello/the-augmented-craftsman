@@ -30,14 +30,8 @@ public class FilterPostsByTagShould
         matchingPost.AddTag(tag);
         matchingPost.Publish(FixedNow);
 
-        var untaggedPost = BlogPost.Create(new Title("Untagged Post"), new PostContent("Content"), FixedNow);
-        untaggedPost.Publish(FixedNow);
-
-        var draftWithTag = BlogPost.Create(new Title("Draft Post"), new PostContent("Content"), FixedNow);
-        draftWithTag.AddTag(tag);
-
-        _repository.FindAllAsync(Arg.Any<CancellationToken>())
-            .Returns([matchingPost, untaggedPost, draftWithTag]);
+        _repository.FindPublishedByTagSlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
+            .Returns([matchingPost]);
 
         var result = await _useCase.ExecuteAsync("csharp");
 
@@ -67,11 +61,8 @@ public class FilterPostsByTagShould
         _repository.FindTagBySlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
             .Returns(tag);
 
-        var draftWithTag = BlogPost.Create(new Title("Draft Only"), new PostContent("Content"), FixedNow);
-        draftWithTag.AddTag(tag);
-
-        _repository.FindAllAsync(Arg.Any<CancellationToken>())
-            .Returns([draftWithTag]);
+        _repository.FindPublishedByTagSlugAsync(Arg.Any<Slug>(), Arg.Any<CancellationToken>())
+            .Returns(new List<BlogPost>());
 
         var result = await _useCase.ExecuteAsync("empty-tag");
 

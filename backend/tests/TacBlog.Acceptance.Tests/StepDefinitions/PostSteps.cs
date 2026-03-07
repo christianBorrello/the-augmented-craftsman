@@ -82,7 +82,7 @@ public sealed class PostSteps
         }
         else if (path == "/api/tags")
         {
-            await _tagDriver.ListTags();
+            await _tagDriver.ListPublicTags();
         }
     }
 
@@ -1078,14 +1078,8 @@ public sealed class PostSteps
         string.Join(' ', slug.Split('-').Select(word =>
             char.ToUpper(word[0]) + word[1..]));
 
-    private static string ToSlug(string name)
-    {
-        var slug = name.ToLowerInvariant();
-        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-");
-        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9-]", "");
-        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-{2,}", "-");
-        return slug.Trim('-');
-    }
+    private static string ToSlug(string name) =>
+        Support.SlugHelper.ToSlug(name);
 
     private async Task EnsureAuthenticated()
     {
