@@ -23,7 +23,6 @@ Feature: Post and view comments on blog posts
     And the response contains display name "Tomasz Kowalski"
     And the response contains provider "GitHub"
 
-  @ignore
   Scenario: Comment text is sanitized to prevent injection
     Given a reader session exists for "Maria Santos" via "Google"
     And a published post "Outside-In TDD" exists
@@ -40,14 +39,12 @@ Feature: Post and view comments on blog posts
     And the comments count is 2
     And the comments are in chronological order
 
-  @ignore
   Scenario: Empty comments section returns zero count
     Given a published post "Outside-In TDD" exists
     When a reader requests the comment count for "outside-in-tdd"
     Then the response status is 200
     And the comment count is 0
 
-  @ignore
   Scenario: Comment count matches number of comments
     Given a published post "Outside-In TDD" exists
     And "outside-in-tdd" has a comment by "Tomasz Kowalski" via "GitHub" saying "First!"

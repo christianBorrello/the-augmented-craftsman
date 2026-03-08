@@ -10,6 +10,7 @@ public static class CommentEndpoints
     {
         app.MapPost("/api/posts/{slug}/comments", PostCommentAsync).AllowAnonymous();
         app.MapGet("/api/posts/{slug}/comments", GetCommentsAsync).AllowAnonymous();
+        app.MapGet("/api/posts/{slug}/comments/count", GetCommentCountAsync).AllowAnonymous();
     }
 
     private static async Task<IResult> PostCommentAsync(
@@ -56,6 +57,18 @@ public static class CommentEndpoints
             count = result.Count,
             comments = result.Comments
         });
+    }
+    private static async Task<IResult> GetCommentCountAsync(
+        string slug,
+        GetCommentCount getCommentCount,
+        CancellationToken cancellationToken)
+    {
+        var result = await getCommentCount.ExecuteAsync(slug, cancellationToken);
+
+        if (result.IsNotFound)
+            return Results.NotFound(new { error = "Post not found" });
+
+        return Results.Ok(new { count = result.Count });
     }
 }
 

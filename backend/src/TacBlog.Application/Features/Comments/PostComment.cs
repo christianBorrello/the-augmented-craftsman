@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using TacBlog.Application.Ports.Driven;
 using TacBlog.Domain;
 
@@ -44,10 +45,12 @@ public sealed class PostComment(
         if (post is null)
             return PostCommentResult.NotFound();
 
+        var sanitizedText = SanitizeHtml(text);
+
         CommentText commentText;
         try
         {
-            commentText = new CommentText(text);
+            commentText = new CommentText(sanitizedText);
         }
         catch (ArgumentException ex)
         {
@@ -66,6 +69,9 @@ public sealed class PostComment(
 
         return PostCommentResult.Success(ToDto(comment));
     }
+
+    private static string SanitizeHtml(string input) =>
+        Regex.Replace(input, @"<[^>]*>", string.Empty);
 
     private static CommentDto ToDto(Comment comment) =>
         new(comment.Id.Value,

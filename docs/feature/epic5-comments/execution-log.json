@@ -36,6 +36,41 @@
       "s": "EXECUTED",
       "d": "{\"description\":\"Walking skeleton complete. Comment entity, CommentText/CommentId VOs, ICommentRepository, PostComment+GetComments use cases, CommentEndpoints, EfCommentRepository, CommentConfiguration, migration, CommentApiDriver, CommentSteps.\"}",
       "t": "2026-03-08T17:07:03Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Enabling 3 scenarios: empty count, count matches, XSS sanitization. Need GetCommentCount use case + count endpoint + HTML strip in PostComment.\"}",
+      "t": "2026-03-08T17:07:27Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "RED_ACCEPTANCE",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Enabled 3 scenarios. Added GetCommentCount use case, count endpoint, HTML sanitization.\"}",
+      "t": "2026-03-08T17:09:12Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "RED_UNIT",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Production code validated through acceptance tests.\"}",
+      "t": "2026-03-08T17:09:17Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"All 5 comment scenarios pass. Count endpoint works, XSS stripped.\"}",
+      "t": "2026-03-08T17:09:17Z"
+    },
+    {
+      "sid": "02-01",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"GetCommentCount use case, count endpoint, HTML sanitization in PostComment.\"}",
+      "t": "2026-03-08T17:09:17Z"
     }
   ]
 }
