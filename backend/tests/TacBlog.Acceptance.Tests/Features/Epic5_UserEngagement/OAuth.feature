@@ -38,7 +38,6 @@ Feature: Sign in with social login to comment
     And the response contains display name "Tomasz Kowalski"
     And the response contains provider "GitHub"
 
-  @ignore
   Scenario: Sign out clears the reader session
     Given a reader session exists for "Maria Santos" via "Google"
     When the reader signs out
@@ -81,7 +80,6 @@ Feature: Sign in with social login to comment
     Then the reader is redirected back to the original post with an error indicator
     And no session is created
 
-  @ignore
   Scenario: Sign out with no active session succeeds silently
     When a reader with no session signs out
     Then the response status is 204

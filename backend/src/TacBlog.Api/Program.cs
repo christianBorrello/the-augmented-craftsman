@@ -69,6 +69,7 @@ builder.Services.AddSingleton<IOAuthClient>(sp =>
 builder.Services.AddScoped<HandleOAuthCallback>();
 builder.Services.AddScoped<CheckSession>();
 builder.Services.AddScoped<InitiateOAuth>();
+builder.Services.AddScoped<SignOut>();
 
 builder.Services.AddSingleton(sp =>
 {

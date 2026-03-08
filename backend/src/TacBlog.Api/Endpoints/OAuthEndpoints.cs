@@ -11,6 +11,7 @@ public static class OAuthEndpoints
         app.MapGet("/api/auth/oauth/{provider}", InitiateOAuthAsync).AllowAnonymous();
         app.MapGet("/api/auth/oauth/{provider}/callback", HandleCallbackAsync).AllowAnonymous();
         app.MapGet("/api/auth/session", CheckSessionAsync).AllowAnonymous();
+        app.MapPost("/api/auth/signout", SignOutAsync).AllowAnonymous();
     }
 
     private static async Task<IResult> InitiateOAuthAsync(
@@ -80,6 +81,32 @@ public static class OAuthEndpoints
             avatarUrl = result.AvatarUrl,
             provider = result.Provider
         });
+    }
+
+    private static async Task<IResult> SignOutAsync(
+        SignOut signOut,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        Guid? sessionId = null;
+
+        if (httpContext.Request.Cookies.TryGetValue(SessionCookieName, out var cookieValue)
+            && Guid.TryParse(cookieValue, out var parsed))
+        {
+            sessionId = parsed;
+        }
+
+        await signOut.ExecuteAsync(sessionId, cancellationToken);
+
+        httpContext.Response.Cookies.Delete(SessionCookieName, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Path = "/"
+        });
+
+        return Results.NoContent();
     }
 
     private static string BuildRedirectUri(HttpContext httpContext, string provider)

@@ -72,6 +72,19 @@ public sealed class OAuthSteps(
         await oAuthDriver.CheckSession();
     }
 
+    [When("the reader signs out")]
+    public async Task WhenTheReaderSignsOut()
+    {
+        await oAuthDriver.SignOut();
+    }
+
+    [When("a reader with no session signs out")]
+    public async Task WhenAReaderWithNoSessionSignsOut()
+    {
+        sessionContext.SessionCookie = null;
+        await oAuthDriver.SignOut();
+    }
+
     [Then("a reader session is created")]
     public void ThenAReaderSessionIsCreated()
     {
@@ -110,6 +123,21 @@ public sealed class OAuthSteps(
     {
         _callbackResponse.Should().NotBeNull("a callback response should have been captured");
         _callbackResponse!.StatusCode.Should().Be(HttpStatusCode.Redirect);
+    }
+
+    [Then("the session is cleared")]
+    public void ThenTheSessionIsCleared()
+    {
+        sessionContext.SessionCookie.Should().BeNull("session cookie should be cleared after sign out");
+    }
+
+    [Then("checking session status shows not authenticated")]
+    public async Task ThenCheckingSessionStatusShowsNotAuthenticated()
+    {
+        await oAuthDriver.CheckSession();
+        apiContext.LastResponseJson.Should().NotBeNull();
+        apiContext.LastResponseJson!.RootElement.GetProperty("authenticated").GetBoolean()
+            .Should().BeFalse();
     }
 
     [Then("the session status indicates authenticated")]
