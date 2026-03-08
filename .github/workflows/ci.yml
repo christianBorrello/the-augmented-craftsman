@@ -58,7 +58,7 @@ jobs:
         working-directory: backend
 
       - name: Acceptance tests
-        run: dotnet test tests/TacBlog.Acceptance.Tests/ -c Release --no-build --logger "trx;LogFileName=acceptance.trx"
+        run: dotnet test tests/TacBlog.Acceptance.Tests/ -c Release --no-build --filter "Category!=manual" --logger "trx;LogFileName=acceptance.trx"
         working-directory: backend
 
       - name: Build Docker image
