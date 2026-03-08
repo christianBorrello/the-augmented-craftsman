@@ -275,4 +275,4 @@ EF Core value converters map between domain Value Objects and database primitive
 
 **Initial migration creates**: `blog_posts`, `tags`, `post_tags` with all indexes.
 
-No data migration from the old `blog/` database. The new system starts empty.
+No data migration from a legacy database. The new system starts empty.

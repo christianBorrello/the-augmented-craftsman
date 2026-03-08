@@ -47,7 +47,6 @@ the-augmented-craftsman/
       Api.Tests/         # Integration tests
       Acceptance.Tests/  # BDD acceptance tests (Outside-In entry point)
   docs/                  # Research, brainstorm, architecture decisions
-  blog/                  # REFERENCE ONLY — old tutorial code, remove after migration
 ```
 
 ## Tech Stack
@@ -146,16 +145,6 @@ class BlogPostShould
 - **Palette**: Warm parchment/forge black + burnt amber accent
 - **Animations**: CSS only (View Transitions, scroll reveals, staggered entry) — zero JS
 - **Dark/light mode**: CSS variables with `prefers-color-scheme` detection
-
-## Migration Reference
-
-The `blog/` folder contains the original tutorial code (TacBlog legacy). Use it as reference for:
-- Understanding existing feature scope (CRUD posts, tags, images, auth)
-- Data model structure (BlogPost, Tag, BlogImage, Comment, Like)
-- ImageKit integration pattern (legacy code used Cloudinary)
-- ASP.NET Identity setup
-
-**Do NOT copy code from `blog/` directly.** Every feature must be rebuilt test-first with the new architecture.
 
 ## Key Decisions Log
 
