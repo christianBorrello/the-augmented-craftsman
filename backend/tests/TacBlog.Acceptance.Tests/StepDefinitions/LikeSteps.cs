@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentAssertions;
 using Reqnroll;
 using TacBlog.Acceptance.Tests.Contexts;
@@ -12,6 +13,7 @@ public sealed class LikeSteps
     private readonly LikeApiDriver _likeDriver;
     private readonly ApiContext _apiContext;
     private string _visitorId = Guid.NewGuid().ToString();
+    private JsonDocument? _actionResponse;
 
     public LikeSteps(LikeApiDriver likeDriver, ApiContext apiContext)
     {
@@ -25,10 +27,25 @@ public sealed class LikeSteps
         // Starting state: no likes in clean database
     }
 
+    [Given("a visitor has liked {string}")]
+    public async Task GivenAVisitorHasLiked(string title)
+    {
+        var slug = SlugHelper.ToSlug(title);
+        await _likeDriver.LikePost(slug, _visitorId);
+    }
+
     [Given("a visitor has not previously liked {string}")]
     public void GivenAVisitorHasNotPreviouslyLiked(string title)
     {
         _visitorId = Guid.NewGuid().ToString();
+    }
+
+    [When("the visitor unlikes {string}")]
+    public async Task WhenTheVisitorUnlikes(string title)
+    {
+        var slug = SlugHelper.ToSlug(title);
+        await _likeDriver.UnlikePost(slug, _visitorId);
+        _actionResponse = _apiContext.LastResponseJson;
     }
 
     [When("the visitor likes {string}")]
@@ -36,6 +53,7 @@ public sealed class LikeSteps
     {
         var slug = SlugHelper.ToSlug(title);
         await _likeDriver.LikePost(slug, _visitorId);
+        _actionResponse = _apiContext.LastResponseJson;
     }
 
     [Then("the like is recorded successfully")]
@@ -56,6 +74,22 @@ public sealed class LikeSteps
         _apiContext.LastResponseJson.Should().NotBeNull();
         _apiContext.LastResponseJson!.RootElement
             .GetProperty("count").GetInt32().Should().Be(expectedCount);
+    }
+
+    [Then("the response indicates the post is not liked")]
+    public void ThenTheResponseIndicatesThePostIsNotLiked()
+    {
+        _actionResponse.Should().NotBeNull();
+        _actionResponse!.RootElement
+            .GetProperty("liked").GetBoolean().Should().BeFalse();
+    }
+
+    [Then("the response indicates the post is liked")]
+    public void ThenTheResponseIndicatesThePostIsLiked()
+    {
+        _actionResponse.Should().NotBeNull();
+        _actionResponse!.RootElement
+            .GetProperty("liked").GetBoolean().Should().BeTrue();
     }
 
     [Given("{string} has been liked by {int} visitors")]

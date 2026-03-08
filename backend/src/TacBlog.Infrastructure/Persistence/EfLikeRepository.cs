@@ -19,4 +19,17 @@ public sealed class EfLikeRepository(TacBlogDbContext context) : ILikeRepository
         await context.Likes.AnyAsync(
             l => l.PostSlug == slug && l.VisitorId == visitorId,
             cancellationToken);
+
+    public async Task DeleteAsync(Slug slug, VisitorId visitorId, CancellationToken cancellationToken)
+    {
+        var like = await context.Likes.FirstOrDefaultAsync(
+            l => l.PostSlug == slug && l.VisitorId == visitorId,
+            cancellationToken);
+
+        if (like is not null)
+        {
+            context.Likes.Remove(like);
+            await context.SaveChangesAsync(cancellationToken);
+        }
+    }
 }

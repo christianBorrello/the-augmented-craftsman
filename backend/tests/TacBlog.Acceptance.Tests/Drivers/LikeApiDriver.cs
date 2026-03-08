@@ -13,6 +13,12 @@ public sealed class LikeApiDriver(HttpClient client, ApiContext apiContext)
         await apiContext.CaptureResponse(response);
     }
 
+    public async Task UnlikePost(string slug, string visitorId)
+    {
+        var response = await client.DeleteAsync($"/api/posts/{slug}/likes/{visitorId}");
+        await apiContext.CaptureResponse(response);
+    }
+
     public async Task GetLikeCount(string slug)
     {
         var response = await client.GetAsync($"/api/posts/{slug}/likes/count");

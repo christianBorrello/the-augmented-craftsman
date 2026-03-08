@@ -59,6 +59,7 @@ builder.Services.AddScoped<DeleteTag>();
 builder.Services.AddScoped<BrowsePublicTags>();
 builder.Services.AddScoped<ILikeRepository, EfLikeRepository>();
 builder.Services.AddScoped<LikePost>();
+builder.Services.AddScoped<UnlikePost>();
 builder.Services.AddScoped<GetLikeCount>();
 
 builder.Services.AddSingleton(sp =>

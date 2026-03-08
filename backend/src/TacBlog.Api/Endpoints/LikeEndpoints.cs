@@ -7,6 +7,7 @@ public static class LikeEndpoints
     public static void MapLikeEndpoints(this WebApplication app)
     {
         app.MapPost("/api/posts/{slug}/likes", LikePostAsync).AllowAnonymous();
+        app.MapDelete("/api/posts/{slug}/likes/{visitorId}", UnlikePostAsync).AllowAnonymous();
         app.MapGet("/api/posts/{slug}/likes/count", GetLikeCountAsync).AllowAnonymous();
     }
 
@@ -22,6 +23,20 @@ public static class LikeEndpoints
             return Results.NotFound(new { error = "Post not found" });
 
         return Results.Ok(new { liked = true, count = result.Count });
+    }
+
+    private static async Task<IResult> UnlikePostAsync(
+        string slug,
+        string visitorId,
+        UnlikePost unlikePost,
+        CancellationToken cancellationToken)
+    {
+        var result = await unlikePost.ExecuteAsync(slug, visitorId, cancellationToken);
+
+        if (result.IsNotFound)
+            return Results.NotFound(new { error = "Post not found" });
+
+        return Results.Ok(new { liked = false, count = result.Count });
     }
 
     private static async Task<IResult> GetLikeCountAsync(
