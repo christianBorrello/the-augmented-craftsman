@@ -32,7 +32,7 @@ public class GetLikeCountShould
 
         var result = await _useCase.ExecuteAsync(slug.Value);
 
-        result.IsSuccess.Should().BeTrue();
+        result.IsNotFound.Should().BeFalse();
         result.Count.Should().Be(3);
     }
 
@@ -47,7 +47,6 @@ public class GetLikeCountShould
         var result = await _useCase.ExecuteAsync(slug.Value);
 
         result.IsNotFound.Should().BeTrue();
-        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -62,7 +61,7 @@ public class GetLikeCountShould
 
         var result = await _useCase.ExecuteAsync(slug.Value);
 
-        result.IsSuccess.Should().BeTrue();
+        result.IsNotFound.Should().BeFalse();
         result.Count.Should().Be(0);
     }
 }

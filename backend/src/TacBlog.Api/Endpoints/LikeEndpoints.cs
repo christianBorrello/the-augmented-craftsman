@@ -18,7 +18,7 @@ public static class LikeEndpoints
         LikePost likePost,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.VisitorId) || !Guid.TryParse(request.VisitorId, out var parsed) || parsed == Guid.Empty)
+        if (!IsValidVisitorId(request.VisitorId))
             return Results.BadRequest(new { error = "Invalid visitor identifier" });
 
         var result = await likePost.ExecuteAsync(slug, request.VisitorId, cancellationToken);
@@ -35,6 +35,9 @@ public static class LikeEndpoints
         UnlikePost unlikePost,
         CancellationToken cancellationToken)
     {
+        if (!IsValidVisitorId(visitorId))
+            return Results.BadRequest(new { error = "Invalid visitor identifier" });
+
         var result = await unlikePost.ExecuteAsync(slug, visitorId, cancellationToken);
 
         if (result.IsNotFound)
@@ -61,6 +64,9 @@ public static class LikeEndpoints
         CheckIfLiked checkIfLiked,
         CancellationToken cancellationToken)
     {
+        if (!IsValidVisitorId(visitorId))
+            return Results.BadRequest(new { error = "Invalid visitor identifier" });
+
         var result = await checkIfLiked.ExecuteAsync(slug, visitorId, cancellationToken);
 
         if (result.IsNotFound)
@@ -68,6 +74,10 @@ public static class LikeEndpoints
 
         return Results.Ok(new { liked = result.IsLiked, count = result.Count });
     }
+    private static bool IsValidVisitorId(string? visitorId) =>
+        !string.IsNullOrWhiteSpace(visitorId)
+        && Guid.TryParse(visitorId, out var parsed)
+        && parsed != Guid.Empty;
 }
 
 public sealed record LikeRequest(string VisitorId);

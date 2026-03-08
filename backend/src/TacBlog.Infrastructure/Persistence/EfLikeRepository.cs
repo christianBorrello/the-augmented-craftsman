@@ -9,7 +9,14 @@ public sealed class EfLikeRepository(TacBlogDbContext context) : ILikeRepository
     public async Task SaveAsync(Like like, CancellationToken cancellationToken)
     {
         context.Likes.Add(like);
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            context.Entry(like).State = EntityState.Detached;
+        }
     }
 
     public async Task<int> CountBySlugAsync(Slug slug, CancellationToken cancellationToken) =>
