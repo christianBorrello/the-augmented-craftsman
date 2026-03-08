@@ -1,0 +1,126 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import TagBadge from '../components/TagBadge.astro';
+import { fetchPosts, fetchTags } from '../data/api';
+
+const posts = await fetchPosts();
+const featuredPosts = posts.slice(0, 2);
+const recentPosts = posts.slice(0, 6);
+const topTags = (await fetchTags()).slice(0, 6);
+---
+
+<BaseLayout title="The Augmented Craftsman — Crafting Software with Intention">
+
+  <!-- Hero -->
+  <section class="pt-20 md:pt-32 pb-16 md:pb-24 px-6 md:px-10 max-w-wide mx-auto relative overflow-hidden">
+
+    <!-- Subtle geometric background pattern -->
+    <div class="absolute top-10 right-10 w-64 h-64 opacity-[0.03] dark:opacity-[0.05]" aria-hidden="true">
+      <div class="absolute inset-0 border-2 border-[var(--color-text)] rounded-lg rotate-12"></div>
+      <div class="absolute inset-8 border-2 border-[var(--color-text)] rounded-lg -rotate-6"></div>
+      <div class="absolute inset-16 border-2 border-[var(--color-text)] rounded-lg rotate-3"></div>
+    </div>
+
+    <div class="max-w-3xl relative">
+      <div class="mb-6 flex items-center gap-3 animate-fade-in">
+        <div class="h-px w-12 bg-[var(--color-accent)]"></div>
+        <span class="font-mono text-xs uppercase tracking-widest text-[var(--color-accent)]">
+          Software Craftsmanship
+        </span>
+      </div>
+
+      <h1 class="font-display font-semibold text-display-xl text-balance animate-fade-up">
+        Crafting software<br />
+        <span class="text-[var(--color-accent)]">with intention</span>
+      </h1>
+
+      <p class="mt-8 text-body-lg text-[var(--color-text-muted)] text-pretty max-w-2xl animate-fade-up" style="animation-delay: 100ms;">
+        Daily reflections on TDD, Clean Architecture, DDD, and the
+        disciplined pursuit of elegant code. Because software development
+        is a learning process — working code is a side effect.
+      </p>
+
+      <div class="mt-10 flex items-center gap-4 animate-fade-up" style="animation-delay: 200ms;">
+        <a
+          href="/blog"
+          class="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[var(--color-accent)] text-white font-body font-medium text-sm transition-all duration-200 hover:brightness-110 hover:shadow-lg hover:shadow-[var(--color-accent)]/20"
+        >
+          Read the blog
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </a>
+        <a
+          href="/about"
+          class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-[var(--color-border)] text-[var(--color-text-muted)] font-body font-medium text-sm transition-all duration-200 hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+        >
+          About me
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Posts -->
+  {featuredPosts.length > 0 && (
+    <section class="px-6 md:px-10 max-w-wide mx-auto">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="font-display font-semibold text-display-md accent-line">Featured</h2>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6 stagger">
+        {featuredPosts.map((post) => (
+          <PostCard {...post} featured />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- Recent Posts -->
+  {recentPosts.length > 0 && (
+    <section class="mt-20 px-6 md:px-10 max-w-wide mx-auto">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="font-display font-semibold text-display-md accent-line">Latest Writing</h2>
+        <a href="/blog" class="text-body-sm text-[var(--color-accent)] hover:underline font-mono">
+          View all &rarr;
+        </a>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 stagger">
+        {recentPosts.map((post) => (
+          <div class="reveal-on-scroll">
+            <PostCard {...post} />
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- Topics -->
+  {topTags.length > 0 && (
+    <section class="mt-20 mb-8 px-6 md:px-10 max-w-wide mx-auto">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="font-display font-semibold text-display-md accent-line">Topics</h2>
+        <a href="/tags" class="text-body-sm text-[var(--color-accent)] hover:underline font-mono">
+          All topics &rarr;
+        </a>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        {topTags.map(({ name, postCount }) => (
+          <TagBadge tag={name} count={postCount} size="md" linked />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- Quote / Philosophy -->
+  <section class="mt-16 mb-8 px-6 md:px-10 max-w-wide mx-auto">
+    <div class="reveal-on-scroll max-w-2xl mx-auto text-center py-16 border-t border-b border-[var(--color-border)]">
+      <blockquote class="font-display text-display-md italic text-[var(--color-text-muted)]">
+        "Software development is a learning process, working code is a side effect."
+      </blockquote>
+      <cite class="mt-4 block text-body-sm font-mono text-[var(--color-accent)]">
+        — Alberto Brandolini
+      </cite>
+    </div>
+  </section>
+
+</BaseLayout>

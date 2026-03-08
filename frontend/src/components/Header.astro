@@ -1,0 +1,82 @@
+---
+const currentPath = Astro.url.pathname;
+
+const navLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/blog', label: 'Writing' },
+  { href: '/tags', label: 'Topics' },
+  { href: '/about', label: 'About' },
+];
+---
+
+<header class="sticky top-0 z-50 backdrop-blur-md bg-[var(--color-bg)]/80 border-b border-[var(--color-border)]">
+  <nav class="max-w-wide mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
+
+    <!-- Logo / Craft Mark -->
+    <a href="/" class="flex items-center gap-3 group" aria-label="Home">
+      <div class="w-8 h-8 relative">
+        <!-- Geometric craft mark: overlapping squares suggesting architecture -->
+        <div class="absolute inset-0 border-2 border-[var(--color-accent)] rounded-sm rotate-0 transition-transform duration-300 group-hover:rotate-6"></div>
+        <div class="absolute inset-1 border-2 border-[var(--color-text)] rounded-sm rotate-0 transition-transform duration-300 group-hover:-rotate-3 opacity-40"></div>
+      </div>
+      <span class="font-display font-semibold text-lg tracking-tight">
+        The Augmented Craftsman
+      </span>
+    </a>
+
+    <!-- Navigation -->
+    <div class="flex items-center gap-1 md:gap-2">
+      {navLinks.map(({ href, label }) => {
+        const isActive = currentPath === href || (href !== '/' && currentPath.startsWith(href));
+        return (
+          <a
+            href={href}
+            class:list={[
+              'px-3 py-1.5 rounded-lg text-body-sm font-body transition-all duration-200',
+              isActive
+                ? 'text-[var(--color-accent)] bg-[var(--color-bg-surface)]'
+                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-surface)]',
+            ]}
+          >
+            {label}
+          </a>
+        );
+      })}
+
+      <!-- Theme Toggle -->
+      <button
+        id="theme-toggle"
+        class="ml-2 p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-surface)] transition-all duration-200"
+        aria-label="Toggle dark mode"
+      >
+        <!-- Sun (shown in dark mode) -->
+        <svg class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="5" />
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+        <!-- Moon (shown in light mode) -->
+        <svg class="w-5 h-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        </svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<script is:inline>
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  });
+
+  document.addEventListener('astro:after-swap', () => {
+    const theme = localStorage.getItem('theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+  });
+</script>

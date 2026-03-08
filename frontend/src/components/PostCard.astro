@@ -1,0 +1,64 @@
+---
+import TagBadge from './TagBadge.astro';
+
+interface Props {
+  slug: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  tags: string[];
+  readingTime: string;
+  featured?: boolean;
+}
+
+const { slug, title, excerpt, date, tags, readingTime, featured = false } = Astro.props;
+
+const formattedDate = new Date(date).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<article
+  class:list={[
+    'group relative rounded-xl border border-[var(--color-border)] transition-all duration-300',
+    'hover:border-[var(--color-accent)]/40 hover:shadow-lg hover:shadow-[var(--color-accent)]/5',
+    featured ? 'p-8 md:p-10' : 'p-6 md:p-8',
+  ]}
+>
+  <!-- Accent top border on hover -->
+  <div class="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+  <a href={`/blog/${slug}`} class="block space-y-4">
+    <!-- Meta -->
+    <div class="flex items-center gap-3 text-xs font-mono text-[var(--color-text-muted)]">
+      <time datetime={date}>{formattedDate}</time>
+      <span class="w-1 h-1 rounded-full bg-[var(--color-text-muted)]"></span>
+      <span>{readingTime}</span>
+    </div>
+
+    <!-- Title -->
+    <h3
+      class:list={[
+        'font-display font-semibold tracking-tight group-hover:text-[var(--color-accent)] transition-colors duration-200',
+        featured ? 'text-display-md' : 'text-display-md text-xl',
+      ]}
+      transition:name={`post-title-${slug}`}
+    >
+      {title}
+    </h3>
+
+    <!-- Excerpt -->
+    <p class="text-body-sm text-[var(--color-text-muted)] text-pretty line-clamp-3">
+      {excerpt}
+    </p>
+
+    <!-- Tags -->
+    <div class="flex flex-wrap gap-2 pt-2">
+      {tags.map((tag) => (
+        <TagBadge tag={tag} />
+      ))}
+    </div>
+  </a>
+</article>

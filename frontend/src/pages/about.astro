@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About — The Augmented Craftsman" description="Software Engineer building on the tradition of eXtreme Programming and Software Craftsmanship.">
+
+  <section class="pt-16 md:pt-24 pb-12 px-6 md:px-10 max-w-wide mx-auto">
+    <div class="max-w-3xl">
+
+      <!-- Header -->
+      <div class="mb-6 flex items-center gap-3 animate-fade-in">
+        <div class="h-px w-12 bg-[var(--color-accent)]"></div>
+        <span class="font-mono text-xs uppercase tracking-widest text-[var(--color-accent)]">
+          About
+        </span>
+      </div>
+
+      <h1 class="font-display font-semibold text-display-xl text-balance animate-fade-up">
+        Christian Borrello
+      </h1>
+
+      <p class="mt-4 text-body-lg text-[var(--color-accent)] font-mono animate-fade-up" style="animation-delay: 100ms;">
+        Software Engineer &middot; Craftsman &middot; Lifelong Learner
+      </p>
+    </div>
+  </section>
+
+  <section class="px-6 md:px-10 max-w-wide mx-auto">
+    <div class="max-w-3xl prose-forge animate-fade-up" style="animation-delay: 200ms;">
+
+      <p>
+        I'm building my career as a Software Engineer drawing deeply from the tradition
+        of <strong>eXtreme Programming</strong> and <strong>Software Craftsmanship</strong>.
+        I believe technologies are tools to choose based on the problem — what remains is the method.
+      </p>
+
+      <h2>My Daily Bread</h2>
+
+      <p>
+        TDD. Clean Architecture. DDD. Continuous Refactoring. Incremental Design.
+        These are the practices I study and apply to shape code — even before writing it,
+        even when the AI writes it.
+      </p>
+
+      <h2>Philosophy</h2>
+
+      <blockquote>
+        <p>
+          "We are what we repeatedly do. Hence, excellence is not an act, but a habit."
+        </p>
+      </blockquote>
+
+      <p>
+        I use Claude Code every day as part of a structured pipeline — nWave —
+        that delegates each phase of work to a specialized agent with precise context.
+        AI is the most powerful tool ever put in the hands of a developer, but without
+        tests that validate, architectures that contain, and principles that guide,
+        the risk is producing <em>more</em> code, not <em>better</em> code.
+      </p>
+
+      <p>
+        That's why I invest daily in forming myself on <strong>practices before tools</strong>.
+        The tool amplifies what the craftsman already knows.
+      </p>
+
+      <h2>This Blog</h2>
+
+      <p>
+        This blog is itself a practice ground. It's built with:
+      </p>
+
+      <ul>
+        <li><strong>Hexagonal Architecture</strong> — the .NET 10 API is the core, this frontend is a driving adapter</li>
+        <li><strong>TDD Outside-In</strong> — every feature started as a failing acceptance test</li>
+        <li><strong>DDD-Lite</strong> — Value Objects, lightweight Aggregates, Bounded Context awareness</li>
+        <li><strong>Astro</strong> — zero JavaScript by default, because the best code is the code that isn't shipped</li>
+      </ul>
+
+      <p>
+        The code is open source. Not because it's perfect, but because
+        <strong> software development is a learning process</strong> — and learning happens in the open.
+      </p>
+
+      <hr />
+
+      <h2>Connect</h2>
+
+      <p>
+        Find me on <a href="https://github.com/christianBorrello" target="_blank" rel="noopener">GitHub</a>,
+        or explore my <a href="https://christianborrello.github.io/WebPortfolio/" target="_blank" rel="noopener">portfolio</a>.
+      </p>
+
+    </div>
+  </section>
+
+</BaseLayout>

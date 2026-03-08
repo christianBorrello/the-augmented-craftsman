@@ -1,0 +1,163 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import { fetchPosts, fetchPostBySlug } from '../../data/api';
+import { renderMarkdown } from '../../data/markdown';
+
+export async function getStaticPaths() {
+  const posts = await fetchPosts();
+  return posts.map(post => ({
+    params: { slug: post.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const post = await fetchPostBySlug(slug!);
+
+if (!post) {
+  return Astro.redirect('/blog');
+}
+
+const formattedDate = new Date(post.date).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const headings = post.content
+  .split('\n')
+  .filter(line => line.startsWith('## '))
+  .map(line => ({
+    text: line.replace('## ', ''),
+    id: line.replace('## ', '').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+  }));
+
+const contentHtml = await renderMarkdown(post.content);
+---
+
+<BaseLayout title={`${post.title} — The Augmented Craftsman`} description={post.excerpt}>
+
+  <article class="px-6 md:px-10 max-w-wide mx-auto pt-12 md:pt-20">
+    <div class="max-w-4xl mx-auto">
+
+      <header class="mb-12 md:mb-16 animate-fade-up">
+        <a href="/blog" class="inline-flex items-center gap-2 text-body-sm font-mono text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors mb-8">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          Back to all posts
+        </a>
+
+        <div class="flex items-center gap-3 text-body-sm font-mono text-[var(--color-text-muted)] mb-4">
+          <time datetime={post.date}>{formattedDate}</time>
+          <span class="w-1 h-1 rounded-full bg-[var(--color-text-muted)]"></span>
+          <span>{post.readingTime}</span>
+        </div>
+
+        <h1
+          class="font-display font-semibold text-display-lg md:text-display-xl text-balance"
+          transition:name={`post-title-${post.slug}`}
+        >
+          {post.title}
+        </h1>
+
+        {post.tags.length > 0 && (
+          <div class="flex flex-wrap gap-2 mt-6">
+            {post.tags.map((tag) => (
+              <TagBadge tag={tag} size="md" linked />
+            ))}
+          </div>
+        )}
+      </header>
+
+      <div class="flex gap-12 lg:gap-16">
+        <div class="flex-1 min-w-0 animate-fade-up" style="animation-delay: 150ms;">
+          <div class="prose-forge" set:html={contentHtml} />
+        </div>
+
+        {headings.length > 1 && (
+          <aside class="hidden lg:block w-56 shrink-0">
+            <nav class="sticky top-24 space-y-1" aria-label="Table of contents">
+              <p class="font-mono text-xs uppercase tracking-wider text-[var(--color-text-muted)] mb-3">
+                On this page
+              </p>
+              {headings.map(({ text, id }) => (
+                <a
+                  href={`#${id}`}
+                  class="block text-body-sm text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors py-1 border-l-2 border-[var(--color-border)] hover:border-[var(--color-accent)] pl-3"
+                >
+                  {text}
+                </a>
+              ))}
+            </nav>
+          </aside>
+        )}
+      </div>
+
+      <footer class="mt-16 pt-8 border-t border-[var(--color-border)]">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-body-sm text-[var(--color-text-muted)]">
+              Written by <strong class="text-[var(--color-text)]">Christian Borrello</strong>
+            </p>
+            <p class="text-xs text-[var(--color-text-muted)] font-mono mt-1">
+              Software Engineer &middot; Craftsman &middot; Lifelong Learner
+            </p>
+          </div>
+          <a
+            href="/blog"
+            class="text-body-sm text-[var(--color-accent)] hover:underline font-mono"
+          >
+            More posts &rarr;
+          </a>
+        </div>
+      </footer>
+    </div>
+  </article>
+
+<script>
+  const CHECK_PATH = 'M20 6L9 17l-5-5';
+  const COPY_PATHS = ['M9 9h13v13H9z', 'M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1'];
+
+  function setCopyIcon(svg) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', CHECK_PATH);
+    svg.appendChild(path);
+  }
+
+  function setOriginalIcon(svg) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', '9'); rect.setAttribute('y', '9');
+    rect.setAttribute('width', '13'); rect.setAttribute('height', '13');
+    rect.setAttribute('rx', '2'); rect.setAttribute('ry', '2');
+    svg.appendChild(rect);
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', COPY_PATHS[1]);
+    svg.appendChild(path);
+  }
+
+  function initCopyButtons() {
+    document.querySelectorAll('.code-block__copy').forEach(function(button) {
+      button.addEventListener('click', function() {
+        var codeBlock = this.closest('.code-block');
+        var pre = codeBlock.querySelector('.code-block__code pre');
+        var text = pre.textContent || '';
+        navigator.clipboard.writeText(text).then(function() {
+          var svg = button.querySelector('svg');
+          setCopyIcon(svg);
+          button.classList.add('code-block__copy--copied');
+          setTimeout(function() {
+            setOriginalIcon(svg);
+            button.classList.remove('code-block__copy--copied');
+          }, 2000);
+        });
+      });
+    });
+  }
+  initCopyButtons();
+  document.addEventListener('astro:after-swap', initCopyButtons);
+</script>
+
+</BaseLayout>

@@ -1,0 +1,33 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  accent?: boolean;
+}
+
+const { title, subtitle, accent = true } = Astro.props;
+---
+
+<section class="pt-16 md:pt-24 pb-12 md:pb-16 px-6 md:px-10 max-w-wide mx-auto">
+  <div class="max-w-3xl">
+    {accent && (
+      <div class="mb-6 flex items-center gap-3 animate-fade-in">
+        <div class="h-px w-12 bg-[var(--color-accent)]"></div>
+        <span class="font-mono text-xs uppercase tracking-widest text-[var(--color-accent)]">
+          Software Craftsmanship
+        </span>
+      </div>
+    )}
+    <h1
+      class="font-display font-semibold text-display-xl text-balance animate-fade-up"
+      transition:name="page-title"
+    >
+      {title}
+    </h1>
+    {subtitle && (
+      <p class="mt-6 text-body-lg text-[var(--color-text-muted)] text-pretty max-w-2xl animate-fade-up" style="animation-delay: 100ms;">
+        {subtitle}
+      </p>
+    )}
+  </div>
+</section>

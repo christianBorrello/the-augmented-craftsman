@@ -33,10 +33,19 @@ project.lock.json
 
 # Skills
 .agents/
+.agent/
 skills-lock.json
 
 # Claude
 .claude/
+
+# Tools
+.nwave/
+.playwright-mcp/
+*.png
+
+# Stryker
+StrykerOutput/
 
 # Reference project (will be removed after migration)
 # blog/

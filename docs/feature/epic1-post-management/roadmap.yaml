@@ -1,0 +1,291 @@
+{
+  "roadmap": {
+    "project_id": "epic1-post-management",
+    "created_at": "2026-03-06T23:41:23Z",
+    "total_steps": 11,
+    "phases": 5
+  },
+  "phases": [
+    {
+      "id": "01",
+      "name": "Domain model extensions — Tag entity and BlogPost mutation",
+      "steps": [
+        {
+          "id": "01-01",
+          "name": "Tag value object and entity",
+          "description": "Introduce TagName value object and Tag entity with name/slug. Minimal tag model for post association only — no full CRUD.",
+          "criteria": [
+            "TagName rejects empty/whitespace and trims input",
+            "TagName enforces max length constraint",
+            "Tag entity has TagName and auto-generated Slug",
+            "Tag generates slug from name using same rules as post slug",
+            "Two tags with same slug are considered equal"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Domain/TagName.cs",
+            "backend/src/TacBlog.Domain/Tag.cs",
+            "backend/tests/TacBlog.Domain.Tests/TagNameShould.cs",
+            "backend/tests/TacBlog.Domain.Tests/TagShould.cs"
+          ],
+          "dependencies": [],
+          "estimated_hours": 1.5
+        },
+        {
+          "id": "01-02",
+          "name": "BlogPost mutation methods and tag association",
+          "description": "Add UpdateTitle, UpdateContent, Publish, AddTag, RemoveTag to BlogPost. Add PublishedAt field. Slug remains immutable on edit.",
+          "criteria": [
+            "BlogPost updates title and content without changing slug",
+            "Publish transitions Draft to Published and sets PublishedAt",
+            "Publish on already-published post raises domain error",
+            "BlogPost accepts and removes tags by TagName",
+            "UpdatedAt advances on every mutation"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Domain/BlogPost.cs",
+            "backend/tests/TacBlog.Domain.Tests/BlogPostShould.cs"
+          ],
+          "dependencies": ["01-01"],
+          "estimated_hours": 2.0
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "name": "Use cases — CreatePost enhancement, EditPost, DeletePost",
+      "steps": [
+        {
+          "id": "02-01",
+          "name": "Enhanced CreatePost with tags and duplicate slug detection",
+          "description": "Extend CreatePost to accept optional tag names, resolve/create tags, and reject duplicate slugs via repository check.",
+          "criteria": [
+            "CreatePost accepts optional list of tag names",
+            "Post created with supplied tags attached",
+            "Post without tags creates successfully (backward compatible)",
+            "Duplicate slug returns conflict error",
+            "Repository port exposes ExistsBySlugAsync, FindByIdAsync, and DeleteAsync operations"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Application/Features/Posts/CreatePost.cs",
+            "backend/src/TacBlog.Application/Ports/Driven/IBlogPostRepository.cs",
+            "backend/src/TacBlog.Infrastructure/Persistence/EfBlogPostRepository.cs",
+            "backend/tests/TacBlog.Application.Tests/Features/Posts/CreatePostShould.cs"
+          ],
+          "dependencies": ["01-02"],
+          "estimated_hours": 2.0
+        },
+        {
+          "id": "02-02",
+          "name": "EditPost use case",
+          "description": "New use case to update title, content, and tags on an existing post. Finds post by ID, applies mutations, persists changes.",
+          "criteria": [
+            "Post title and content update successfully",
+            "Slug remains unchanged after title edit",
+            "Tags replaced with new set on edit",
+            "Non-existent post returns not-found error",
+            "Empty title returns validation error"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Application/Features/Posts/EditPost.cs",
+            "backend/src/TacBlog.Application/Ports/Driven/IBlogPostRepository.cs",
+            "backend/src/TacBlog.Infrastructure/Persistence/EfBlogPostRepository.cs",
+            "backend/tests/TacBlog.Application.Tests/Features/Posts/EditPostShould.cs"
+          ],
+          "dependencies": ["02-01"],
+          "estimated_hours": 2.0
+        },
+        {
+          "id": "02-03",
+          "name": "DeletePost use case",
+          "description": "New use case to remove a post by ID. Tags are preserved (not cascade-deleted). Non-existent post returns not-found.",
+          "criteria": [
+            "Post removed from repository after delete",
+            "Tags that were on the post still exist after delete",
+            "Non-existent post returns not-found error",
+            "Repository port exposes delete and find-by-id operations"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Application/Features/Posts/DeletePost.cs",
+            "backend/src/TacBlog.Application/Ports/Driven/IBlogPostRepository.cs",
+            "backend/src/TacBlog.Infrastructure/Persistence/EfBlogPostRepository.cs",
+            "backend/tests/TacBlog.Application.Tests/Features/Posts/DeletePostShould.cs"
+          ],
+          "dependencies": ["02-01"],
+          "estimated_hours": 1.5
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "name": "Use cases — PublishPost and ListPosts (admin)",
+      "steps": [
+        {
+          "id": "03-01",
+          "name": "PublishPost use case",
+          "description": "New use case to transition a draft post to published. Sets PublishedAt via IClock. Rejects already-published posts. Updates PostResponse mapping for PublishedAt.",
+          "criteria": [
+            "Draft post transitions to Published status",
+            "PublishedAt set to current UTC time",
+            "Already-published post returns conflict error",
+            "Non-existent post returns not-found error",
+            "PostResponse includes PublishedAt as ISO timestamp string"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Application/Features/Posts/PublishPost.cs",
+            "backend/src/TacBlog.Api/Endpoints/PostEndpoints.cs",
+            "backend/tests/TacBlog.Application.Tests/Features/Posts/PublishPostShould.cs"
+          ],
+          "dependencies": ["01-02"],
+          "estimated_hours": 1.0
+        },
+        {
+          "id": "03-02",
+          "name": "ListPosts admin use case with sorting",
+          "description": "New use case returning all posts (drafts + published) sorted by date descending. Each entry includes id, title, status, and date.",
+          "criteria": [
+            "All posts returned regardless of status",
+            "Posts sorted in reverse chronological order",
+            "Each post includes id, title, status, and created date",
+            "Empty list returned when no posts exist"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Application/Features/Posts/ListPosts.cs",
+            "backend/tests/TacBlog.Application.Tests/Features/Posts/ListPostsShould.cs"
+          ],
+          "dependencies": ["02-01"],
+          "estimated_hours": 1.0
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "name": "API endpoints and acceptance tests GREEN",
+      "steps": [
+        {
+          "id": "04-01",
+          "name": "Wire CRUD endpoints — PUT, DELETE, POST publish, GET admin list",
+          "description": "Add PUT /api/posts/{id}, DELETE /api/posts/{id}, POST /api/posts/{id}/publish, GET /api/admin/posts. Update CreatePost endpoint to accept tags. Wire EF Tag configuration and migration. Large step: all endpoints follow the same wiring pattern (use case injection + result mapping).",
+          "criteria": [
+            "PUT endpoint updates post and returns 200 or 404/400",
+            "DELETE endpoint removes post and returns 204 or 404",
+            "Publish endpoint returns 200, 404, or 409",
+            "Admin list endpoint returns all posts with auth required",
+            "CreatePost endpoint accepts optional tags array"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Api/Endpoints/PostEndpoints.cs",
+            "backend/src/TacBlog.Api/Program.cs",
+            "backend/src/TacBlog.Infrastructure/Persistence/BlogPostConfiguration.cs",
+            "backend/src/TacBlog.Infrastructure/Persistence/TagConfiguration.cs",
+            "backend/src/TacBlog.Infrastructure/Persistence/TacBlogDbContext.cs",
+            "backend/tests/TacBlog.Api.Tests/Endpoints/PostEndpointsShould.cs"
+          ],
+          "dependencies": ["02-02", "02-03", "03-01", "03-02"],
+          "estimated_hours": 4.0
+        },
+        {
+          "id": "04-02",
+          "name": "Acceptance tests GREEN — CreatePost, EditPost, DeletePost, PublishPost, ListPosts",
+          "description": "Implement step definitions and drivers to turn PENDING acceptance scenarios GREEN for 5 feature files (23 scenarios: 9 CreatePost + 5 EditPost + 3 DeletePost + 3 PublishPost + 3 ListPosts).",
+          "criteria": [
+            "All 9 CreatePost.feature scenarios pass",
+            "All 5 EditPost.feature scenarios pass",
+            "All 3 DeletePost.feature scenarios pass",
+            "All 3 PublishPost.feature scenarios pass",
+            "All 3 ListPosts.feature scenarios pass"
+          ],
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/PostSteps.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/TagSteps.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Drivers/PostApiDriver.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Drivers/TagApiDriver.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Contexts/ApiContext.cs"
+          ],
+          "dependencies": ["04-01"],
+          "estimated_hours": 3.0
+        }
+      ]
+    },
+    {
+      "id": "05",
+      "name": "PreviewPost and final regression",
+      "steps": [
+        {
+          "id": "05-01",
+          "name": "PreviewPost use case and endpoint",
+          "description": "New use case returning full post data for preview (content, tags, featured image URL). GET /api/posts/{id}/preview endpoint wired.",
+          "criteria": [
+            "Preview returns formatted content with code blocks preserved",
+            "Preview includes featured image URL when present",
+            "Preview includes tag list",
+            "Non-existent post returns 404"
+          ],
+          "files_to_modify": [
+            "backend/src/TacBlog.Application/Features/Posts/PreviewPost.cs",
+            "backend/src/TacBlog.Api/Endpoints/PostEndpoints.cs",
+            "backend/tests/TacBlog.Application.Tests/Features/Posts/PreviewPostShould.cs"
+          ],
+          "dependencies": ["04-01"],
+          "estimated_hours": 1.5
+        },
+        {
+          "id": "05-02",
+          "name": "PreviewPost acceptance tests GREEN and full regression",
+          "description": "Wire PreviewPost step definitions. Run all 27 Epic 1 acceptance scenarios. Verify Epic 0 and Auth scenarios still pass.",
+          "criteria": [
+            "All 4 PreviewPost.feature scenarios pass",
+            "All 27 Epic 1 acceptance scenarios pass (9+5+3+3+3+4)",
+            "All 6 Epic 0 walking skeleton automated scenarios still pass",
+            "All 5 Auth scenarios still pass",
+            "All unit and integration tests remain green"
+          ],
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/PostSteps.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Drivers/PostApiDriver.cs"
+          ],
+          "dependencies": ["05-01", "04-02"],
+          "estimated_hours": 1.5
+        }
+      ]
+    }
+  ],
+  "implementation_scope": {
+    "source_directories": [
+      "backend/src/TacBlog.Domain/",
+      "backend/src/TacBlog.Application/Features/Posts/",
+      "backend/src/TacBlog.Application/Ports/Driven/",
+      "backend/src/TacBlog.Infrastructure/Persistence/",
+      "backend/src/TacBlog.Api/Endpoints/"
+    ],
+    "test_directories": [
+      "backend/tests/TacBlog.Domain.Tests/",
+      "backend/tests/TacBlog.Application.Tests/Features/Posts/",
+      "backend/tests/TacBlog.Api.Tests/Endpoints/",
+      "backend/tests/TacBlog.Acceptance.Tests/Features/Epic1_PostManagement/",
+      "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/",
+      "backend/tests/TacBlog.Acceptance.Tests/Drivers/"
+    ],
+    "excluded_patterns": [
+      "**/obj/**",
+      "**/bin/**",
+      "**/Migrations/**"
+    ]
+  },
+  "validation": {
+    "status": "approved",
+    "reviewer": "nw-software-crafter-reviewer",
+    "approved_at": "2026-03-07T00:00:00Z",
+    "iterations": [
+      {
+        "iteration": 1,
+        "verdict": "NEEDS_REVISION",
+        "defects_found": 7,
+        "defects_fixed": ["D1-scenario-count", "D2-FindByIdAsync", "D3-DeleteAsync", "D4-tags-clarified", "D5-PublishedAt-mapping", "D6-time-estimate", "D7-epic0-count"]
+      },
+      {
+        "iteration": 2,
+        "verdict": "APPROVED"
+      }
+    ]
+  }
+}

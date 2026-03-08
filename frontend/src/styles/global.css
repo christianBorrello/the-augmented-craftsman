@@ -1,0 +1,451 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=JetBrains+Mono:wght@400;500;600&family=Literata:ital,opsz,wght@0,7..72,300..800;1,7..72,300..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════
+   FORGE & INK — Design System
+   A craftsman's workshop in pixels
+   ═══════════════════════════════════════════ */
+
+@layer base {
+  :root {
+    --color-bg: #FDFAF6;
+    --color-bg-surface: #F5F0E8;
+    --color-text: #1C1917;
+    --color-text-muted: #6B5F4F;
+    --color-accent: #B45309;
+    --color-accent-hover: #D97706;
+    --color-accent-glow: #E5A84B;
+    --color-border: #D4C8B8;
+    --color-code-bg: #292524;
+    --color-code-text: #E7E0D6;
+    --grain-opacity: 0.03;
+    --shadow-color: 30 20% 10%;
+  }
+
+  .dark {
+    --color-bg: #0F0E0C;
+    --color-bg-surface: #1A1816;
+    --color-text: #E7E0D6;
+    --color-text-muted: #B0A08A;
+    --color-accent: #E5A84B;
+    --color-accent-hover: #F0C060;
+    --color-accent-glow: #E5A84B;
+    --color-border: #2E2A25;
+    --color-code-bg: #1A1816;
+    --color-code-text: #E7E0D6;
+    --grain-opacity: 0.04;
+    --shadow-color: 30 10% 3%;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: 'Literata', Georgia, serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Grain texture overlay — the warmth of aged paper */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: white;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   Typography — The editorial rhythm
+   ═══════════════════════════════════════════ */
+
+@layer components {
+  .prose-forge {
+    font-family: 'Literata', Georgia, serif;
+    font-size: 1.0625rem;
+    line-height: 1.8;
+    color: var(--color-text);
+    max-width: 68ch;
+  }
+
+  .prose-forge h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    letter-spacing: -0.02em;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+  }
+
+  .prose-forge h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    font-size: 1.35rem;
+    letter-spacing: -0.015em;
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .prose-forge p {
+    margin-bottom: 1.5rem;
+  }
+
+  .prose-forge a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.2s ease;
+  }
+
+  .prose-forge a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .prose-forge blockquote {
+    border-left: 3px solid var(--color-accent);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    color: var(--color-text-muted);
+    font-size: 1.125rem;
+  }
+
+  .prose-forge ul, .prose-forge ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+  }
+
+  .prose-forge li {
+    margin-bottom: 0.5rem;
+  }
+
+  .prose-forge li::marker {
+    color: var(--color-accent);
+  }
+
+  .prose-forge strong {
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .prose-forge em {
+    font-style: italic;
+  }
+
+  .prose-forge hr {
+    border: none;
+    height: 1px;
+    background: var(--color-border);
+    margin: 3rem 0;
+  }
+
+  /* Inline code */
+  .prose-forge code:not(pre code) {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.875em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-accent);
+  }
+
+  /* Code blocks are now handled by .code-block (Code Mode) below */
+
+  .prose-forge img {
+    border-radius: 12px;
+    margin: 2rem 0;
+    border: 1px solid var(--color-border);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   CODE MODE — IDE-style code blocks
+   Dual theme: Darcula (dark) + Forge & Ink (light)
+   ═══════════════════════════════════════════ */
+
+/* Shiki dual-theme CSS variable switch */
+@layer base {
+  .shiki,
+  .shiki span {
+    color: var(--shiki-light) !important;
+    font-style: var(--shiki-light-font-style) !important;
+  }
+
+  .dark .shiki,
+  .dark .shiki span {
+    color: var(--shiki-dark) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+  }
+}
+
+@layer components {
+  .code-block {
+    margin: 1.75rem 0;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    background: var(--code-block-bg);
+    overflow: hidden;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+
+    --code-block-bg: #F5F0E8;
+    --code-block-chrome-bg: #EDE7DB;
+    --code-block-gutter-text: #B0A08A;
+    --code-block-gutter-border: #D4C8B8;
+    --code-block-code-text: #3C3836;
+    --code-block-badge-bg: #D4C8B8;
+    --code-block-badge-text: #6B5F4F;
+    --code-block-copy-text: #8A7E72;
+    --code-block-filename-text: #6B5F4F;
+  }
+
+  .dark .code-block {
+    --code-block-bg: #141210;
+    --code-block-chrome-bg: #141210;
+    --code-block-gutter-text: #4A4139;
+    --code-block-gutter-border: #2E2A25;
+    --code-block-code-text: #A9B7C6;
+    --code-block-badge-bg: #2E2A25;
+    --code-block-badge-text: #B0A08A;
+    --code-block-copy-text: #6B5F4F;
+    --code-block-filename-text: #B0A08A;
+  }
+
+  .code-block__chrome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.625rem 1rem;
+    background: var(--code-block-chrome-bg);
+    border-bottom: 1px solid var(--color-border);
+    user-select: none;
+  }
+
+  .code-block__dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .code-block__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .code-block__dot--close { background: #FF5F57; }
+  .code-block__dot--minimize { background: #FEBC2E; }
+  .code-block__dot--maximize { background: #28C840; }
+
+  .code-block__filename {
+    font-size: 0.6875rem;
+    color: var(--code-block-filename-text);
+    letter-spacing: 0.02em;
+  }
+
+  .code-block__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .code-block__badge {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: var(--code-block-badge-bg);
+    color: var(--code-block-badge-text);
+  }
+
+  .code-block__copy {
+    background: transparent;
+    border: none;
+    color: var(--code-block-copy-text);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .code-block__copy:hover {
+    color: var(--color-accent);
+    background: var(--code-block-badge-bg);
+  }
+
+  .code-block__copy svg { width: 14px; height: 14px; }
+
+  .code-block__copy--copied { color: #6A8759 !important; }
+
+  .code-block__body {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .code-block__gutter {
+    flex-shrink: 0;
+    padding: 1rem 0;
+    text-align: right;
+    color: var(--code-block-gutter-text);
+    background: var(--code-block-bg);
+    border-right: 1px solid var(--code-block-gutter-border);
+    user-select: none;
+    -webkit-user-select: none;
+    min-width: 3rem;
+  }
+
+  .code-block__gutter span {
+    display: block;
+    padding: 0 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.7;
+  }
+
+  .code-block__code {
+    flex: 1;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    color: var(--code-block-code-text);
+  }
+
+  .code-block__code pre {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .code-block__code pre code {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    color: inherit;
+  }
+
+  /* Minimal variant: short snippets, no chrome dots */
+  .code-block--minimal .code-block__chrome { padding: 0.5rem 1rem; }
+  .code-block--minimal .code-block__dots { display: none; }
+  .code-block--minimal .code-block__filename { display: none; }
+}
+
+/* ═══════════════════════════════════════════
+   View Transitions — Smooth page navigation
+   ═══════════════════════════════════════════ */
+
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes page-fade-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-4px); }
+}
+
+::view-transition-old(root) {
+  animation: page-fade-out 0.2s ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: page-fade-in 0.3s ease-out 0.1s both;
+}
+
+/* Post title morphing between list and detail */
+::view-transition-old(post-title) {
+  animation: page-fade-out 0.25s ease-in both;
+}
+
+::view-transition-new(post-title) {
+  animation: page-fade-in 0.35s ease-out both;
+}
+
+/* ═══════════════════════════════════════════
+   Scroll-driven animations (CSS only)
+   ═══════════════════════════════════════════ */
+
+@supports (animation-timeline: view()) {
+  .reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s ease-out both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 30%;
+  }
+}
+
+@supports not (animation-timeline: view()) {
+  .reveal-on-scroll {
+    opacity: 1;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   Utilities
+   ═══════════════════════════════════════════ */
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .accent-line {
+    position: relative;
+  }
+
+  .accent-line::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 2.5rem;
+    height: 3px;
+    background: var(--color-accent);
+    border-radius: 2px;
+  }
+
+  /* Staggered animation delays for lists */
+  .stagger > :nth-child(1) { animation-delay: 0ms; }
+  .stagger > :nth-child(2) { animation-delay: 60ms; }
+  .stagger > :nth-child(3) { animation-delay: 120ms; }
+  .stagger > :nth-child(4) { animation-delay: 180ms; }
+  .stagger > :nth-child(5) { animation-delay: 240ms; }
+  .stagger > :nth-child(6) { animation-delay: 300ms; }
+  .stagger > :nth-child(7) { animation-delay: 360ms; }
+  .stagger > :nth-child(8) { animation-delay: 420ms; }
+}
