@@ -1,8 +1,9 @@
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Serilog.Events;
 using TacBlog.Api.Endpoints;
 using TacBlog.Application.Features.Auth;
 using TacBlog.Application.Features.Images;
@@ -17,9 +18,21 @@ using TacBlog.Infrastructure.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"));
+
+var allowedOrigins = builder.Environment.IsDevelopment()
+    ? new[] { "http://localhost:4321" }
+    : new[] { "https://theaugmentedcraftsman.christianborrello.dev" };
+
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+        policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader()));
 
 builder.Services.AddDbContext<TacBlogDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -68,6 +81,10 @@ builder.Services.AddSingleton(sp =>
     if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(hashedPassword))
         return new AdminCredentials(email, hashedPassword);
 
+    if (!builder.Environment.IsDevelopment())
+        throw new InvalidOperationException(
+            "AdminCredentials:Email and AdminCredentials:HashedPassword are required in production.");
+
     var passwordHasher = new AspNetPasswordHasher();
     return new AdminCredentials(
         "admin@localhost",
@@ -80,8 +97,11 @@ builder.Services.AddSingleton(sp =>
     var section = config.GetSection("Jwt");
     var secret = section["Secret"];
 
-    if (string.IsNullOrEmpty(secret))
-        secret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+    if (string.IsNullOrEmpty(secret) && !builder.Environment.IsDevelopment())
+        throw new InvalidOperationException(
+            "Jwt:Secret is required in production. Set it via environment variable Jwt__Secret.");
+
+    secret ??= "dev-only-jwt-secret-that-must-not-be-used-in-production-minimum-length";
 
     return new JwtSettings(
         secret,
@@ -115,16 +135,52 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            context.Response.ContentType = "application/problem+json";
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                title = "An unexpected error occurred.",
+                status = 500
+            });
+        });
+    });
+}
+
+using (var scope = app.Services.CreateScope())
+{
     var db = scope.ServiceProvider.GetRequiredService<TacBlogDbContext>();
     await db.Database.MigrateAsync();
 }
 
+app.UseSerilogRequestLogging();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
+
+app.MapGet("/health/ready", async (TacBlogDbContext db) =>
+{
+    try
+    {
+        await db.Database.CanConnectAsync();
+        return Results.Ok(new { status = "ready", database = "connected" });
+    }
+    catch
+    {
+        return Results.Json(
+            new { status = "unhealthy", database = "disconnected" },
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+});
+
 app.MapPostEndpoints();
 app.MapAuthEndpoints();
 app.MapTagEndpoints();
