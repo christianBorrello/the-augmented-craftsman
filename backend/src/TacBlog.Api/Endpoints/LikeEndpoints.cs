@@ -18,6 +18,9 @@ public static class LikeEndpoints
         LikePost likePost,
         CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.VisitorId) || !Guid.TryParse(request.VisitorId, out var parsed) || parsed == Guid.Empty)
+            return Results.BadRequest(new { error = "Invalid visitor identifier" });
+
         var result = await likePost.ExecuteAsync(slug, request.VisitorId, cancellationToken);
 
         if (result.IsNotFound)

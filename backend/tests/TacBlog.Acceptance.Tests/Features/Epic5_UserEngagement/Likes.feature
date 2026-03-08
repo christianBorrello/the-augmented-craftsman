@@ -69,14 +69,12 @@ Feature: Like and unlike blog posts
     Then the response status is 404
     And the response contains "Post not found"
 
-  @skip
   Scenario: Like with invalid visitor identifier is rejected
     When a visitor with an empty identifier likes "TDD Is Not About Testing"
     Then the response status is 400
 
   # --- Boundary ---
 
-  @skip @property
   Scenario: Like count is never negative regardless of unlike operations
     Given "TDD Is Not About Testing" has 0 likes
     When a visitor unlikes "TDD Is Not About Testing"

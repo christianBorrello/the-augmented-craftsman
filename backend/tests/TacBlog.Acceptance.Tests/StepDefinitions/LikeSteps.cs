@@ -158,6 +158,21 @@ public sealed class LikeSteps
         _actionResponse = _apiContext.LastResponseJson;
     }
 
+    [When("a visitor unlikes {string}")]
+    public async Task WhenAVisitorUnlikes(string title)
+    {
+        var slug = SlugHelper.ToSlug(title);
+        await _likeDriver.UnlikePost(slug, _visitorId);
+        _actionResponse = _apiContext.LastResponseJson;
+    }
+
+    [When("a visitor with an empty identifier likes {string}")]
+    public async Task WhenAVisitorWithAnEmptyIdentifierLikes(string title)
+    {
+        var slug = SlugHelper.ToSlug(title);
+        await _likeDriver.LikePost(slug, "");
+    }
+
     [Then("the like count is included in the response")]
     public void ThenTheLikeCountIsIncludedInTheResponse()
     {
