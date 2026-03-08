@@ -19,7 +19,7 @@ FROM restore AS publish
 
 COPY src/ src/
 
-RUN dotnet publish src/TacBlog.Api/TacBlog.Api.csproj -c Release --no-restore -o /app/publish
+RUN dotnet publish src/TacBlog.Api/TacBlog.Api.csproj -c Release -o /app/publish
 
 # ==============================================================================
 # Stage 3: Runtime (minimal image)
