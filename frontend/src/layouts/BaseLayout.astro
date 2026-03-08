@@ -34,6 +34,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
     <link rel="canonical" href={canonicalURL} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="api-base" content={import.meta.env.PUBLIC_API_URL || 'http://localhost:5063'} />
 
     <title>{title}</title>
     <ClientRouter />
@@ -53,6 +54,12 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       })();
       document.documentElement.classList.toggle('dark', theme === 'dark');
+
+      window.__visitorId = localStorage.getItem('visitor_id');
+      if (!window.__visitorId) {
+        window.__visitorId = crypto.randomUUID();
+        localStorage.setItem('visitor_id', window.__visitorId);
+      }
     </script>
   </body>
 </html>

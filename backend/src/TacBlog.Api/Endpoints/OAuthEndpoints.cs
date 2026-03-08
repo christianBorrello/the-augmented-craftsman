@@ -58,7 +58,7 @@ public static class OAuthEndpoints
         httpContext.Response.Cookies.Append(SessionCookieName, result.SessionId!.Value.ToString(), new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
+            Secure = httpContext.Request.IsHttps,
             SameSite = SameSiteMode.Lax,
             MaxAge = TimeSpan.FromDays(30),
             Path = "/"

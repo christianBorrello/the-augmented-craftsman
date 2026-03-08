@@ -123,4 +123,26 @@ const topTags = (await fetchTags()).slice(0, 6);
     </div>
   </section>
 
+<script is:inline>
+  function fetchLikeCounts() {
+    var apiBase = document.querySelector('meta[name="api-base"]');
+    if (!apiBase) return;
+    var api = apiBase.getAttribute('content');
+    document.querySelectorAll('.postcard-likes[data-slug]').forEach(function(el) {
+      var slug = el.getAttribute('data-slug');
+      if (!slug) return;
+      fetch(api + '/api/posts/' + slug + '/likes')
+        .then(function(res) { return res.ok ? res.json() : null; })
+        .then(function(data) {
+          if (!data) return;
+          var countEl = el.querySelector('.postcard-like-count');
+          if (countEl) countEl.textContent = String(data.count ?? data);
+        })
+        .catch(function() {});
+    });
+  }
+  fetchLikeCounts();
+  document.addEventListener('astro:after-swap', fetchLikeCounts);
+</script>
+
 </BaseLayout>

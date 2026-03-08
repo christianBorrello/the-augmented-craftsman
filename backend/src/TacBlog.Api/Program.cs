@@ -35,7 +35,7 @@ var allowedOrigins = builder.Environment.IsDevelopment()
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
-        policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader()));
+        policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader().AllowCredentials()));
 
 builder.Services.AddDbContext<TacBlogDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -71,8 +71,11 @@ builder.Services.AddScoped<GetCommentCount>();
 builder.Services.AddScoped<DeleteComment>();
 builder.Services.AddScoped<ListAdminComments>();
 builder.Services.AddScoped<IReaderSessionRepository, EfReaderSessionRepository>();
-builder.Services.AddSingleton<IOAuthClient>(sp =>
-    throw new InvalidOperationException("Configure OAuth providers for production"));
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddSingleton<IOAuthClient, DevOAuthClient>();
+else
+    builder.Services.AddSingleton<IOAuthClient>(sp =>
+        throw new InvalidOperationException("Configure OAuth providers for production"));
 builder.Services.AddScoped<HandleOAuthCallback>();
 builder.Services.AddScoped<CheckSession>();
 builder.Services.AddScoped<InitiateOAuth>();

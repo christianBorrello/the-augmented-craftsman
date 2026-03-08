@@ -1,6 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TagBadge from '../../components/TagBadge.astro';
+import CommentList from '../../components/CommentList.astro';
+import LikeButton from '../../components/LikeButton.tsx';
 import { fetchPosts, fetchPostBySlug } from '../../data/api';
 import { renderMarkdown } from '../../data/markdown';
 
@@ -33,9 +35,12 @@ const headings = post.content
   }));
 
 const contentHtml = await renderMarkdown(post.content);
+const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
 ---
 
 <BaseLayout title={`${post.title} — The Augmented Craftsman`} description={post.excerpt}>
+
+  <LikeButton client:visible slug={post.slug} shareTitle={post.title} shareUrl={canonicalUrl} />
 
   <article class="px-6 md:px-10 max-w-wide mx-auto pt-12 md:pt-20">
     <div class="max-w-4xl mx-auto">
@@ -112,6 +117,15 @@ const contentHtml = await renderMarkdown(post.content);
           </a>
         </div>
       </footer>
+
+      <CommentList server:defer slug={post.slug}>
+        <div slot="fallback" class="comment-skeleton">
+          <div class="comment-skeleton-bar" style="width: 40%; height: 1.5rem; margin-bottom: 1.5rem;"></div>
+          <div class="comment-skeleton-bar" style="width: 100%; height: 5rem; margin-bottom: 1rem;"></div>
+          <div class="comment-skeleton-bar" style="width: 80%; height: 0.75rem; margin-bottom: 0.5rem;"></div>
+          <div class="comment-skeleton-bar" style="width: 60%; height: 0.75rem;"></div>
+        </div>
+      </CommentList>
     </div>
   </article>
 

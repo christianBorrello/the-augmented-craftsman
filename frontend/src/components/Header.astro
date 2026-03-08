@@ -43,6 +43,9 @@ const navLinks = [
         );
       })}
 
+      <!-- Session Indicator -->
+      <div id="header-session" class="header-session"></div>
+
       <!-- Theme Toggle -->
       <button
         id="theme-toggle"
@@ -69,6 +72,40 @@ const navLinks = [
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
   });
 
+  function initSession() {
+    var apiBase = document.querySelector('meta[name="api-base"]');
+    if (!apiBase) return;
+    var api = apiBase.getAttribute('content');
+    var container = document.getElementById('header-session');
+    if (!container) return;
+
+    fetch(api + '/api/auth/session', { credentials: 'include' })
+      .then(function(res) { return res.ok ? res.json() : null; })
+      .then(function(session) {
+        if (!session || !session.authenticated) {
+          container.replaceChildren();
+          return;
+        }
+        var img = document.createElement('img');
+        img.src = session.avatarUrl || '/default-avatar.svg';
+        img.alt = session.displayName || '';
+        img.width = 28;
+        img.height = 28;
+
+        var btn = document.createElement('button');
+        btn.className = 'header-session-signout';
+        btn.textContent = 'Sign out';
+        btn.addEventListener('click', function() {
+          fetch(api + '/api/auth/signout', { method: 'POST', credentials: 'include' })
+            .then(function() { window.location.reload(); });
+        });
+
+        container.replaceChildren(img, btn);
+      })
+      .catch(function() {});
+  }
+  initSession();
+
   document.addEventListener('astro:after-swap', () => {
     const theme = localStorage.getItem('theme') ||
       (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -78,5 +115,7 @@ const navLinks = [
       const isDark = document.documentElement.classList.toggle('dark');
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
     });
+
+    initSession();
   });
 </script>
