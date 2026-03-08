@@ -28,6 +28,7 @@ public static class DependencyConfig
         services.AddScoped<TagApiDriver>();
         services.AddScoped<AuthApiDriver>();
         services.AddScoped<ImageApiDriver>();
+        services.AddScoped<LikeApiDriver>();
 
         return services;
     }

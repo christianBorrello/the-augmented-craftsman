@@ -32,6 +32,9 @@ public sealed class TestHooks
         await db.Database.ExecuteSqlRawAsync("""
             DO $$
             BEGIN
+                IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'likes') THEN
+                    DELETE FROM likes;
+                END IF;
                 IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'post_tags') THEN
                     DELETE FROM post_tags;
                 END IF;

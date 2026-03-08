@@ -8,10 +8,12 @@ public sealed class TacBlogDbContext(DbContextOptions<TacBlogDbContext> options)
 {
     public DbSet<BlogPost> Posts => Set<BlogPost>();
     public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<Like> Likes => Set<Like>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new BlogPostConfiguration());
         modelBuilder.ApplyConfiguration(new TagConfiguration());
+        modelBuilder.ApplyConfiguration(new LikeConfiguration());
     }
 }

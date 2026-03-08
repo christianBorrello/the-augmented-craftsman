@@ -8,6 +8,7 @@ using TacBlog.Api.Endpoints;
 using TacBlog.Application.Features.Auth;
 using TacBlog.Application.Features.Images;
 using TacBlog.Application.Features.Posts;
+using TacBlog.Application.Features.Likes;
 using TacBlog.Application.Features.Tags;
 using TacBlog.Application.Ports.Driven;
 using TacBlog.Infrastructure;
@@ -56,6 +57,9 @@ builder.Services.AddScoped<ListTags>();
 builder.Services.AddScoped<RenameTag>();
 builder.Services.AddScoped<DeleteTag>();
 builder.Services.AddScoped<BrowsePublicTags>();
+builder.Services.AddScoped<ILikeRepository, EfLikeRepository>();
+builder.Services.AddScoped<LikePost>();
+builder.Services.AddScoped<GetLikeCount>();
 
 builder.Services.AddSingleton(sp =>
 {
@@ -185,6 +189,7 @@ app.MapPostEndpoints();
 app.MapAuthEndpoints();
 app.MapTagEndpoints();
 app.MapImageEndpoints();
+app.MapLikeEndpoints();
 
 app.Run();
 
