@@ -32,14 +32,12 @@ Feature: Like and unlike blog posts
     When the visitor unlikes "TDD Is Not About Testing"
     Then the like count for "TDD Is Not About Testing" is 0
 
-  @skip
   Scenario: Check if visitor has liked a post
     Given a visitor has liked "TDD Is Not About Testing"
     When the visitor checks their like status for "TDD Is Not About Testing"
     Then the response indicates the post is liked
     And the like count is included in the response
 
-  @skip
   Scenario: Check like status when visitor has not liked a post
     Given a visitor has not previously liked "TDD Is Not About Testing"
     When the visitor checks their like status for "TDD Is Not About Testing"

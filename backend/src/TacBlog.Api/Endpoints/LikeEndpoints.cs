@@ -9,6 +9,7 @@ public static class LikeEndpoints
         app.MapPost("/api/posts/{slug}/likes", LikePostAsync).AllowAnonymous();
         app.MapDelete("/api/posts/{slug}/likes/{visitorId}", UnlikePostAsync).AllowAnonymous();
         app.MapGet("/api/posts/{slug}/likes/count", GetLikeCountAsync).AllowAnonymous();
+        app.MapGet("/api/posts/{slug}/likes/check/{visitorId}", CheckIfLikedAsync).AllowAnonymous();
     }
 
     private static async Task<IResult> LikePostAsync(
@@ -50,6 +51,19 @@ public static class LikeEndpoints
             return Results.NotFound(new { error = "Post not found" });
 
         return Results.Ok(new { count = result.Count });
+    }
+    private static async Task<IResult> CheckIfLikedAsync(
+        string slug,
+        string visitorId,
+        CheckIfLiked checkIfLiked,
+        CancellationToken cancellationToken)
+    {
+        var result = await checkIfLiked.ExecuteAsync(slug, visitorId, cancellationToken);
+
+        if (result.IsNotFound)
+            return Results.NotFound(new { error = "Post not found" });
+
+        return Results.Ok(new { liked = result.IsLiked, count = result.Count });
     }
 }
 

@@ -24,4 +24,10 @@ public sealed class LikeApiDriver(HttpClient client, ApiContext apiContext)
         var response = await client.GetAsync($"/api/posts/{slug}/likes/count");
         await apiContext.CaptureResponse(response);
     }
+
+    public async Task CheckIfLiked(string slug, string visitorId)
+    {
+        var response = await client.GetAsync($"/api/posts/{slug}/likes/check/{visitorId}");
+        await apiContext.CaptureResponse(response);
+    }
 }

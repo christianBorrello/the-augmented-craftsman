@@ -108,4 +108,20 @@ public sealed class LikeSteps
         var slug = SlugHelper.ToSlug(title);
         await _likeDriver.GetLikeCount(slug);
     }
+
+    [When("the visitor checks their like status for {string}")]
+    public async Task WhenTheVisitorChecksTheirLikeStatusFor(string title)
+    {
+        var slug = SlugHelper.ToSlug(title);
+        await _likeDriver.CheckIfLiked(slug, _visitorId);
+        _actionResponse = _apiContext.LastResponseJson;
+    }
+
+    [Then("the like count is included in the response")]
+    public void ThenTheLikeCountIsIncludedInTheResponse()
+    {
+        _actionResponse.Should().NotBeNull();
+        _actionResponse!.RootElement
+            .GetProperty("count").GetInt32().Should().BeGreaterOrEqualTo(0);
+    }
 }
