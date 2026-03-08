@@ -27,11 +27,17 @@ public sealed class TestHooks
         var stubImageStorage = _factory.Services.GetRequiredService<StubImageStorage>();
         stubImageStorage.ShouldFail = false;
 
+        var stubOAuthClient = _factory.Services.GetRequiredService<StubOAuthClient>();
+        stubOAuthClient.Reset();
+
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<TacBlogDbContext>();
         await db.Database.ExecuteSqlRawAsync("""
             DO $$
             BEGIN
+                IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'reader_sessions') THEN
+                    DELETE FROM reader_sessions;
+                END IF;
                 IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'likes') THEN
                     DELETE FROM likes;
                 END IF;

@@ -29,6 +29,8 @@ public static class DependencyConfig
         services.AddScoped<AuthApiDriver>();
         services.AddScoped<ImageApiDriver>();
         services.AddScoped<LikeApiDriver>();
+        services.AddScoped<OAuthApiDriver>();
+        services.AddScoped<ReaderSessionContext>();
 
         return services;
     }

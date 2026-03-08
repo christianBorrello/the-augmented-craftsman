@@ -67,6 +67,14 @@ public sealed class TacBlogWebApplicationFactory : WebApplicationFactory<Program
 
             services.AddSingleton<StubImageStorage>();
             services.AddSingleton<IImageStorage>(sp => sp.GetRequiredService<StubImageStorage>());
+
+            var oauthDescriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(IOAuthClient));
+            if (oauthDescriptor is not null)
+                services.Remove(oauthDescriptor);
+
+            services.AddSingleton<StubOAuthClient>();
+            services.AddSingleton<IOAuthClient>(sp => sp.GetRequiredService<StubOAuthClient>());
         });
 
         builder.UseEnvironment("Testing");
