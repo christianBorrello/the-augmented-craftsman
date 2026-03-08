@@ -14,7 +14,6 @@ Feature: Like and unlike blog posts
 
   # --- Happy Path ---
 
-  @skip
   Scenario: Like is idempotent for the same visitor
     Given a visitor has liked "TDD Is Not About Testing"
     When the same visitor likes "TDD Is Not About Testing" again
@@ -43,7 +42,6 @@ Feature: Like and unlike blog posts
     When the visitor checks their like status for "TDD Is Not About Testing"
     Then the response indicates the post is not liked
 
-  @skip
   Scenario: Multiple visitors can like the same post
     Given "TDD Is Not About Testing" has been liked by 3 visitors
     When a new visitor likes "TDD Is Not About Testing"

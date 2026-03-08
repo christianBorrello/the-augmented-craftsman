@@ -102,6 +102,23 @@ public sealed class LikeSteps
         }
     }
 
+    [When("the same visitor likes {string} again")]
+    public async Task WhenTheSameVisitorLikesAgain(string title)
+    {
+        var slug = SlugHelper.ToSlug(title);
+        await _likeDriver.LikePost(slug, _visitorId);
+        _actionResponse = _apiContext.LastResponseJson;
+    }
+
+    [When("a new visitor likes {string}")]
+    public async Task WhenANewVisitorLikes(string title)
+    {
+        var slug = SlugHelper.ToSlug(title);
+        var newVisitorId = Guid.NewGuid().ToString();
+        await _likeDriver.LikePost(slug, newVisitorId);
+        _actionResponse = _apiContext.LastResponseJson;
+    }
+
     [When("a visitor requests the like count for {string}")]
     public async Task WhenAVisitorRequestsTheLikeCountFor(string title)
     {
