@@ -18,7 +18,6 @@ namespace TacBlog.Acceptance.Tests.Features.Epic2_TagManagement
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [Xunit.TraitAttribute("Category", "epic2")]
-    [Xunit.TraitAttribute("Category", "skip")]
     [Xunit.TraitAttribute("Category", "api")]
     public partial class AssociateAndDisassociateTagsWithPostsFeature : object, Xunit.IClassFixture<AssociateAndDisassociateTagsWithPostsFeature.FixtureData>, Xunit.IAsyncLifetime
     {
@@ -27,7 +26,6 @@ namespace TacBlog.Acceptance.Tests.Features.Epic2_TagManagement
         
         private static string[] featureTags = new string[] {
                 "epic2",
-                "skip",
                 "api"};
         
         private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en"), "Features/Epic2_TagManagement", "Associate and disassociate tags with posts", "  As Christian (the author)\n  I want to add and remove tags from posts\n  So that " +
