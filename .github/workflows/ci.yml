@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/ci.yml'
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: backend
+
+      - name: Check formatting
+        run: dotnet format --verify-no-changes --verbosity diagnostic
+        working-directory: backend
+
+      - name: Build
+        run: dotnet build -c Release --no-restore
+        working-directory: backend
+
+      - name: Unit tests (Domain)
+        run: dotnet test tests/TacBlog.Domain.Tests/ -c Release --no-build --logger "trx;LogFileName=domain.trx"
+        working-directory: backend
+
+      - name: Unit tests (Application)
+        run: dotnet test tests/TacBlog.Application.Tests/ -c Release --no-build --logger "trx;LogFileName=application.trx"
+        working-directory: backend
+
+      - name: Integration tests
+        run: dotnet test tests/TacBlog.Api.Tests/ -c Release --no-build --logger "trx;LogFileName=integration.trx"
+        working-directory: backend
+
+      - name: Acceptance tests
+        run: dotnet test tests/TacBlog.Acceptance.Tests/ -c Release --no-build --logger "trx;LogFileName=acceptance.trx"
+        working-directory: backend
+
+      - name: Build Docker image
+        run: docker build -t tacblog-api:${{ github.sha }} .
+        working-directory: backend
+
+      - name: Push to GHCR
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker tag tacblog-api:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/tacblog-api:${{ github.sha }}
+          docker tag tacblog-api:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/tacblog-api:latest
+          docker push ghcr.io/${{ github.repository_owner }}/tacblog-api:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository_owner }}/tacblog-api:latest
+
+  smoke-test:
+    needs: ci
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Wait for Koyeb auto-deploy
+        run: sleep 90
+
+      - name: Smoke test (liveness)
+        env:
+          SMOKE_URL: ${{ vars.API_URL }}
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${SMOKE_URL}/health")
+          if [ "$STATUS" != "200" ]; then
+            echo "Smoke test failed: /health returned $STATUS"
+            exit 1
+          fi
+
+      - name: Smoke test (readiness)
+        env:
+          SMOKE_URL: ${{ vars.API_URL }}
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${SMOKE_URL}/health/ready")
+          if [ "$STATUS" != "200" ]; then
+            echo "Smoke test failed: /health/ready returned $STATUS (database may be unreachable)"
+            exit 1
+          fi
