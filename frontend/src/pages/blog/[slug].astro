@@ -119,14 +119,14 @@ const contentHtml = await renderMarkdown(post.content);
   const CHECK_PATH = 'M20 6L9 17l-5-5';
   const COPY_PATHS = ['M9 9h13v13H9z', 'M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1'];
 
-  function setCopyIcon(svg) {
+  function setCopyIcon(svg: SVGSVGElement) {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', CHECK_PATH);
     svg.appendChild(path);
   }
 
-  function setOriginalIcon(svg) {
+  function setOriginalIcon(svg: SVGSVGElement) {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     rect.setAttribute('x', '9'); rect.setAttribute('y', '9');
@@ -141,15 +141,19 @@ const contentHtml = await renderMarkdown(post.content);
   function initCopyButtons() {
     document.querySelectorAll('.code-block__copy').forEach(function(button) {
       button.addEventListener('click', function() {
-        var codeBlock = this.closest('.code-block');
+        var codeBlock = button.closest('.code-block');
+        if (!codeBlock) return;
         var pre = codeBlock.querySelector('.code-block__code pre');
+        if (!pre) return;
         var text = pre.textContent || '';
+        var svg = button.querySelector('svg') as SVGSVGElement | null;
+        if (!svg) return;
+        var svgEl = svg;
         navigator.clipboard.writeText(text).then(function() {
-          var svg = button.querySelector('svg');
-          setCopyIcon(svg);
+          setCopyIcon(svgEl);
           button.classList.add('code-block__copy--copied');
           setTimeout(function() {
-            setOriginalIcon(svg);
+            setOriginalIcon(svgEl);
             button.classList.remove('code-block__copy--copied');
           }, 2000);
         });
