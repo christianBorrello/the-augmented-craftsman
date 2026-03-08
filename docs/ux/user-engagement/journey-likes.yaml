@@ -1,0 +1,100 @@
+---
+epic: epic5-user-engagement
+title: "Reader Likes a Post"
+version: 1.0.0
+
+personas:
+  reader:
+    name: Ana Ferreira
+    role: Backend developer, blog reader
+    context: Reads on phone during commute and desktop at work
+    motivation: Express appreciation with zero friction
+    devices: [mobile, desktop]
+
+journey:
+  id: J5
+  name: reader-likes-post
+  goal: Express appreciation for a post with a single tap/click
+  trigger: Reader finishes a post and feels it was valuable
+  preconditions:
+    - At least one published post exists
+    - Post page has rendered with like button (Astro Island hydrated)
+  postconditions:
+    - Like count incremented by 1
+    - Like button shows filled state
+    - visitor_liked flag persisted in localStorage
+
+  emotional_arc:
+    start: { emotion: engaged, score: 3, reason: "Good post, want to react" }
+    middle: { emotion: instant_gratification, score: 5, reason: "One tap, immediate feedback" }
+    end: { emotion: satisfied, score: 4, reason: "It remembered me on return" }
+
+  steps:
+    - id: J5.1
+      name: notice-like-button
+      action: Reader sees heart icon with count at article footer
+      system_response: Display outlined heart icon with current like count
+      artifacts_produced: []
+      artifacts_consumed: [slug, like_count, visitor_liked_flag]
+      emotional_arc: { emotion: curious, score: 3, reason: "Low barrier, I can react" }
+
+    - id: J5.2
+      name: tap-like
+      action: Reader taps/clicks the heart icon
+      system_response: >
+        Optimistic UI update: fill heart immediately, increment count.
+        POST /api/posts/{slug}/likes with visitor_id.
+        Set visitor_liked_{slug} in localStorage.
+      artifacts_produced: [visitor_liked_flag, like_count_incremented]
+      artifacts_consumed: [slug, visitor_id]
+      emotional_arc: { emotion: instant_gratification, score: 5, reason: "One tap, heart fills, count goes up" }
+      error_paths:
+        - condition: Network error on API call
+          response: Heart fills optimistically; reconciles on next page load
+          recovery: Silent retry or revert on next visit
+        - condition: Already liked (duplicate visitor_id)
+          response: API ignores duplicate, returns current count
+          recovery: No visible change (heart already filled)
+
+    - id: J5.3
+      name: visual-confirmation
+      action: Reader sees filled heart and updated count
+      system_response: Brief scale animation on heart icon, count displays new total
+      artifacts_produced: []
+      artifacts_consumed: [like_count]
+      emotional_arc: { emotion: satisfied, score: 5, reason: "It counted, warm feedback" }
+
+    - id: J5.4
+      name: return-visit
+      action: Reader returns to same post later
+      system_response: >
+        Read visitor_liked_{slug} from localStorage.
+        Display filled heart with current count from API.
+      artifacts_produced: []
+      artifacts_consumed: [visitor_liked_flag, like_count]
+      emotional_arc: { emotion: recognized, score: 4, reason: "My like persisted" }
+      note: >
+        If cookies/localStorage cleared, heart reverts to outline.
+        Reader can like again. This is an acceptable trade-off.
+
+integration_validation:
+  shared_artifact_consistency:
+    - artifact: like_count
+      must_match_across: [J5.1, J5.2, J5.3, J5.4]
+      failure_message: "Like count must reflect server state after reconciliation"
+    - artifact: visitor_liked_flag
+      must_match_across: [J5.2, J5.4]
+      failure_message: "localStorage flag must match displayed heart state"
+
+non_functional:
+  performance:
+    - "Like button interaction responds in <100ms (optimistic UI)"
+    - "API POST completes in <500ms"
+  accessibility:
+    - "Heart icon has aria-label: 'Like this post' / 'Unlike this post'"
+    - "Heart icon is keyboard-focusable and activatable with Enter/Space"
+    - "Minimum touch target: 44x44px"
+  privacy:
+    - "No personally identifiable information stored"
+    - "visitor_id is anonymous, generated client-side"
+    - "No tracking across posts or sessions beyond per-post like state"

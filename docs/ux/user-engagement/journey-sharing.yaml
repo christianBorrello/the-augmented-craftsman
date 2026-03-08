@@ -1,0 +1,112 @@
+---
+epic: epic5-user-engagement
+title: "Reader Shares a Post"
+version: 1.0.0
+
+personas:
+  mobile_sharer:
+    name: Tomasz Kowalski
+    role: Senior developer, blog reader
+    context: Shares articles from phone during breaks
+    motivation: Share useful TDD content with Twitter/X followers
+    devices: [mobile]
+
+  desktop_sharer:
+    name: Ana Ferreira
+    role: Backend developer, blog reader
+    context: Shares articles with team on Slack from work desktop
+    motivation: Send useful content to colleagues
+    devices: [desktop]
+
+journey:
+  id: J7
+  name: reader-shares-post
+  goal: Share a blog post URL via native device sharing or clipboard
+  trigger: Reader wants to send a post to someone or post it publicly
+  preconditions:
+    - Published post is being viewed
+    - Share button rendered (Astro Island hydrated)
+  postconditions:
+    - Post URL (and title) delivered to reader's chosen sharing channel
+    - No third-party tracking scripts loaded
+    - No third-party SDKs involved
+
+  emotional_arc:
+    start: { emotion: engaged, score: 3, reason: "Want to share this with others" }
+    middle: { emotion: effortless, score: 5, reason: "One tap, familiar OS interface" }
+    end: { emotion: satisfied, score: 5, reason: "Shared, done" }
+
+  steps:
+    - id: J7.1
+      name: see-share-button
+      action: Reader sees share icon alongside like button at article footer
+      system_response: Display share icon with label "Share"
+      artifacts_produced: []
+      artifacts_consumed: [slug, post_title, post_url]
+      emotional_arc: { emotion: impulse, score: 3, reason: "Quick, I want to share this" }
+
+    - id: J7.2
+      name: tap-share
+      action: Reader taps/clicks share icon
+      system_response: >
+        Feature detection:
+        1. If navigator.share supported: invoke Web Share API with title + URL
+        2. Else if navigator.clipboard supported: copy URL to clipboard, show toast
+        3. Else: show popover with selectable URL text
+      artifacts_produced: []
+      artifacts_consumed: [post_title, post_url]
+      emotional_arc: { emotion: effortless, score: 5, reason: "One action, system handles the rest" }
+      error_paths:
+        - condition: Web Share API not supported
+          response: Automatic fallback to clipboard copy
+          recovery: Transparent to user
+        - condition: Clipboard API not supported
+          response: Show popover with selectable URL
+          recovery: Reader manually selects and copies
+        - condition: navigator.share() dismissed by user
+          response: No action, no error
+          recovery: Share button returns to default state
+        - condition: navigator.share() browser error
+          response: Silent fallback to clipboard copy + toast
+          recovery: Transparent to user
+
+    - id: J7.3
+      name: share-completed
+      action: Reader completes sharing through chosen channel
+      system_response: >
+        Mobile: OS share sheet handled by platform (outside our control).
+        Desktop: Toast "Link copied!" auto-dismisses after 3 seconds.
+      artifacts_produced: []
+      artifacts_consumed: []
+      emotional_arc: { emotion: satisfied, score: 5, reason: "Done, shared" }
+
+integration_validation:
+  shared_artifact_consistency:
+    - artifact: post_url
+      must_match_across: [J7.1, J7.2]
+      failure_message: "Shared URL must match canonical post URL"
+    - artifact: post_title
+      must_match_across: [J7.1, J7.2]
+      failure_message: "Shared title must match post title"
+
+  open_graph_validation:
+    - "og:title matches post title"
+    - "og:url matches canonical URL"
+    - "og:description present and meaningful"
+    - "og:image present when post has featured image"
+    - "twitter:card set to summary_large_image"
+
+non_functional:
+  performance:
+    - "Share button interaction responds in <100ms"
+    - "Toast notification appears immediately after clipboard write"
+  accessibility:
+    - "Share button has aria-label: 'Share this post'"
+    - "Share button is keyboard-focusable and activatable with Enter/Space"
+    - "Toast notification announced to screen readers (aria-live: polite)"
+    - "Minimum touch target: 44x44px"
+  privacy:
+    - "No third-party tracking scripts loaded"
+    - "No social media SDKs (Facebook, Twitter, LinkedIn)"
+    - "No analytics on share button clicks (respect reader privacy)"
+    - "Web Share API is browser-native, no data sent to third parties"
