@@ -288,6 +288,41 @@
       "s": "EXECUTED",
       "d": "PASS",
       "t": "2026-03-07T18:46:59Z"
+    },
+    {
+      "sid": "04-02",
+      "p": "PREPARE",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: regression verification step",
+      "t": "2026-03-07T18:58:55Z"
+    },
+    {
+      "sid": "04-02",
+      "p": "RED_ACCEPTANCE",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: regression verification step",
+      "t": "2026-03-07T18:58:56Z"
+    },
+    {
+      "sid": "04-02",
+      "p": "RED_UNIT",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: regression verification step",
+      "t": "2026-03-07T18:58:56Z"
+    },
+    {
+      "sid": "04-02",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "PASS \u2014 252 tests green",
+      "t": "2026-03-07T18:58:56Z"
+    },
+    {
+      "sid": "04-02",
+      "p": "COMMIT",
+      "s": "SKIPPED",
+      "d": "NOT_APPLICABLE: no code changes",
+      "t": "2026-03-07T18:58:56Z"
     }
   ]
 }
