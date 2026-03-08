@@ -39,13 +39,21 @@ public static class OAuthEndpoints
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(state))
+            return Results.Redirect("/?error=invalid_state");
+
         var redirectUri = BuildRedirectUri(httpContext, provider);
         var result = await handleOAuthCallback.ExecuteAsync(provider, code, redirectUri, cancellationToken);
 
-        var returnUrl = state ?? "/";
+        var returnUrl = state;
 
         if (!result.IsSuccess)
+        {
+            if (result.Error == "access_denied")
+                return Results.Redirect(returnUrl);
+
             return Results.Redirect($"{returnUrl}?error={result.Error}");
+        }
 
         httpContext.Response.Cookies.Append(SessionCookieName, result.SessionId!.Value.ToString(), new CookieOptions
         {

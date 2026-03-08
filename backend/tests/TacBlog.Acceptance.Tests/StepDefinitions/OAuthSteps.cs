@@ -66,6 +66,31 @@ public sealed class OAuthSteps(
         _callbackResponse = apiContext.LastResponse;
     }
 
+    [When("the OAuth callback is received with consent denied for {string}")]
+    public async Task WhenTheOAuthCallbackIsReceivedWithConsentDeniedFor(string provider)
+    {
+        var stub = factory.Services.GetRequiredService<StubOAuthClient>();
+        stub.ConfigureConsentDenied();
+        await oAuthDriver.SimulateCallback(provider);
+        _callbackResponse = apiContext.LastResponse;
+    }
+
+    [When("the OAuth callback is received with a provider error for {string}")]
+    public async Task WhenTheOAuthCallbackIsReceivedWithAProviderErrorFor(string provider)
+    {
+        var stub = factory.Services.GetRequiredService<StubOAuthClient>();
+        stub.ConfigureProviderError();
+        await oAuthDriver.SimulateCallback(provider);
+        _callbackResponse = apiContext.LastResponse;
+    }
+
+    [When("the OAuth callback is received with an invalid state parameter for {string}")]
+    public async Task WhenTheOAuthCallbackIsReceivedWithAnInvalidStateParameterFor(string provider)
+    {
+        await oAuthDriver.SimulateCallback(provider, code: "test-code", state: "");
+        _callbackResponse = apiContext.LastResponse;
+    }
+
     [When("the reader checks their session status")]
     public async Task WhenTheReaderChecksTheirSessionStatus()
     {
@@ -106,6 +131,22 @@ public sealed class OAuthSteps(
         apiContext.LastResponseJson.Should().NotBeNull();
         apiContext.LastResponseJson!.RootElement.GetProperty("provider").GetString()
             .Should().Be(expectedProvider);
+    }
+
+    [Then("no session is created")]
+    public void ThenNoSessionIsCreated()
+    {
+        sessionContext.SessionCookie.Should().BeNull("no session should exist after error path");
+    }
+
+    [Then("the reader is redirected back to the original post with an error indicator")]
+    public void ThenTheReaderIsRedirectedBackToTheOriginalPostWithAnErrorIndicator()
+    {
+        _callbackResponse.Should().NotBeNull("a callback response should have been captured");
+        _callbackResponse!.StatusCode.Should().Be(HttpStatusCode.Redirect);
+        var location = _callbackResponse.Headers.Location?.ToString();
+        location.Should().NotBeNull();
+        location.Should().Contain("error=");
     }
 
     [Then("the reader is redirected to the GitHub authorization page")]

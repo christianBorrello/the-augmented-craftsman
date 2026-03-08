@@ -46,13 +46,11 @@ Feature: Sign in with social login to comment
 
   # --- Error Path ---
 
-  @ignore
   Scenario: OAuth consent denied returns to post without error
     When the OAuth callback is received with consent denied for "github"
     Then the reader is redirected back to the original post
     And no session is created
 
-  @ignore
   Scenario: OAuth provider error returns to post with error indicator
     When the OAuth callback is received with a provider error for "google"
     Then the reader is redirected back to the original post with an error indicator
@@ -74,7 +72,6 @@ Feature: Sign in with social login to comment
     When a reader initiates sign-in with "twitter" for post "outside-in-tdd"
     Then the response status is 400
 
-  @ignore
   Scenario: OAuth callback with invalid state parameter is rejected
     When the OAuth callback is received with an invalid state parameter for "github"
     Then the reader is redirected back to the original post with an error indicator
