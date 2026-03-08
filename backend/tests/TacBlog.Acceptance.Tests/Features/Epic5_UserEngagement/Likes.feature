@@ -49,25 +49,21 @@ Feature: Like and unlike blog posts
 
   # --- Error Path ---
 
-  @skip
   Scenario: Like a non-existent post returns not found
     When a visitor likes a post with slug "nonexistent-post"
     Then the response status is 404
     And the response contains "Post not found"
 
-  @skip
   Scenario: Unlike a non-existent post returns not found
     When a visitor unlikes a post with slug "nonexistent-post"
     Then the response status is 404
     And the response contains "Post not found"
 
-  @skip
   Scenario: Check like status on non-existent post returns not found
     When a visitor checks their like status for a post with slug "nonexistent-post"
     Then the response status is 404
     And the response contains "Post not found"
 
-  @skip
   Scenario: Get like count for non-existent post returns not found
     When a visitor requests the like count for a post with slug "nonexistent-post"
     Then the response status is 404

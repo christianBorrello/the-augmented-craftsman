@@ -119,6 +119,30 @@ public sealed class LikeSteps
         _actionResponse = _apiContext.LastResponseJson;
     }
 
+    [When("a visitor likes a post with slug {string}")]
+    public async Task WhenAVisitorLikesAPostWithSlug(string slug)
+    {
+        await _likeDriver.LikePost(slug, _visitorId);
+    }
+
+    [When("a visitor unlikes a post with slug {string}")]
+    public async Task WhenAVisitorUnlikesAPostWithSlug(string slug)
+    {
+        await _likeDriver.UnlikePost(slug, _visitorId);
+    }
+
+    [When("a visitor checks their like status for a post with slug {string}")]
+    public async Task WhenAVisitorChecksTheirLikeStatusForAPostWithSlug(string slug)
+    {
+        await _likeDriver.CheckIfLiked(slug, _visitorId);
+    }
+
+    [When("a visitor requests the like count for a post with slug {string}")]
+    public async Task WhenAVisitorRequestsTheLikeCountForAPostWithSlug(string slug)
+    {
+        await _likeDriver.GetLikeCount(slug);
+    }
+
     [When("a visitor requests the like count for {string}")]
     public async Task WhenAVisitorRequestsTheLikeCountFor(string title)
     {
