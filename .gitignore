@@ -48,4 +48,4 @@ skills-lock.json
 StrykerOutput/
 
 # Reference project (will be removed after migration)
-# blog/
+blog/
