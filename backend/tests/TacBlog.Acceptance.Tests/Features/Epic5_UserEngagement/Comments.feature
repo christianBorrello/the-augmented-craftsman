@@ -55,54 +55,46 @@ Feature: Post and view comments on blog posts
 
   # --- Error Path ---
 
-  @ignore
   Scenario: Empty comment text is rejected
     Given a reader session exists for "Tomasz Kowalski" via "GitHub"
     And a published post "Outside-In TDD" exists
     When the reader posts a comment "" on "outside-in-tdd"
     Then the response status is 400
 
-  @ignore
   Scenario: Comment exceeding 2000 characters is rejected
     Given a reader session exists for "Tomasz Kowalski" via "GitHub"
     And a published post "Outside-In TDD" exists
     When the reader posts a comment of 2001 characters on "outside-in-tdd"
     Then the response status is 400
 
-  @ignore
   Scenario: Whitespace-only comment is rejected
     Given a reader session exists for "Tomasz Kowalski" via "GitHub"
     And a published post "Outside-In TDD" exists
     When the reader posts a comment "   " on "outside-in-tdd"
     Then the response status is 400
 
-  @ignore
   Scenario: Unauthenticated reader cannot post a comment
     Given a published post "Outside-In TDD" exists
     When an unauthenticated reader posts a comment "Hello!" on "outside-in-tdd"
     Then the response status is 401
 
-  @ignore
   Scenario: Comment on a non-existent post returns not found
     Given a reader session exists for "Tomasz Kowalski" via "GitHub"
     When the reader posts a comment "Hello!" on "non-existent-post"
     Then the response status is 404
 
-  @ignore
   Scenario: Request comments for a non-existent post returns not found
     When a reader requests comments for "non-existent-post"
     Then the response status is 404
 
   # --- Boundary ---
 
-  @ignore
   Scenario: Comment at exactly 2000 characters is accepted
     Given a reader session exists for "Tomasz Kowalski" via "GitHub"
     And a published post "Outside-In TDD" exists
     When the reader posts a comment of 2000 characters on "outside-in-tdd"
     Then the response status is 201
 
-  @ignore
   Scenario: Comment at exactly 1 character is accepted
     Given a reader session exists for "Tomasz Kowalski" via "GitHub"
     And a published post "Outside-In TDD" exists
