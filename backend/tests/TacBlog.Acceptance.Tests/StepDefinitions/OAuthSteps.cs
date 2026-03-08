@@ -66,6 +66,32 @@ public sealed class OAuthSteps(
         _callbackResponse = apiContext.LastResponse;
     }
 
+    [Given("a reader session exists for {string} via {string} that has expired")]
+    public async Task GivenAReaderSessionExistsForViaThatHasExpired(string displayName, string providerName)
+    {
+        var provider = Enum.Parse<AuthProvider>(providerName, ignoreCase: true);
+        var session = ReaderSession.Create(
+            displayName,
+            null,
+            provider,
+            $"{providerName.ToLowerInvariant()}-{displayName.ToLowerInvariant().Replace(' ', '-')}",
+            DateTime.UtcNow.AddDays(-31),
+            DateTime.UtcNow.AddDays(-1));
+
+        using var scope = factory.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IReaderSessionRepository>();
+        await repository.SaveAsync(session, CancellationToken.None);
+
+        sessionContext.SessionCookie = session.Id.ToString();
+    }
+
+    [When("a reader with no session checks their session status")]
+    public async Task WhenAReaderWithNoSessionChecksTheirSessionStatus()
+    {
+        sessionContext.SessionCookie = null;
+        await oAuthDriver.CheckSession();
+    }
+
     [When("the OAuth callback is received with consent denied for {string}")]
     public async Task WhenTheOAuthCallbackIsReceivedWithConsentDeniedFor(string provider)
     {
@@ -176,6 +202,14 @@ public sealed class OAuthSteps(
     public async Task ThenCheckingSessionStatusShowsNotAuthenticated()
     {
         await oAuthDriver.CheckSession();
+        apiContext.LastResponseJson.Should().NotBeNull();
+        apiContext.LastResponseJson!.RootElement.GetProperty("authenticated").GetBoolean()
+            .Should().BeFalse();
+    }
+
+    [Then("the session status indicates not authenticated")]
+    public void ThenTheSessionStatusIndicatesNotAuthenticated()
+    {
         apiContext.LastResponseJson.Should().NotBeNull();
         apiContext.LastResponseJson!.RootElement.GetProperty("authenticated").GetBoolean()
             .Should().BeFalse();

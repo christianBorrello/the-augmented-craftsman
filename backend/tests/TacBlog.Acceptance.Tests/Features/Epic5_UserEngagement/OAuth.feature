@@ -56,18 +56,15 @@ Feature: Sign in with social login to comment
     Then the reader is redirected back to the original post with an error indicator
     And no session is created
 
-  @ignore
   Scenario: Session check with no session returns not authenticated
     When a reader with no session checks their session status
     Then the session status indicates not authenticated
 
-  @ignore
   Scenario: Session check with expired session returns not authenticated
     Given a reader session exists for "Tomasz Kowalski" via "GitHub" that has expired
     When the reader checks their session status
     Then the session status indicates not authenticated
 
-  @ignore
   Scenario: Initiate sign-in with unsupported provider is rejected
     When a reader initiates sign-in with "twitter" for post "outside-in-tdd"
     Then the response status is 400
