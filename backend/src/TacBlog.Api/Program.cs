@@ -8,6 +8,7 @@ using TacBlog.Api.Endpoints;
 using TacBlog.Application.Features.Auth;
 using TacBlog.Application.Features.Images;
 using TacBlog.Application.Features.Posts;
+using TacBlog.Application.Features.Comments;
 using TacBlog.Application.Features.Likes;
 using TacBlog.Application.Features.OAuth;
 using TacBlog.Application.Features.Tags;
@@ -63,6 +64,9 @@ builder.Services.AddScoped<LikePost>();
 builder.Services.AddScoped<UnlikePost>();
 builder.Services.AddScoped<GetLikeCount>();
 builder.Services.AddScoped<CheckIfLiked>();
+builder.Services.AddScoped<ICommentRepository, EfCommentRepository>();
+builder.Services.AddScoped<PostComment>();
+builder.Services.AddScoped<GetComments>();
 builder.Services.AddScoped<IReaderSessionRepository, EfReaderSessionRepository>();
 builder.Services.AddSingleton<IOAuthClient>(sp =>
     throw new InvalidOperationException("Configure OAuth providers for production"));
@@ -200,6 +204,7 @@ app.MapAuthEndpoints();
 app.MapTagEndpoints();
 app.MapImageEndpoints();
 app.MapLikeEndpoints();
+app.MapCommentEndpoints();
 app.MapOAuthEndpoints();
 
 app.Run();

@@ -35,6 +35,9 @@ public sealed class TestHooks
         await db.Database.ExecuteSqlRawAsync("""
             DO $$
             BEGIN
+                IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'comments') THEN
+                    DELETE FROM comments;
+                END IF;
                 IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'reader_sessions') THEN
                     DELETE FROM reader_sessions;
                 END IF;

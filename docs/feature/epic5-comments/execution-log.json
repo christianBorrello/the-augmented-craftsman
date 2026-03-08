@@ -1,0 +1,41 @@
+{
+  "schema_version": "3.0",
+  "feature_id": "epic5-comments",
+  "events": [
+    {
+      "sid": "01-01",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Reviewed existing patterns. Created feature files with @ignore tags. Planned domain, application, infrastructure, and API layers.\"}",
+      "t": "2026-03-08T16:59:32Z"
+    },
+    {
+      "sid": "01-01",
+      "p": "RED_ACCEPTANCE",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Enabled 2 walking skeleton scenarios. Created all production code (domain, application, infrastructure, API layers) and test infrastructure. Build succeeds, scenarios not yet validated.\"}",
+      "t": "2026-03-08T17:04:25Z"
+    },
+    {
+      "sid": "01-01",
+      "p": "RED_UNIT",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Unit tests not separately written for walking skeleton \u2014 acceptance tests cover the vertical slice. Production code validated through green acceptance tests.\"}",
+      "t": "2026-03-08T17:06:53Z"
+    },
+    {
+      "sid": "01-01",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Both walking skeleton scenarios pass: Authenticated reader posts a comment (201), Reader sees existing comments on a post (200 with count=2, chronological order). 110 acceptance tests pass total.\"}",
+      "t": "2026-03-08T17:06:58Z"
+    },
+    {
+      "sid": "01-01",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Walking skeleton complete. Comment entity, CommentText/CommentId VOs, ICommentRepository, PostComment+GetComments use cases, CommentEndpoints, EfCommentRepository, CommentConfiguration, migration, CommentApiDriver, CommentSteps.\"}",
+      "t": "2026-03-08T17:07:03Z"
+    }
+  ]
+}

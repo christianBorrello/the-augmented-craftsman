@@ -1,0 +1,161 @@
+project_id: epic5-comments
+title: "Epic 5 Deliver 3: Comments + Moderation"
+description: >
+  Implement commenting system and admin moderation for the blog.
+  14 comment scenarios (US-052, US-056) + 7 moderation scenarios (US-053).
+  Builds on OAuth/sessions infrastructure from Deliver 2.
+
+architecture:
+  style: hexagonal
+  pattern: vertical-slice
+  framework: ".NET 10, Minimal API"
+  testing: "xUnit + FluentAssertions + NSubstitute + Reqnroll 2.4 + Testcontainers"
+
+phases:
+  - id: "01"
+    name: "Walking Skeleton — Post and Read a Comment"
+    description: >
+      End-to-end vertical slice: authenticated reader posts a comment, then
+      comments are retrieved for that post. Proves the full Comment entity,
+      CommentText VO, ICommentRepository port, EfCommentRepository adapter,
+      PostComment + GetComments use cases, CommentEndpoints, DB migration,
+      and test infrastructure (CommentApiDriver, CommentSteps).
+    steps:
+      - id: "01-01"
+        description: >
+          Walking skeleton: Comment entity with CommentText/CommentId VOs,
+          ICommentRepository port, EfCommentRepository adapter, PostComment
+          and GetComments use cases, CommentEndpoints (POST + GET), DB migration
+          for comments table, CommentApiDriver, CommentSteps, test data helpers.
+          Enable 2 scenarios: "Authenticated reader posts a comment" and
+          "Reader sees existing comments on a post".
+        acceptance_criteria:
+          - "Authenticated reader posts a comment → 201 with comment data"
+          - "Reader sees existing comments on a post → 200 with comment list"
+          - "POST /api/posts/{slug}/comments requires reader session cookie"
+          - "GET /api/posts/{slug}/comments returns chronological list"
+          - "CommentText VO validates 1-2000 chars, trims, rejects blank"
+          - "Comment entity is immutable after creation"
+          - "EF Core migration creates comments table"
+        files_to_modify:
+          - "backend/src/TacBlog.Domain/Comment.cs"
+          - "backend/src/TacBlog.Domain/CommentText.cs"
+          - "backend/src/TacBlog.Domain/CommentId.cs"
+          - "backend/src/TacBlog.Application/Ports/Driven/ICommentRepository.cs"
+          - "backend/src/TacBlog.Application/Features/Comments/PostComment.cs"
+          - "backend/src/TacBlog.Application/Features/Comments/GetComments.cs"
+          - "backend/src/TacBlog.Api/Endpoints/CommentEndpoints.cs"
+          - "backend/src/TacBlog.Infrastructure/Persistence/CommentConfiguration.cs"
+          - "backend/src/TacBlog.Infrastructure/Persistence/EfCommentRepository.cs"
+          - "backend/src/TacBlog.Infrastructure/Persistence/TacBlogDbContext.cs"
+          - "backend/src/TacBlog.Api/Program.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Drivers/CommentApiDriver.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/CommentSteps.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Support/DependencyConfig.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Hooks/TestHooks.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Features/Epic5_UserEngagement/Comments.feature"
+
+  - id: "02"
+    name: "Comment Features — Count, Sanitization, Validation"
+    description: >
+      Complete the comment posting features: count endpoint, XSS sanitization,
+      validation error paths, and boundary tests.
+    steps:
+      - id: "02-01"
+        description: >
+          Comment count endpoint and XSS sanitization.
+          GetCommentCount use case + GET /api/posts/{slug}/comments/count endpoint.
+          HTML sanitization in PostComment (strip tags).
+          Enable 3 scenarios: "Empty comments section returns zero count",
+          "Comment count matches number of comments",
+          "Comment text is sanitized to prevent injection".
+        acceptance_criteria:
+          - "GET /api/posts/{slug}/comments/count returns { count: N }"
+          - "Empty comments section returns count 0"
+          - "Count matches actual number of comments"
+          - "HTML tags stripped from comment text before persistence"
+          - "<script> tags removed, safe text preserved"
+        files_to_modify:
+          - "backend/src/TacBlog.Application/Features/Comments/GetCommentCount.cs"
+          - "backend/src/TacBlog.Api/Endpoints/CommentEndpoints.cs"
+          - "backend/src/TacBlog.Application/Features/Comments/PostComment.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/CommentSteps.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Features/Epic5_UserEngagement/Comments.feature"
+
+      - id: "02-02"
+        description: >
+          Comment validation error paths and boundary cases.
+          Enable 7 scenarios: empty text rejected, exceeding 2000 chars rejected,
+          whitespace-only rejected, unauthenticated reader blocked,
+          comment on non-existent post 404, request comments for non-existent post 404,
+          exactly 2000 chars accepted, exactly 1 char accepted.
+        acceptance_criteria:
+          - "Empty comment text → 400"
+          - "Comment > 2000 chars → 400"
+          - "Whitespace-only comment → 400"
+          - "No session cookie → 401"
+          - "Non-existent post slug → 404 for both POST and GET"
+          - "Exactly 2000 chars → 201"
+          - "Exactly 1 char → 201"
+        files_to_modify:
+          - "backend/src/TacBlog.Api/Endpoints/CommentEndpoints.cs"
+          - "backend/src/TacBlog.Application/Features/Comments/PostComment.cs"
+          - "backend/src/TacBlog.Application/Features/Comments/GetComments.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/CommentSteps.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Drivers/CommentApiDriver.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Features/Epic5_UserEngagement/Comments.feature"
+
+  - id: "03"
+    name: "Admin Moderation"
+    description: >
+      Admin can list all comments and delete individual comments.
+      Requires existing admin JWT authentication.
+    steps:
+      - id: "03-01"
+        description: >
+          Admin delete comment and list all comments.
+          DeleteComment use case + DELETE /api/posts/{slug}/comments/{id} endpoint.
+          ListAdminComments use case + GET /api/admin/comments endpoint.
+          Enable 3 happy path scenarios: "Admin deletes a spam comment",
+          "Comment count updates after deletion",
+          "Admin lists all comments across posts".
+        acceptance_criteria:
+          - "DELETE /api/posts/{slug}/comments/{id} with admin JWT → 204"
+          - "Comment removed from database after deletion"
+          - "Comment count decrements after deletion"
+          - "GET /api/admin/comments with admin JWT returns all comments"
+          - "Admin list sorted newest first"
+          - "Admin list includes postSlug and postTitle"
+        files_to_modify:
+          - "backend/src/TacBlog.Application/Features/Comments/DeleteComment.cs"
+          - "backend/src/TacBlog.Application/Features/Comments/ListAdminComments.cs"
+          - "backend/src/TacBlog.Application/Ports/Driven/ICommentRepository.cs"
+          - "backend/src/TacBlog.Infrastructure/Persistence/EfCommentRepository.cs"
+          - "backend/src/TacBlog.Api/Endpoints/CommentEndpoints.cs"
+          - "backend/src/TacBlog.Api/Program.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Drivers/CommentApiDriver.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/ModerationSteps.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Support/DependencyConfig.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Features/Epic5_UserEngagement/Moderation.feature"
+
+      - id: "03-02"
+        description: >
+          Moderation error paths: delete non-existent comment,
+          delete without admin auth, reader session cannot delete,
+          admin list without auth.
+          Enable 4 error scenarios.
+        acceptance_criteria:
+          - "Delete non-existent comment → 404"
+          - "Delete without admin JWT → 401"
+          - "Delete with reader session cookie (not admin JWT) → 401"
+          - "GET /api/admin/comments without auth → 401"
+        files_to_modify:
+          - "backend/src/TacBlog.Api/Endpoints/CommentEndpoints.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/StepDefinitions/ModerationSteps.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Drivers/CommentApiDriver.cs"
+          - "backend/tests/TacBlog.Acceptance.Tests/Features/Epic5_UserEngagement/Moderation.feature"
+
+validation:
+  status: "approved"
+  reviewer: "orchestrator-self-review"
+  notes: "5 steps, 21 scenarios. Step/file ratio: 5/16 unique files = 0.31. Well decomposed."
