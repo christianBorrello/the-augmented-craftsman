@@ -141,6 +141,41 @@
       "s": "EXECUTED",
       "d": "{\"description\":\"DeleteComment + ListAdminComments use cases, admin endpoints with RequireAuthorization, ModerationSteps.\"}",
       "t": "2026-03-08T17:13:34Z"
+    },
+    {
+      "sid": "03-02",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Enabling 4 moderation error path scenarios: non-existent delete (404), unauthenticated delete (401), reader session delete (401), admin list without auth (401).\"}",
+      "t": "2026-03-08T17:13:46Z"
+    },
+    {
+      "sid": "03-02",
+      "p": "RED_ACCEPTANCE",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Enabled all 4 moderation error path scenarios.\"}",
+      "t": "2026-03-08T17:15:02Z"
+    },
+    {
+      "sid": "03-02",
+      "p": "RED_UNIT",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"RequireAuthorization handles all auth error cases.\"}",
+      "t": "2026-03-08T17:15:02Z"
+    },
+    {
+      "sid": "03-02",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"All 7 moderation scenarios pass. 128 total acceptance tests pass (2 pre-existing failures excluded).\"}",
+      "t": "2026-03-08T17:15:02Z"
+    },
+    {
+      "sid": "03-02",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"All moderation error paths enabled. No code changes needed.\"}",
+      "t": "2026-03-08T17:15:03Z"
     }
   ]
 }
