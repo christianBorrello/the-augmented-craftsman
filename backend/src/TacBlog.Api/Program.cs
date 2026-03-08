@@ -68,6 +68,8 @@ builder.Services.AddScoped<ICommentRepository, EfCommentRepository>();
 builder.Services.AddScoped<PostComment>();
 builder.Services.AddScoped<GetComments>();
 builder.Services.AddScoped<GetCommentCount>();
+builder.Services.AddScoped<DeleteComment>();
+builder.Services.AddScoped<ListAdminComments>();
 builder.Services.AddScoped<IReaderSessionRepository, EfReaderSessionRepository>();
 builder.Services.AddSingleton<IOAuthClient>(sp =>
     throw new InvalidOperationException("Configure OAuth providers for production"));

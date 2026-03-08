@@ -106,6 +106,41 @@
       "s": "EXECUTED",
       "d": "{\"description\":\"7 validation/boundary scenarios enabled. All pass with existing code.\"}",
       "t": "2026-03-08T17:10:15Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "PREPARE",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Implementing DeleteComment + ListAdminComments use cases, admin endpoints, ModerationSteps. Enabling 3 happy path moderation scenarios.\"}",
+      "t": "2026-03-08T17:10:27Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "RED_ACCEPTANCE",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Enabled 3 moderation happy path scenarios. Created DeleteComment, ListAdminComments use cases, admin endpoints, ModerationSteps.\"}",
+      "t": "2026-03-08T17:13:33Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "RED_UNIT",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"Production code validated through acceptance tests.\"}",
+      "t": "2026-03-08T17:13:34Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "GREEN",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"All 3 moderation happy paths pass: admin delete (204), count updates after deletion, admin lists all comments.\"}",
+      "t": "2026-03-08T17:13:34Z"
+    },
+    {
+      "sid": "03-01",
+      "p": "COMMIT",
+      "s": "EXECUTED",
+      "d": "{\"description\":\"DeleteComment + ListAdminComments use cases, admin endpoints with RequireAuthorization, ModerationSteps.\"}",
+      "t": "2026-03-08T17:13:34Z"
     }
   ]
 }

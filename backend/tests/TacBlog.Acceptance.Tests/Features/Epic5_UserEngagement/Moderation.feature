@@ -13,31 +13,25 @@ Feature: Author moderates comments
 
   # --- Happy Path ---
 
-  @ignore
   Scenario: Admin deletes a spam comment
     Given a published post "Outside-In TDD" exists
     And "outside-in-tdd" has a comment by "SpamBot" via "GitHub" saying "Buy cheap stuff!"
-    And the admin is authenticated
     When the admin deletes the comment by "SpamBot" on "outside-in-tdd"
     Then the response status is 204
     And the comments count for "outside-in-tdd" is 0
 
-  @ignore
   Scenario: Comment count updates after deletion
     Given a published post "Outside-In TDD" exists
     And "outside-in-tdd" has a comment by "Tomasz Kowalski" via "GitHub" saying "Great post!"
     And "outside-in-tdd" has a comment by "SpamBot" via "GitHub" saying "Buy cheap stuff!"
-    And the admin is authenticated
     When the admin deletes the comment by "SpamBot" on "outside-in-tdd"
     Then the comments count for "outside-in-tdd" is 1
 
-  @ignore
   Scenario: Admin lists all comments across posts
     Given a published post "Outside-In TDD" exists
     And a published post "Clean Architecture" exists
     And "outside-in-tdd" has a comment by "Tomasz Kowalski" via "GitHub" saying "Great post!"
     And "clean-architecture" has a comment by "Maria Santos" via "Google" saying "Insightful!"
-    And the admin is authenticated
     When the admin lists all comments
     Then the response status is 200
     And the admin comments list contains 2 comments
@@ -47,7 +41,6 @@ Feature: Author moderates comments
   @ignore
   Scenario: Delete non-existent comment returns not found
     Given a published post "Outside-In TDD" exists
-    And the admin is authenticated
     When the admin deletes a non-existent comment on "outside-in-tdd"
     Then the response status is 404
 

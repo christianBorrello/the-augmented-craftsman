@@ -11,6 +11,8 @@ public static class CommentEndpoints
         app.MapPost("/api/posts/{slug}/comments", PostCommentAsync).AllowAnonymous();
         app.MapGet("/api/posts/{slug}/comments", GetCommentsAsync).AllowAnonymous();
         app.MapGet("/api/posts/{slug}/comments/count", GetCommentCountAsync).AllowAnonymous();
+        app.MapDelete("/api/posts/{slug}/comments/{commentId:guid}", DeleteCommentAsync).RequireAuthorization();
+        app.MapGet("/api/admin/comments", ListAdminCommentsAsync).RequireAuthorization();
     }
 
     private static async Task<IResult> PostCommentAsync(
@@ -69,6 +71,27 @@ public static class CommentEndpoints
             return Results.NotFound(new { error = "Post not found" });
 
         return Results.Ok(new { count = result.Count });
+    }
+    private static async Task<IResult> DeleteCommentAsync(
+        string slug,
+        Guid commentId,
+        DeleteComment deleteComment,
+        CancellationToken cancellationToken)
+    {
+        var result = await deleteComment.ExecuteAsync(commentId, cancellationToken);
+
+        if (result.IsNotFound)
+            return Results.NotFound(new { error = "Comment not found" });
+
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> ListAdminCommentsAsync(
+        ListAdminComments listAdminComments,
+        CancellationToken cancellationToken)
+    {
+        var comments = await listAdminComments.ExecuteAsync(cancellationToken);
+        return Results.Ok(comments);
     }
 }
 
