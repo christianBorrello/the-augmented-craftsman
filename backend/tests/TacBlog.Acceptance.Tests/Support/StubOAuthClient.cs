@@ -37,6 +37,16 @@ public sealed class StubOAuthClient : IOAuthClient
         _providerId = "stub-provider-id";
     }
 
+    public Task<string> GetAuthorizationUrlAsync(
+        AuthProvider provider,
+        string state,
+        string redirectUri,
+        CancellationToken cancellationToken = default)
+    {
+        var providerName = provider.ToString().ToLowerInvariant();
+        return Task.FromResult($"https://{providerName}.example.com/authorize?state={state}&redirect_uri={Uri.EscapeDataString(redirectUri)}");
+    }
+
     public Task<OAuthTokenResult> ExchangeCodeAsync(
         AuthProvider provider,
         string code,

@@ -5,6 +5,12 @@ namespace TacBlog.Application.Ports.Driven;
 
 public interface IOAuthClient
 {
+    Task<string> GetAuthorizationUrlAsync(
+        AuthProvider provider,
+        string state,
+        string redirectUri,
+        CancellationToken cancellationToken = default);
+
     Task<OAuthTokenResult> ExchangeCodeAsync(
         AuthProvider provider,
         string code,

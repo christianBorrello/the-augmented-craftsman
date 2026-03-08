@@ -8,8 +8,26 @@ public static class OAuthEndpoints
 
     public static void MapOAuthEndpoints(this WebApplication app)
     {
+        app.MapGet("/api/auth/oauth/{provider}", InitiateOAuthAsync).AllowAnonymous();
         app.MapGet("/api/auth/oauth/{provider}/callback", HandleCallbackAsync).AllowAnonymous();
         app.MapGet("/api/auth/session", CheckSessionAsync).AllowAnonymous();
+    }
+
+    private static async Task<IResult> InitiateOAuthAsync(
+        string provider,
+        string? returnUrl,
+        InitiateOAuth initiateOAuth,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        var state = returnUrl ?? "/";
+        var redirectUri = BuildRedirectUri(httpContext, provider);
+        var result = await initiateOAuth.ExecuteAsync(provider, state, redirectUri, cancellationToken);
+
+        if (!result.IsSuccess)
+            return Results.BadRequest(new { error = result.Error });
+
+        return Results.Redirect(result.AuthorizationUrl!);
     }
 
     private static async Task<IResult> HandleCallbackAsync(

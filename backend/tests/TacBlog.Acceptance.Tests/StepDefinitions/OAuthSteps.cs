@@ -52,6 +52,13 @@ public sealed class OAuthSteps(
         sessionContext.SessionCookie = session.Id.ToString();
     }
 
+    [When("a reader initiates sign-in with {string} for post {string}")]
+    public async Task WhenAReaderInitiatesSignInWithForPost(string provider, string postSlug)
+    {
+        await oAuthDriver.InitiateOAuth(provider, $"/blog/{postSlug}");
+        _callbackResponse = apiContext.LastResponse;
+    }
+
     [When("the OAuth callback is received with a valid authorization code for {string}")]
     public async Task WhenTheOAuthCallbackIsReceivedWithAValidAuthorizationCodeFor(string provider)
     {
@@ -86,6 +93,16 @@ public sealed class OAuthSteps(
         apiContext.LastResponseJson.Should().NotBeNull();
         apiContext.LastResponseJson!.RootElement.GetProperty("provider").GetString()
             .Should().Be(expectedProvider);
+    }
+
+    [Then("the reader is redirected to the GitHub authorization page")]
+    public void ThenTheReaderIsRedirectedToTheGitHubAuthorizationPage()
+    {
+        _callbackResponse.Should().NotBeNull("a redirect response should have been captured");
+        _callbackResponse!.StatusCode.Should().Be(HttpStatusCode.Redirect);
+        var location = _callbackResponse.Headers.Location?.ToString();
+        location.Should().NotBeNull();
+        location.Should().Contain("github.example.com/authorize");
     }
 
     [Then("the reader is redirected back to the original post")]

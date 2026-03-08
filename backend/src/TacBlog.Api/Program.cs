@@ -68,6 +68,7 @@ builder.Services.AddSingleton<IOAuthClient>(sp =>
     throw new InvalidOperationException("Configure OAuth providers for production"));
 builder.Services.AddScoped<HandleOAuthCallback>();
 builder.Services.AddScoped<CheckSession>();
+builder.Services.AddScoped<InitiateOAuth>();
 
 builder.Services.AddSingleton(sp =>
 {

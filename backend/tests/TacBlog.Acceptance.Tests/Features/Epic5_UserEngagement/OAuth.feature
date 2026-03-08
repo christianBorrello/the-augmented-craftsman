@@ -12,7 +12,6 @@ Feature: Sign in with social login to comment
 
   # --- Happy Path ---
 
-  @ignore
   Scenario: Initiate GitHub sign-in redirects to provider
     When a reader initiates sign-in with "github" for post "outside-in-tdd"
     Then the reader is redirected to the GitHub authorization page
