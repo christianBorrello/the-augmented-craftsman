@@ -49,7 +49,7 @@ All acceptance criteria derived from UAT scenarios. Organized by user story for 
 - [ ] Session cookie: httpOnly, Secure, SameSite=Lax
 - [ ] Sign-in buttons have descriptive aria-labels including provider name
 - [ ] OAuth redirect round-trip completes in under 5 seconds (provider-dependent)
-- [ ] Focus moves to comment form after successful sign-in
+- [ ] After OAuth sign-in: if page reloads, page scrolls to comment section; if client-side auth, focus programmatically moves to textarea
 
 ---
 
@@ -62,7 +62,7 @@ All acceptance criteria derived from UAT scenarios. Organized by user story for 
 - [ ] Character counter appears at 1800+ characters
 - [ ] Error message and button disabled at 2000 characters
 - [ ] Comment appears immediately in the thread after successful POST
-- [ ] Comment displays: avatar, display name, provider badge, timestamp, text
+- [ ] Comment displays: avatar, display name, provider badge, relative timestamp (e.g., "just now", "2 hours ago" — client-side formatted from ISO-8601 `createdAt`), text
 - [ ] Toast "Comment posted." shown on success
 - [ ] Network failure: error message shown, comment text preserved in textarea
 - [ ] Session expiry: error message shown, draft saved to localStorage, pre-populated after re-auth
@@ -70,7 +70,7 @@ All acceptance criteria derived from UAT scenarios. Organized by user story for 
 ### Non-Functional Criteria
 
 - [ ] Comment POST API completes in under 500ms (p95)
-- [ ] Comment text sanitized server-side (XSS prevention)
+- [ ] Comment text sanitized server-side: HTML tags stripped or escaped before persistence (e.g., posting `<script>alert(1)</script>` results in visible escaped text, not JS execution)
 - [ ] CSRF protection on comment POST endpoint
 - [ ] Rate limiting: max 5 comments per user per 10 minutes
 - [ ] Textarea has associated label

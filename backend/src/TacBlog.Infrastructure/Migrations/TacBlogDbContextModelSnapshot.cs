@@ -76,6 +76,53 @@ namespace TacBlog.Infrastructure.Migrations
                     b.ToTable("blog_posts", (string)null);
                 });
 
+            modelBuilder.Entity("TacBlog.Domain.Comment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("avatar_url");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("PostSlug")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("post_slug");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostSlug", "CreatedAtUtc")
+                        .HasDatabaseName("ix_comments_post_slug_created");
+
+                    b.ToTable("comments", (string)null);
+                });
+
             modelBuilder.Entity("TacBlog.Domain.Like", b =>
                 {
                     b.Property<string>("PostSlug")
@@ -180,6 +227,16 @@ namespace TacBlog.Infrastructure.Migrations
                     b.HasIndex("tag_id");
 
                     b.ToTable("post_tags");
+                });
+
+            modelBuilder.Entity("TacBlog.Domain.Comment", b =>
+                {
+                    b.HasOne("TacBlog.Domain.BlogPost", null)
+                        .WithMany()
+                        .HasForeignKey("PostSlug")
+                        .HasPrincipalKey("Slug")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TacBlog.Domain.Like", b =>
