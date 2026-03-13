@@ -196,7 +196,7 @@ using (var scope = app.Services.CreateScope())
 
     // Validate OAuth settings at startup
     var oauthValidator = scope.ServiceProvider.GetRequiredService<TacBlog.Infrastructure.Identity.OAuthSettingsValidator>();
-    oauthValidator.Validate(oauthSettings, !app.Environment.IsDevelopment());
+    oauthValidator.Validate(oauthSettings, app.Environment.IsProduction());
 }
 
 app.UseSerilogRequestLogging();

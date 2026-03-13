@@ -33,7 +33,7 @@ public static class OAuthEndpoints
 
     private static async Task<IResult> HandleCallbackAsync(
         string provider,
-        string code,
+        string? code,
         string? state,
         HandleOAuthCallback handleOAuthCallback,
         HttpContext httpContext,
@@ -41,6 +41,9 @@ public static class OAuthEndpoints
     {
         if (string.IsNullOrWhiteSpace(state))
             return Results.Redirect("/?error=invalid_state");
+
+        if (string.IsNullOrWhiteSpace(code))
+            return Results.Redirect($"{state}?error=missing_code");
 
         var redirectUri = BuildRedirectUri(httpContext, provider);
         var result = await handleOAuthCallback.ExecuteAsync(provider, code, redirectUri, cancellationToken);
