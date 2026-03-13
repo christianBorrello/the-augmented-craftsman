@@ -16,11 +16,11 @@ Feature: OAuth Authentication Walking Skeleton
     Then the reader is redirected to the authorization page
 
   @walking_skeleton
-  Scenario: Reader completes OAuth callback and session is created
+  Scenario: Reader completes OAuth and can participate in discussions
     Given a valid authorization code is available for "github"
     When the OAuth callback is received with a valid authorization code for "github"
     Then a reader session is created
-    And the reader session is valid
+    And the reader can participate in discussions
 
   @walking_skeleton
   Scenario: Reader verifies session is authenticated

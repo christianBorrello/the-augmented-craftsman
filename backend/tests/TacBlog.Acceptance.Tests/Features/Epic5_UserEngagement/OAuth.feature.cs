@@ -288,10 +288,10 @@ namespace TacBlog.Acceptance.Tests.Features.Epic5_UserEngagement
     await testRunner.ThenAsync("the session status indicates authenticated", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 38
-    await testRunner.AndAsync("the response contains display name \"Tomasz Kowalski\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("the reader\'s profile shows display name \"Tomasz Kowalski\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 39
-    await testRunner.AndAsync("the response contains provider \"GitHub\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("the reader\'s profile shows provider \"GitHub\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

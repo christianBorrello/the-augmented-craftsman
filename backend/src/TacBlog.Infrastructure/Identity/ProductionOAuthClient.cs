@@ -32,30 +32,19 @@ public sealed class ProductionOAuthClient : IOAuthClient
         string redirectUri,
         CancellationToken cancellationToken = default)
     {
-        if (provider != AuthProvider.GitHub && provider != AuthProvider.Google)
-        {
-            return Task.FromResult(AuthorizationUrlResult.Failure("Provider not supported"));
-        }
-
         if (provider == AuthProvider.Google)
         {
             if (string.IsNullOrEmpty(_settings.GoogleClientId) || string.IsNullOrEmpty(_settings.GoogleClientSecret))
-            {
                 return Task.FromResult(AuthorizationUrlResult.Failure("Google OAuth not configured"));
-            }
+
+            return Task.FromResult(AuthorizationUrlResult.Success(
+                BuildGoogleAuthUrl(state, redirectUri, _settings.GoogleClientId)));
         }
 
-        var url = provider switch
-        {
-            AuthProvider.GitHub => BuildGitHubAuthUrl(state, redirectUri),
-            AuthProvider.Google => BuildGoogleAuthUrl(state, redirectUri),
-            _ => null
-        };
+        if (provider == AuthProvider.GitHub)
+            return Task.FromResult(AuthorizationUrlResult.Success(BuildGitHubAuthUrl(state, redirectUri)));
 
-        if (url is null)
-            return Task.FromResult(AuthorizationUrlResult.Failure("Provider not supported"));
-
-        return Task.FromResult(AuthorizationUrlResult.Success(url));
+        return Task.FromResult(AuthorizationUrlResult.Failure("Provider not supported"));
     }
 
     public async Task<OAuthTokenResult> ExchangeCodeAsync(
@@ -100,9 +89,9 @@ public sealed class ProductionOAuthClient : IOAuthClient
         return $"{GitHubAuthUrl}?client_id={_settings.GitHubClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope=read:user&state={Uri.EscapeDataString(state)}";
     }
 
-    private string BuildGoogleAuthUrl(string state, string redirectUri)
+    private string BuildGoogleAuthUrl(string state, string redirectUri, string clientId)
     {
-        return $"{GoogleAuthUrl}?client_id={_settings.GoogleClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope=openid%20email%20profile&state={Uri.EscapeDataString(state)}&response_type=code";
+        return $"{GoogleAuthUrl}?client_id={clientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope=openid%20email%20profile&state={Uri.EscapeDataString(state)}&response_type=code";
     }
 
     private async Task<OAuthTokenResult> ExchangeGitHubCodeAsync(string code, string redirectUri, CancellationToken cancellationToken)

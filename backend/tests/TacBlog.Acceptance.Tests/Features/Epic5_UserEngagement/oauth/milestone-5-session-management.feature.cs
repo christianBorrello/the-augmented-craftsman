@@ -174,10 +174,10 @@ namespace TacBlog.Acceptance.Tests.Features.Epic5_UserEngagement.Oauth
     await testRunner.ThenAsync("the session status indicates authenticated", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 16
-    await testRunner.AndAsync("the response contains display name \"Tomasz Kowalski\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("the reader\'s profile shows display name \"Tomasz Kowalski\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 17
-    await testRunner.AndAsync("the response contains provider \"GitHub\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("the reader\'s profile shows provider \"GitHub\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -356,14 +356,14 @@ namespace TacBlog.Acceptance.Tests.Features.Epic5_UserEngagement.Oauth
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Session contains avatar URL when available")]
+        [Xunit.SkippableFactAttribute(DisplayName="Reader\'s profile shows their avatar when available")]
         [Xunit.TraitAttribute("FeatureTitle", "OAuth Session Management")]
-        [Xunit.TraitAttribute("Description", "Session contains avatar URL when available")]
-        public async global::System.Threading.Tasks.Task SessionContainsAvatarURLWhenAvailable()
+        [Xunit.TraitAttribute("Description", "Reader\'s profile shows their avatar when available")]
+        public async global::System.Threading.Tasks.Task ReadersProfileShowsTheirAvatarWhenAvailable()
         {
             string[] tagsOfScenario = ((string[])(null));
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Session contains avatar URL when available", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Reader\'s profile shows their avatar when available", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 45
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -385,7 +385,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic5_UserEngagement.Oauth
     await testRunner.WhenAsync("the reader checks their session status", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 48
-    await testRunner.ThenAsync("the response contains avatar URL \"https://example.com/avatar.jpg\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.ThenAsync("the reader\'s profile shows their avatar \"https://example.com/avatar.jpg\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

@@ -26,7 +26,7 @@ Feature: GitHub OAuth Flow
     When the OAuth callback is received with a valid authorization code for "github" with return URL "/blog/test-post"
     Then the reader is redirected back to "/blog/test-post"
 
-  Scenario: GitHub OAuth callback with avatar includes avatar URL
+  Scenario: GitHub OAuth callback shows reader's avatar in profile
     Given a reader has granted consent on GitHub as "Maria Santos" with avatar "https://github.com/maria.png"
     When the OAuth callback is received with a valid authorization code for "github"
-    Then the session contains avatar URL "https://github.com/maria.png"
+    Then the reader's profile shows their avatar "https://github.com/maria.png"

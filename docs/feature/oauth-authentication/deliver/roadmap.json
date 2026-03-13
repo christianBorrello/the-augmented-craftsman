@@ -18,7 +18,7 @@
         "Google OAuth is optional - partial config triggers warning"
       ],
       "test_file": "milestone-1-oauth-configuration.feature",
-      "scenario_name": "Missing GitHub credentials returns 400",
+      "scenario_name": "Initiate OAuth with unsupported provider returns error",
       "quality_gates": ["Unit tests pass", "Validator throws clear error message"],
       "implementation_notes": "Add to Infrastructure/Identity, use IHostEnvironment for prod detection. Log warnings for Google OAuth partial config.",
       "dependencies": [],
@@ -37,7 +37,7 @@
         "Missing Google credentials returns failure Result instead of throwing exception"
       ],
       "test_file": "milestone-1-oauth-configuration.feature",
-      "scenario_name": "Unsupported provider returns 400",
+      "scenario_name": "OAuth callback with missing code parameter is handled gracefully",
       "quality_gates": ["Unit tests pass", "No ArgumentOutOfRangeException thrown"],
       "implementation_notes": "Update IOAuthClient methods to return Result, wrap exceptions",
       "dependencies": ["01-01"],
@@ -57,7 +57,7 @@
         "Session persists for 30 days"
       ],
       "test_file": "milestone-2-github-flow.feature",
-      "scenario_name": "Reader initiates sign-in with github",
+      "scenario_name": "Initiate GitHub sign-in redirects to GitHub",
       "quality_gates": ["Acceptance tests pass", "User redirected to provider"],
       "implementation_notes": "Use existing endpoints, verify token exchange works with GitHub API",
       "dependencies": ["01-02"],
@@ -79,7 +79,7 @@
         "Works when Google credentials are configured"
       ],
       "test_file": "milestone-3-google-flow.feature",
-      "scenario_name": "Reader initiates sign-in with google",
+      "scenario_name": "Initiate Google sign-in redirects to Google",
       "quality_gates": ["Acceptance tests pass", "User redirected to provider"],
       "implementation_notes": "Similar to GitHub flow, verify OpenID token exchange with Google",
       "dependencies": ["02-01"],
@@ -101,7 +101,7 @@
         "Provider errors are handled gracefully with user feedback"
       ],
       "test_file": "milestone-4-error-handling.feature",
-      "scenario_name": "Unsupported provider returns 400",
+      "scenario_name": "OAuth consent denied redirects to post without session",
       "quality_gates": ["All error scenarios return user-friendly error, not crash"],
       "implementation_notes": "Update endpoints to handle error Results gracefully, redirect with error query param",
       "dependencies": ["03-01"],
@@ -121,7 +121,7 @@
         "Expired sessions are treated as not authenticated"
       ],
       "test_file": "milestone-5-session-management.feature",
-      "scenario_name": "Authenticated session returns user info",
+      "scenario_name": "Session check with valid session returns authenticated",
       "quality_gates": ["Session tests pass"],
       "implementation_notes": "Use existing session repository, verify cookie clearing works",
       "dependencies": ["04-01"],

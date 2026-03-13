@@ -26,7 +26,7 @@ Feature: Google OAuth Flow
     When the OAuth callback is received with a valid authorization code for "google" with return URL "/blog/ddd-patterns"
     Then the reader is redirected back to "/blog/ddd-patterns"
 
-  Scenario: Google OAuth callback with avatar includes avatar URL
+  Scenario: Google OAuth callback shows reader's avatar in profile
     Given a reader has granted consent on Google as "John Doe" with avatar "https://googleusercontent.com/john.jpg"
     When the OAuth callback is received with a valid authorization code for "google"
-    Then the session contains avatar URL "https://googleusercontent.com/john.jpg"
+    Then the reader's profile shows their avatar "https://googleusercontent.com/john.jpg"

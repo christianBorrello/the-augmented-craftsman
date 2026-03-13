@@ -13,8 +13,8 @@ Feature: OAuth Session Management
     Given a reader session exists for "Tomasz Kowalski" via "GitHub"
     When the reader checks their session status
     Then the session status indicates authenticated
-    And the response contains display name "Tomasz Kowalski"
-    And the response contains provider "GitHub"
+    And the reader's profile shows display name "Tomasz Kowalski"
+    And the reader's profile shows provider "GitHub"
 
   Scenario: Session check with no session returns not authenticated
     When a reader with no session checks their session status
@@ -42,7 +42,7 @@ Feature: OAuth Session Management
     When the reader checks their session status again
     Then the session status indicates authenticated
 
-  Scenario: Session contains avatar URL when available
+  Scenario: Reader's profile shows their avatar when available
     Given a reader session exists for "Jane Doe" via "Google" with avatar "https://example.com/avatar.jpg"
     When the reader checks their session status
-    Then the response contains avatar URL "https://example.com/avatar.jpg"
+    Then the reader's profile shows their avatar "https://example.com/avatar.jpg"

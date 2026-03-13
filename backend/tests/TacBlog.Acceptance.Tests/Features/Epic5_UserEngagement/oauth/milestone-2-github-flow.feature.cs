@@ -252,14 +252,14 @@ namespace TacBlog.Acceptance.Tests.Features.Epic5_UserEngagement.Oauth
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="GitHub OAuth callback with avatar includes avatar URL")]
+        [Xunit.SkippableFactAttribute(DisplayName="GitHub OAuth callback shows reader\'s avatar in profile")]
         [Xunit.TraitAttribute("FeatureTitle", "GitHub OAuth Flow")]
-        [Xunit.TraitAttribute("Description", "GitHub OAuth callback with avatar includes avatar URL")]
-        public async global::System.Threading.Tasks.Task GitHubOAuthCallbackWithAvatarIncludesAvatarURL()
+        [Xunit.TraitAttribute("Description", "GitHub OAuth callback shows reader\'s avatar in profile")]
+        public async global::System.Threading.Tasks.Task GitHubOAuthCallbackShowsReadersAvatarInProfile()
         {
             string[] tagsOfScenario = ((string[])(null));
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("GitHub OAuth callback with avatar includes avatar URL", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("GitHub OAuth callback shows reader\'s avatar in profile", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 29
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -281,7 +281,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic5_UserEngagement.Oauth
     await testRunner.WhenAsync("the OAuth callback is received with a valid authorization code for \"github\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 32
-    await testRunner.ThenAsync("the session contains avatar URL \"https://github.com/maria.png\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.ThenAsync("the reader\'s profile shows their avatar \"https://github.com/maria.png\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

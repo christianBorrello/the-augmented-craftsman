@@ -20,8 +20,8 @@ Feature: Post and view comments on blog posts
     When the reader posts a comment "Great breakdown of the double loop!" on "outside-in-tdd"
     Then the response status is 201
     And the response contains comment text "Great breakdown of the double loop!"
-    And the response contains display name "Tomasz Kowalski"
-    And the response contains provider "GitHub"
+    And the reader's profile shows display name "Tomasz Kowalski"
+    And the reader's profile shows provider "GitHub"
 
   Scenario: Comment text is sanitized to prevent injection
     Given a reader session exists for "Maria Santos" via "Google"

@@ -35,8 +35,8 @@ Feature: Sign in with social login to comment
     Given a reader session exists for "Tomasz Kowalski" via "GitHub"
     When the reader checks their session status
     Then the session status indicates authenticated
-    And the response contains display name "Tomasz Kowalski"
-    And the response contains provider "GitHub"
+    And the reader's profile shows display name "Tomasz Kowalski"
+    And the reader's profile shows provider "GitHub"
 
   Scenario: Sign out clears the reader session
     Given a reader session exists for "Maria Santos" via "Google"

@@ -200,8 +200,8 @@ public sealed class OAuthSteps(
         _callbackResponse.Headers.Location.Should().NotBeNull();
     }
 
-    [Then("the reader session is valid")]
-    public void ThenTheReaderSessionIsValid()
+    [Then("the reader can participate in discussions")]
+    public void ThenTheReaderCanParticipateInDiscussions()
     {
         sessionContext.IsAuthenticated.Should().BeTrue("a session should have been created");
     }
@@ -301,8 +301,8 @@ public sealed class OAuthSteps(
         stub.ConfigureConsentGranted(displayName, avatarUrl, $"google-{displayName.ToLowerInvariant().Replace(' ', '-')}");
     }
 
-    [Then("the session contains avatar URL {string}")]
-    public async Task ThenTheSessionContainsAvatarUrl(string expectedUrl)
+    [Then("the reader's profile shows their avatar {string}")]
+    public async Task ThenTheReadersProfileShowsTheirAvatar(string expectedUrl)
     {
         await oAuthDriver.CheckSession();
         apiContext.LastResponseJson!.RootElement.GetProperty("avatarUrl").GetString()
@@ -369,14 +369,6 @@ public sealed class OAuthSteps(
         sessionContext.SessionCookie = session.Id.ToString();
     }
 
-    [Then("the response contains avatar URL {string}")]
-    public void ThenTheResponseContainsAvatarUrl(string expectedUrl)
-    {
-        apiContext.LastResponseJson.Should().NotBeNull();
-        apiContext.LastResponseJson!.RootElement.GetProperty("avatarUrl").GetString()
-            .Should().Be(expectedUrl);
-    }
-
     [Then("the reader is redirected to the GitHub authorization page")]
     public void ThenTheReaderIsRedirectedToTheGitHubAuthorizationPage()
     {
@@ -425,16 +417,16 @@ public sealed class OAuthSteps(
             .Should().BeTrue();
     }
 
-    [Then("the response contains display name {string}")]
-    public void ThenTheResponseContainsDisplayName(string expectedName)
+    [Then("the reader's profile shows display name {string}")]
+    public void ThenTheReadersProfileShowsDisplayName(string expectedName)
     {
         apiContext.LastResponseJson.Should().NotBeNull();
         apiContext.LastResponseJson!.RootElement.GetProperty("displayName").GetString()
             .Should().Be(expectedName);
     }
 
-    [Then("the response contains provider {string}")]
-    public void ThenTheResponseContainsProvider(string expectedProvider)
+    [Then("the reader's profile shows provider {string}")]
+    public void ThenTheReadersProfileShowsProvider(string expectedProvider)
     {
         apiContext.LastResponseJson.Should().NotBeNull();
         apiContext.LastResponseJson!.RootElement.GetProperty("provider").GetString()

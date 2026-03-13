@@ -176,16 +176,16 @@ namespace TacBlog.Acceptance.Tests.Features.Epic5_UserEngagement.Oauth
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Reader completes OAuth callback and session is created")]
+        [Xunit.SkippableFactAttribute(DisplayName="Reader completes OAuth and can participate in discussions")]
         [Xunit.TraitAttribute("FeatureTitle", "OAuth Authentication Walking Skeleton")]
-        [Xunit.TraitAttribute("Description", "Reader completes OAuth callback and session is created")]
+        [Xunit.TraitAttribute("Description", "Reader completes OAuth and can participate in discussions")]
         [Xunit.TraitAttribute("Category", "walking_skeleton")]
-        public async global::System.Threading.Tasks.Task ReaderCompletesOAuthCallbackAndSessionIsCreated()
+        public async global::System.Threading.Tasks.Task ReaderCompletesOAuthAndCanParticipateInDiscussions()
         {
             string[] tagsOfScenario = new string[] {
                     "walking_skeleton"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Reader completes OAuth callback and session is created", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Reader completes OAuth and can participate in discussions", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 19
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -209,7 +209,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic5_UserEngagement.Oauth
     await testRunner.ThenAsync("a reader session is created", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 23
-    await testRunner.AndAsync("the reader session is valid", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("the reader can participate in discussions", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
