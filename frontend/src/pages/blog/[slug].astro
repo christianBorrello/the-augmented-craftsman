@@ -4,7 +4,7 @@ import TagBadge from '../../components/TagBadge.astro';
 import CommentList from '../../components/CommentList.astro';
 import LikeButton from '../../components/LikeButton.tsx';
 import { fetchPosts, fetchPostBySlug } from '../../data/api';
-import { renderMarkdown } from '../../data/markdown';
+import { renderMarkdown, slugifyHeading } from '../../data/markdown';
 
 export async function getStaticPaths() {
   const posts = await fetchPosts();
@@ -29,10 +29,10 @@ const formattedDate = new Date(post.date).toLocaleDateString('en-US', {
 const headings = post.content
   .split('\n')
   .filter(line => line.startsWith('## '))
-  .map(line => ({
-    text: line.replace('## ', ''),
-    id: line.replace('## ', '').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-  }));
+  .map(line => {
+    const text = line.replace(/^#+\s+/, '');
+    return { text, id: slugifyHeading(text) };
+  });
 
 const contentHtml = await renderMarkdown(post.content);
 const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;

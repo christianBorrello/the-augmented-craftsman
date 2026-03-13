@@ -179,6 +179,12 @@ function parseLangTag(raw: string): { lang: string; filename: string } {
   return { lang: raw.slice(0, colonIndex), filename: raw.slice(colonIndex + 1) };
 }
 
+// ── Shared Slug Function ─────────────────────────────
+
+export function slugifyHeading(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
 // ── Public API ───────────────────────────────────────
 
 export async function renderMarkdown(content: string): Promise<string> {
@@ -189,6 +195,10 @@ export async function renderMarkdown(content: string): Promise<string> {
 
   marked.use({
     renderer: {
+      heading({ text, depth }) {
+        const id = slugifyHeading(text);
+        return `<h${depth} id="${id}">${text}</h${depth}>\n`;
+      },
       code({ text, lang: rawLang }) {
         const { lang, filename } = parseLangTag(rawLang ?? '');
         const lineCount = text.split('\n').length;
