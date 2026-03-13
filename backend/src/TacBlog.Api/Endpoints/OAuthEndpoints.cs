@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using TacBlog.Application.Features.OAuth;
 
 namespace TacBlog.Api.Endpoints;
@@ -19,10 +20,11 @@ public static class OAuthEndpoints
         string? returnUrl,
         InitiateOAuth initiateOAuth,
         HttpContext httpContext,
+        IConfiguration configuration,
         CancellationToken cancellationToken)
     {
         var state = returnUrl ?? "/";
-        var redirectUri = BuildRedirectUri(httpContext, provider);
+        var redirectUri = BuildRedirectUri(httpContext, configuration, provider);
         var result = await initiateOAuth.ExecuteAsync(provider, state, redirectUri, cancellationToken);
 
         if (!result.IsSuccess)
@@ -37,6 +39,7 @@ public static class OAuthEndpoints
         string? state,
         HandleOAuthCallback handleOAuthCallback,
         HttpContext httpContext,
+        IConfiguration configuration,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(state))
@@ -45,7 +48,7 @@ public static class OAuthEndpoints
         if (string.IsNullOrWhiteSpace(code))
             return Results.Redirect($"{state}?error=missing_code");
 
-        var redirectUri = BuildRedirectUri(httpContext, provider);
+        var redirectUri = BuildRedirectUri(httpContext, configuration, provider);
         var result = await handleOAuthCallback.ExecuteAsync(provider, code, redirectUri, cancellationToken);
 
         var returnUrl = state;
@@ -58,10 +61,13 @@ public static class OAuthEndpoints
             return Results.Redirect($"{returnUrl}?error={result.Error}");
         }
 
+        var isProduction = !httpContext.RequestServices
+            .GetRequiredService<IWebHostEnvironment>().IsDevelopment();
+
         httpContext.Response.Cookies.Append(SessionCookieName, result.SessionId!.Value.ToString(), new CookieOptions
         {
             HttpOnly = true,
-            Secure = httpContext.Request.IsHttps,
+            Secure = isProduction,
             SameSite = SameSiteMode.Lax,
             MaxAge = TimeSpan.FromDays(30),
             Path = "/"
@@ -120,8 +126,12 @@ public static class OAuthEndpoints
         return Results.NoContent();
     }
 
-    private static string BuildRedirectUri(HttpContext httpContext, string provider)
+    private static string BuildRedirectUri(HttpContext httpContext, IConfiguration configuration, string provider)
     {
+        var baseUrl = configuration["OAuth:BaseUrl"];
+        if (!string.IsNullOrEmpty(baseUrl))
+            return $"{baseUrl.TrimEnd('/')}/api/auth/oauth/{provider}/callback";
+
         var request = httpContext.Request;
         return $"{request.Scheme}://{request.Host}/api/auth/oauth/{provider}/callback";
     }

@@ -1,6 +1,5 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -203,11 +202,6 @@ using (var scope = app.Services.CreateScope())
     var oauthValidator = scope.ServiceProvider.GetRequiredService<TacBlog.Infrastructure.Identity.OAuthSettingsValidator>();
     oauthValidator.Validate(oauthSettings, app.Environment.IsProduction());
 }
-
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedProto
-});
 
 app.UseSerilogRequestLogging();
 app.UseCors();
