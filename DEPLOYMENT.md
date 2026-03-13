@@ -26,15 +26,26 @@ Target: $0/month on free tiers.
    - Port: **8080**
 3. Set environment variables:
    ```
-   ConnectionStrings__DefaultConnection=<neon-connection-string>
+   # Database
+   ConnectionStrings__DefaultConnection=Host=<host>;Database=neondb;Username=<user>;Password=<password>;Ssl Mode=Require;Channel Binding=Require
+
+   # Auth
    Jwt__Secret=<generated-jwt-secret>
    Jwt__Issuer=https://api.theaugmentedcraftsman.christianborrello.dev
+   AdminCredentials__Email=christian.borrello@live.it
+   AdminCredentials__HashedPassword=<generated-hash>
+
+   # OAuth — GitHub app credentials (required in production, startup throws without them)
+   OAuth__GitHub__ClientId=<github-oauth-app-client-id>
+   OAuth__GitHub__ClientSecret=<github-oauth-app-client-secret>
+
+   # ImageKit
    ImageKit__UrlEndpoint=https://ik.imagekit.io/cbdev
    ImageKit__PublicKey=<public-key>
    ImageKit__PrivateKey=<private-key>
-   AdminCredentials__Email=christian.borrello@live.it
-   AdminCredentials__HashedPassword=<generated-hash>
    ```
+
+   > **Note**: `ASPNETCORE_ENVIRONMENT` defaults to `Production` in .NET when unset — no need to set it explicitly, but confirm `IsDevelopment()` never returns true in production containers.
 4. Configure health check: HTTP GET `/health` on port 8080
 5. Note the Koyeb service URL (e.g., `tacblog-api-<hash>.koyeb.app`)
 6. Add custom domain: `api.theaugmentedcraftsman.christianborrello.dev`
@@ -76,6 +87,35 @@ docker push ghcr.io/<owner>/tacblog-api:latest
 cd frontend
 npm run build
 ```
+
+## Pre-Deploy Env Var Checklist
+
+Before triggering a deploy (or after rotating secrets), verify all required env vars are set on Koyeb.
+A missing variable causes a **startup crash** → crash loop → 503 on `/health`.
+
+```bash
+koyeb services describe tacblog-api --app competent-lara
+```
+
+Required variables (startup throws if absent in production):
+
+| Variable | Source | Throws if missing |
+|---|---|---|
+| `ConnectionStrings__DefaultConnection` | Neon dashboard → Connection string (URI format) | Yes (migration fails) |
+| `Jwt__Secret` | Generated | Yes |
+| `AdminCredentials__Email` | Fixed value | Yes |
+| `AdminCredentials__HashedPassword` | `dotnet run -- --generate-password-hash` | Yes |
+| `OAuth__GitHub__ClientId` | GitHub → Settings → OAuth Apps | Yes |
+| `OAuth__GitHub__ClientSecret` | GitHub → Settings → OAuth Apps | Yes |
+
+Optional (have fallbacks, but should be set):
+
+| Variable | Source |
+|---|---|
+| `Jwt__Issuer` | Fixed URL |
+| `ImageKit__UrlEndpoint` | ImageKit dashboard |
+| `ImageKit__PublicKey` | ImageKit dashboard |
+| `ImageKit__PrivateKey` | ImageKit dashboard |
 
 ## Rollback
 
