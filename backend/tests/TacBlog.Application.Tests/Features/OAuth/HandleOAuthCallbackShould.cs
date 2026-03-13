@@ -33,7 +33,7 @@ public class HandleOAuthCallbackShould
         _oAuthClient.ExchangeCodeAsync(expectedProvider, "valid-code", Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new OAuthTokenResult(true, "access-token", null));
         _oAuthClient.GetUserProfileAsync(expectedProvider, "access-token", Arg.Any<CancellationToken>())
-            .Returns(new OAuthUserProfile("Test User", "https://avatar.url", providerId));
+            .Returns(UserProfileResult.Success(new OAuthUserProfile("Test User", "https://avatar.url", providerId)));
 
         var result = await _useCase.ExecuteAsync(providerName, "valid-code", "https://localhost/callback");
 
@@ -57,6 +57,21 @@ public class HandleOAuthCallbackShould
 
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be("access_denied");
+        await _sessionRepository.DidNotReceive().SaveAsync(Arg.Any<ReaderSession>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task return_error_when_profile_fetch_fails()
+    {
+        _oAuthClient.ExchangeCodeAsync(AuthProvider.GitHub, "valid-code", Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new OAuthTokenResult(true, "access-token", null));
+        _oAuthClient.GetUserProfileAsync(AuthProvider.GitHub, "access-token", Arg.Any<CancellationToken>())
+            .Returns(UserProfileResult.Failure("server_error"));
+
+        var result = await _useCase.ExecuteAsync("github", "valid-code", "https://localhost/callback");
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Be("server_error");
         await _sessionRepository.DidNotReceive().SaveAsync(Arg.Any<ReaderSession>(), Arg.Any<CancellationToken>());
     }
 

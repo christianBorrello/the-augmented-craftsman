@@ -175,6 +175,208 @@ public sealed class OAuthSteps(
         location.Should().Contain("error=");
     }
 
+    // Walking skeleton steps
+
+    [Given("a valid authorization code is available for {string}")]
+    public void GivenAValidAuthorizationCodeIsAvailableFor(string provider)
+    {
+        // Stub is ConsentGranted by default — no-op
+    }
+
+    [Given("an authenticated reader session exists")]
+    public async Task GivenAnAuthenticatedReaderSessionExists()
+    {
+        var stub = factory.Services.GetRequiredService<StubOAuthClient>();
+        stub.ConfigureConsentGranted("Test User");
+        await oAuthDriver.SimulateCallback("github");
+        _callbackResponse = apiContext.LastResponse;
+    }
+
+    [Then("the reader is redirected to the authorization page")]
+    public void ThenTheReaderIsRedirectedToTheAuthorizationPage()
+    {
+        _callbackResponse.Should().NotBeNull("a redirect response should have been captured");
+        _callbackResponse!.StatusCode.Should().Be(HttpStatusCode.Redirect);
+        _callbackResponse.Headers.Location.Should().NotBeNull();
+    }
+
+    [Then("the reader session is valid")]
+    public void ThenTheReaderSessionIsValid()
+    {
+        sessionContext.IsAuthenticated.Should().BeTrue("a session should have been created");
+    }
+
+    // Milestone 1: configuration
+
+    [Then("the request is rejected with bad request error")]
+    public void ThenTheRequestIsRejectedWithBadRequestError()
+    {
+        apiContext.LastResponse!.IsSuccessStatusCode.Should().BeFalse("the request should have been rejected");
+    }
+
+    [Then("the error indicates the provider is not supported")]
+    public async Task ThenTheErrorIndicatesTheProviderIsNotSupported()
+    {
+        var body = await apiContext.LastResponse!.Content.ReadAsStringAsync();
+        body.Should().ContainAny("Unsupported", "unsupported", "not supported");
+    }
+
+    [When("the OAuth callback is received without authorization code for {string}")]
+    public async Task WhenTheOAuthCallbackIsReceivedWithoutAuthorizationCodeFor(string provider)
+    {
+        await oAuthDriver.SimulateCallbackWithoutCode(provider);
+        _callbackResponse = apiContext.LastResponse;
+    }
+
+    [Then("the reader is redirected back with an error indicator")]
+    public void ThenTheReaderIsRedirectedBackWithAnErrorIndicator()
+    {
+        _callbackResponse.Should().NotBeNull("a callback response should have been captured");
+        _callbackResponse!.StatusCode.Should().Be(HttpStatusCode.Redirect);
+        var location = _callbackResponse.Headers.Location?.ToString();
+        location.Should().NotBeNull();
+        location.Should().Contain("error=");
+    }
+
+    [When("the OAuth callback is received with empty state for {string}")]
+    public async Task WhenTheOAuthCallbackIsReceivedWithEmptyStateFor(string provider)
+    {
+        await oAuthDriver.SimulateCallback(provider, code: "test-code", state: "");
+        _callbackResponse = apiContext.LastResponse;
+    }
+
+    [When("the OAuth callback is received for missing provider")]
+    public async Task WhenTheOAuthCallbackIsReceivedForMissingProvider()
+    {
+        await oAuthDriver.SimulateCallbackForMissingProvider();
+        _callbackResponse = apiContext.LastResponse;
+    }
+
+    // Milestone 2 & 3: GitHub/Google flow
+
+    [Then("the authorization URL contains GitHub")]
+    public void ThenTheAuthorizationUrlContainsGitHub()
+    {
+        var location = _callbackResponse?.Headers.Location?.ToString();
+        location.Should().NotBeNull().And.Contain("github");
+    }
+
+    [Then("the authorization URL contains Google")]
+    public void ThenTheAuthorizationUrlContainsGoogle()
+    {
+        var location = _callbackResponse?.Headers.Location?.ToString();
+        location.Should().NotBeNull().And.Contain("google");
+    }
+
+    [When("the OAuth callback is received with a valid authorization code for {string} with return URL {string}")]
+    public async Task WhenTheOAuthCallbackIsReceivedWithAValidAuthorizationCodeForWithReturnUrl(
+        string provider,
+        string returnUrl)
+    {
+        await oAuthDriver.SimulateCallback(provider, code: "test-code", state: returnUrl);
+        _callbackResponse = apiContext.LastResponse;
+    }
+
+    [Then("the reader is redirected back to {string}")]
+    public void ThenTheReaderIsRedirectedBackTo(string expectedPath)
+    {
+        _callbackResponse.Should().NotBeNull("a callback response should have been captured");
+        _callbackResponse!.StatusCode.Should().Be(HttpStatusCode.Redirect);
+        var location = _callbackResponse.Headers.Location?.ToString();
+        location.Should().NotBeNull();
+        location.Should().StartWith(expectedPath);
+    }
+
+    [Given("a reader has granted consent on GitHub as {string} with avatar {string}")]
+    public void GivenAReaderHasGrantedConsentOnGitHubAsWithAvatar(string displayName, string avatarUrl)
+    {
+        var stub = factory.Services.GetRequiredService<StubOAuthClient>();
+        stub.ConfigureConsentGranted(displayName, avatarUrl, $"github-{displayName.ToLowerInvariant().Replace(' ', '-')}");
+    }
+
+    [Given("a reader has granted consent on Google as {string} with avatar {string}")]
+    public void GivenAReaderHasGrantedConsentOnGoogleAsWithAvatar(string displayName, string avatarUrl)
+    {
+        var stub = factory.Services.GetRequiredService<StubOAuthClient>();
+        stub.ConfigureConsentGranted(displayName, avatarUrl, $"google-{displayName.ToLowerInvariant().Replace(' ', '-')}");
+    }
+
+    [Then("the session contains avatar URL {string}")]
+    public async Task ThenTheSessionContainsAvatarUrl(string expectedUrl)
+    {
+        await oAuthDriver.CheckSession();
+        apiContext.LastResponseJson!.RootElement.GetProperty("avatarUrl").GetString()
+            .Should().Be(expectedUrl);
+    }
+
+    // Milestone 4: error handling
+
+    [Then("no error indicator is shown")]
+    public void ThenNoErrorIndicatorIsShown()
+    {
+        _callbackResponse.Should().NotBeNull("a callback response should have been captured");
+        var location = _callbackResponse!.Headers.Location?.ToString();
+        location.Should().NotContain("error=");
+    }
+
+    [Given("the OAuth provider is configured to fail token exchange")]
+    public void GivenTheOAuthProviderIsConfiguredToFailTokenExchange()
+    {
+        var stub = factory.Services.GetRequiredService<StubOAuthClient>();
+        stub.ConfigureProviderError();
+    }
+
+    [Given("the OAuth provider is configured to fail user profile fetch")]
+    public void GivenTheOAuthProviderIsConfiguredToFailUserProfileFetch()
+    {
+        var stub = factory.Services.GetRequiredService<StubOAuthClient>();
+        stub.ConfigureProfileFetchError();
+    }
+
+    // Milestone 5: session management
+
+    [Then("the operation succeeds")]
+    public void ThenTheOperationSucceeds()
+    {
+        apiContext.LastResponse!.IsSuccessStatusCode.Should().BeTrue("the operation should have succeeded");
+    }
+
+    [When("the reader checks their session status again")]
+    public async Task WhenTheReaderChecksTheirSessionStatusAgain()
+    {
+        await oAuthDriver.CheckSession();
+    }
+
+    [Given("a reader session exists for {string} via {string} with avatar {string}")]
+    public async Task GivenAReaderSessionExistsForViaWithAvatar(
+        string displayName,
+        string providerName,
+        string avatarUrl)
+    {
+        var provider = Enum.Parse<AuthProvider>(providerName, ignoreCase: true);
+        var session = ReaderSession.Create(
+            displayName,
+            avatarUrl,
+            provider,
+            $"{providerName.ToLowerInvariant()}-{displayName.ToLowerInvariant().Replace(' ', '-')}",
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddDays(30));
+
+        using var scope = factory.Services.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IReaderSessionRepository>();
+        await repository.SaveAsync(session, CancellationToken.None);
+
+        sessionContext.SessionCookie = session.Id.ToString();
+    }
+
+    [Then("the response contains avatar URL {string}")]
+    public void ThenTheResponseContainsAvatarUrl(string expectedUrl)
+    {
+        apiContext.LastResponseJson.Should().NotBeNull();
+        apiContext.LastResponseJson!.RootElement.GetProperty("avatarUrl").GetString()
+            .Should().Be(expectedUrl);
+    }
+
     [Then("the reader is redirected to the GitHub authorization page")]
     public void ThenTheReaderIsRedirectedToTheGitHubAuthorizationPage()
     {

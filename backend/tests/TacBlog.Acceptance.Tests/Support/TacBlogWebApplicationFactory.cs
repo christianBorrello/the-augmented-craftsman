@@ -40,7 +40,9 @@ public sealed class TacBlogWebApplicationFactory : WebApplicationFactory<Program
                 ["AdminCredentials:HashedPassword"] = hashedPassword,
                 ["Jwt:Secret"] = TestJwtSecret,
                 ["Jwt:Issuer"] = "TacBlog-Test",
-                ["Jwt:ExpiryInMinutes"] = "60"
+                ["Jwt:ExpiryInMinutes"] = "60",
+                ["OAuth:GitHub:ClientId"] = "test-github-client-id",
+                ["OAuth:GitHub:ClientSecret"] = "test-github-client-secret"
             });
         });
 

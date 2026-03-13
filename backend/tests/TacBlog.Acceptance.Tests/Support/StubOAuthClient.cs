@@ -29,6 +29,11 @@ public sealed class StubOAuthClient : IOAuthClient
         _behavior = OAuthBehavior.ProviderError;
     }
 
+    public void ConfigureProfileFetchError()
+    {
+        _behavior = OAuthBehavior.ProfileFetchError;
+    }
+
     public void Reset()
     {
         _behavior = OAuthBehavior.ConsentGranted;
@@ -37,14 +42,15 @@ public sealed class StubOAuthClient : IOAuthClient
         _providerId = "stub-provider-id";
     }
 
-    public Task<string> GetAuthorizationUrlAsync(
+    public Task<AuthorizationUrlResult> GetAuthorizationUrlAsync(
         AuthProvider provider,
         string state,
         string redirectUri,
         CancellationToken cancellationToken = default)
     {
         var providerName = provider.ToString().ToLowerInvariant();
-        return Task.FromResult($"https://{providerName}.example.com/authorize?state={state}&redirect_uri={Uri.EscapeDataString(redirectUri)}");
+        return Task.FromResult(AuthorizationUrlResult.Success(
+            $"https://{providerName}.example.com/authorize?state={state}&redirect_uri={Uri.EscapeDataString(redirectUri)}"));
     }
 
     public Task<OAuthTokenResult> ExchangeCodeAsync(
@@ -61,22 +67,29 @@ public sealed class StubOAuthClient : IOAuthClient
                 new OAuthTokenResult(false, null, "access_denied")),
             OAuthBehavior.ProviderError => Task.FromResult(
                 new OAuthTokenResult(false, null, "server_error")),
+            OAuthBehavior.ProfileFetchError => Task.FromResult(
+                new OAuthTokenResult(true, "stub-access-token", null)),
             _ => throw new InvalidOperationException($"Unknown behavior: {_behavior}")
         };
     }
 
-    public Task<OAuthUserProfile> GetUserProfileAsync(
+    public Task<UserProfileResult> GetUserProfileAsync(
         AuthProvider provider,
         string accessToken,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new OAuthUserProfile(_displayName, _avatarUrl, _providerId));
+        if (_behavior == OAuthBehavior.ProfileFetchError)
+            return Task.FromResult(UserProfileResult.Failure("server_error"));
+
+        return Task.FromResult(UserProfileResult.Success(
+            new OAuthUserProfile(_displayName, _avatarUrl, _providerId)));
     }
 
     private enum OAuthBehavior
     {
         ConsentGranted,
         ConsentDenied,
-        ProviderError
+        ProviderError,
+        ProfileFetchError
     }
 }

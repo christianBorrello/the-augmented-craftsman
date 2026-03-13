@@ -62,6 +62,27 @@ public sealed class OAuthApiDriver(HttpClient client, ApiContext apiContext, Rea
         }
     }
 
+    public async Task SimulateCallbackWithoutCode(string provider, string state = "/")
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get,
+            $"/api/auth/oauth/{provider}/callback?state={Uri.EscapeDataString(state)}");
+        AddSessionCookieIfPresent(request);
+
+        var response = await client.SendAsync(request);
+        apiContext.LastResponse = response;
+        apiContext.LastResponseJson = null;
+    }
+
+    public async Task SimulateCallbackForMissingProvider()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, "/api/auth/oauth/callback?code=test&state=/");
+        AddSessionCookieIfPresent(request);
+
+        var response = await client.SendAsync(request);
+        apiContext.LastResponse = response;
+        apiContext.LastResponseJson = null;
+    }
+
     public async Task InitiateOAuth(string provider, string returnUrl = "/")
     {
         var request = new HttpRequestMessage(HttpMethod.Get,
