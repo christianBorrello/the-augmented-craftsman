@@ -30,6 +30,8 @@ Thumbs.db
 # .NET
 *.nupkg
 project.lock.json
+# Local secrets — use User Secrets or env vars instead (see appsettings.Development.json for structure)
+appsettings.Development.json
 
 # Skills
 .agents/
