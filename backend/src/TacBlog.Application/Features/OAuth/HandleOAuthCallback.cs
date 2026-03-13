@@ -37,8 +37,13 @@ public sealed class HandleOAuthCallback(
         if (!tokenResult.IsSuccess)
             return HandleOAuthCallbackResult.Failed(tokenResult.Error ?? "Token exchange failed");
 
-        var profile = await oAuthClient.GetUserProfileAsync(
+        var profileResult = await oAuthClient.GetUserProfileAsync(
             authProvider, tokenResult.AccessToken!, cancellationToken);
+
+        if (!profileResult.IsSuccess)
+            return HandleOAuthCallbackResult.Failed(profileResult.Error ?? "Failed to get user profile");
+
+        var profile = profileResult.Profile!;
 
         var now = clock.UtcNow;
         var session = ReaderSession.Create(
@@ -55,5 +60,5 @@ public sealed class HandleOAuthCallback(
     }
 
     private static bool TryParseProvider(string provider, out AuthProvider result) =>
-        Enum.TryParse(provider, ignoreCase: true, out result);
+        Enum.TryParse(provider, ignoreCase: true, out result) && result != AuthProvider.Unknown;
 }

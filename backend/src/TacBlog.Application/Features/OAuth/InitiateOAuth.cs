@@ -10,6 +10,9 @@ public sealed record InitiateOAuthResult(bool IsSuccess, string? AuthorizationUr
 
     public static InitiateOAuthResult UnsupportedProvider() =>
         new(false, null, "Unsupported provider");
+
+    public static InitiateOAuthResult Failure(string error) =>
+        new(false, null, error);
 }
 
 public sealed class InitiateOAuth(IOAuthClient oAuthClient)
@@ -20,12 +23,15 @@ public sealed class InitiateOAuth(IOAuthClient oAuthClient)
         string redirectUri,
         CancellationToken cancellationToken = default)
     {
-        if (!Enum.TryParse<AuthProvider>(provider, ignoreCase: true, out var authProvider))
+        if (!Enum.TryParse<AuthProvider>(provider, ignoreCase: true, out var authProvider) || authProvider == AuthProvider.Unknown)
             return InitiateOAuthResult.UnsupportedProvider();
 
-        var authorizationUrl = await oAuthClient.GetAuthorizationUrlAsync(
+        var result = await oAuthClient.GetAuthorizationUrlAsync(
             authProvider, state, redirectUri, cancellationToken);
 
-        return InitiateOAuthResult.Success(authorizationUrl);
+        if (!result.IsSuccess)
+            return InitiateOAuthResult.Failure(result.Error ?? "Failed to get authorization URL");
+
+        return InitiateOAuthResult.Success(result.AuthorizationUrl!);
     }
 }
