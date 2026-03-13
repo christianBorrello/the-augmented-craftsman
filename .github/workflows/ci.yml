@@ -54,7 +54,7 @@ jobs:
         working-directory: backend
 
       - name: Unit tests (Infrastructure)
-        run: dotnet test tests/TacBlog.Infrastructure.Tests/ -c Release --no-build --logger "trx;LogFileName=infrastructure.trx"
+        run: dotnet test tests/TacBlog.Infrastructure.Tests/ -c Release --no-build --filter "Category!=RequiresCredentials" --logger "trx;LogFileName=infrastructure.trx"
         working-directory: backend
 
       - name: Integration tests
