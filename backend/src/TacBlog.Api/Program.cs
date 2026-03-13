@@ -82,11 +82,13 @@ var oauthSettings = new TacBlog.Infrastructure.Identity.OAuthSettings(
 // Register validator
 builder.Services.AddSingleton<TacBlog.Infrastructure.Identity.OAuthSettingsValidator>();
 
+builder.Services.AddHttpClient();
+
 if (builder.Environment.IsDevelopment())
     builder.Services.AddSingleton<IOAuthClient, DevOAuthClient>();
 else
     builder.Services.AddSingleton<IOAuthClient>(sp =>
-        new ProductionOAuthClient(oauthSettings, sp.GetRequiredService<HttpClient>()));
+        new ProductionOAuthClient(oauthSettings, sp.GetRequiredService<IHttpClientFactory>().CreateClient()));
 
 builder.Services.AddScoped<HandleOAuthCallback>();
 builder.Services.AddScoped<CheckSession>();
