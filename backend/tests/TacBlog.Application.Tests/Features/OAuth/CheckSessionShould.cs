@@ -62,4 +62,24 @@ public class CheckSessionShould
 
         result.IsAuthenticated.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task return_not_authenticated_when_session_is_expired()
+    {
+        var sessionId = Guid.NewGuid();
+        var expiredSession = ReaderSession.Create(
+            "Tomasz Kowalski",
+            null,
+            AuthProvider.GitHub,
+            "github-123",
+            FixedNow.AddDays(-31),
+            FixedNow.AddDays(-1));
+
+        _sessionRepository.FindByIdAsync(sessionId, Arg.Any<CancellationToken>())
+            .Returns(expiredSession);
+
+        var result = await _useCase.ExecuteAsync(sessionId);
+
+        result.IsAuthenticated.Should().BeFalse();
+    }
 }
