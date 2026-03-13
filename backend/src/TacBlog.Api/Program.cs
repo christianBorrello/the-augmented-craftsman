@@ -71,11 +71,23 @@ builder.Services.AddScoped<GetCommentCount>();
 builder.Services.AddScoped<DeleteComment>();
 builder.Services.AddScoped<ListAdminComments>();
 builder.Services.AddScoped<IReaderSessionRepository, EfReaderSessionRepository>();
+
+var oauthSettings = new TacBlog.Infrastructure.Identity.OAuthSettings(
+    GitHubClientId: builder.Configuration["OAuth:GitHub:ClientId"] ?? "",
+    GitHubClientSecret: builder.Configuration["OAuth:GitHub:ClientSecret"] ?? "",
+    GoogleClientId: builder.Configuration["OAuth:Google:ClientId"],
+    GoogleClientSecret: builder.Configuration["OAuth:Google:ClientSecret"]
+);
+
+// Register validator
+builder.Services.AddSingleton<TacBlog.Infrastructure.Identity.OAuthSettingsValidator>();
+
 if (builder.Environment.IsDevelopment())
     builder.Services.AddSingleton<IOAuthClient, DevOAuthClient>();
 else
     builder.Services.AddSingleton<IOAuthClient>(sp =>
-        throw new InvalidOperationException("Configure OAuth providers for production"));
+        new ProductionOAuthClient(oauthSettings, sp.GetRequiredService<HttpClient>()));
+
 builder.Services.AddScoped<HandleOAuthCallback>();
 builder.Services.AddScoped<CheckSession>();
 builder.Services.AddScoped<InitiateOAuth>();
@@ -181,6 +193,10 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TacBlogDbContext>();
     await db.Database.MigrateAsync();
+
+    // Validate OAuth settings at startup
+    var oauthValidator = scope.ServiceProvider.GetRequiredService<TacBlog.Infrastructure.Identity.OAuthSettingsValidator>();
+    oauthValidator.Validate(oauthSettings, !app.Environment.IsDevelopment());
 }
 
 app.UseSerilogRequestLogging();
