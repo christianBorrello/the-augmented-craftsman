@@ -194,7 +194,9 @@ if (!app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TacBlogDbContext>();
-    await db.Database.MigrateAsync();
+
+    if (app.Configuration.GetValue("Database:RunMigrationsAtStartup", defaultValue: true))
+        await db.Database.MigrateAsync();
 
     // Validate OAuth settings at startup
     var oauthValidator = scope.ServiceProvider.GetRequiredService<TacBlog.Infrastructure.Identity.OAuthSettingsValidator>();
