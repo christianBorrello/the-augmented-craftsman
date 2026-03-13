@@ -19,7 +19,9 @@ const tagColors: Record<string, string> = {
   'xp': 'bg-orange-600/10 text-orange-600 dark:bg-orange-400/10 dark:text-orange-400 border-orange-600/20 dark:border-orange-400/20',
 };
 
-const colorClass = tagColors[tag.toLowerCase()] ||
+const slug = tag.toLowerCase().replace(/\s+/g, '-');
+
+const colorClass = tagColors[slug] ||
   'bg-[var(--color-bg-surface)] text-[var(--color-text-muted)] border-[var(--color-border)]';
 
 const sizeClass = size === 'md'
@@ -36,7 +38,7 @@ const Tag = linked ? 'a' : 'span';
     sizeClass,
     linked && 'hover:scale-105',
   ]}
-  {...linked ? { href: `/tags/${tag.toLowerCase()}` } : {}}
+  {...linked ? { href: `/tags/${slug}` } : {}}
 >
   {tag}
   {count !== undefined && (
