@@ -6,14 +6,14 @@ namespace TacBlog.Infrastructure.Identity;
 
 public sealed class DevOAuthClient : IOAuthClient
 {
-    public Task<string> GetAuthorizationUrlAsync(
+    public Task<AuthorizationUrlResult> GetAuthorizationUrlAsync(
         AuthProvider provider,
         string state,
         string redirectUri,
         CancellationToken cancellationToken = default)
     {
         var callbackUrl = $"{redirectUri}?code=dev-fake-code&state={Uri.EscapeDataString(state)}";
-        return Task.FromResult(callbackUrl);
+        return Task.FromResult(AuthorizationUrlResult.Success(callbackUrl));
     }
 
     public Task<OAuthTokenResult> ExchangeCodeAsync(
@@ -25,7 +25,7 @@ public sealed class DevOAuthClient : IOAuthClient
         return Task.FromResult(new OAuthTokenResult(true, "dev-access-token", null));
     }
 
-    public Task<OAuthUserProfile> GetUserProfileAsync(
+    public Task<UserProfileResult> GetUserProfileAsync(
         AuthProvider provider,
         string accessToken,
         CancellationToken cancellationToken = default)
@@ -37,6 +37,7 @@ public sealed class DevOAuthClient : IOAuthClient
             _ => ("Dev User", null)
         };
 
-        return Task.FromResult(new OAuthUserProfile(name, avatar, $"dev-{provider.ToString().ToLowerInvariant()}-001"));
+        return Task.FromResult(UserProfileResult.Success(
+            new OAuthUserProfile(name, avatar, $"dev-{provider.ToString().ToLowerInvariant()}-001")));
     }
 }

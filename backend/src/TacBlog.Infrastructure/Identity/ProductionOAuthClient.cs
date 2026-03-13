@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 using TacBlog.Application.Features.OAuth;
 using TacBlog.Application.Ports.Driven;
@@ -27,20 +26,36 @@ public sealed class ProductionOAuthClient : IOAuthClient
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "The-Augmented-Craftsman-OAuth");
     }
 
-    public Task<string> GetAuthorizationUrlAsync(
+    public Task<AuthorizationUrlResult> GetAuthorizationUrlAsync(
         AuthProvider provider,
         string state,
         string redirectUri,
         CancellationToken cancellationToken = default)
     {
+        if (provider != AuthProvider.GitHub && provider != AuthProvider.Google)
+        {
+            return Task.FromResult(AuthorizationUrlResult.Failure("Provider not supported"));
+        }
+
+        if (provider == AuthProvider.Google)
+        {
+            if (string.IsNullOrEmpty(_settings.GoogleClientId) || string.IsNullOrEmpty(_settings.GoogleClientSecret))
+            {
+                return Task.FromResult(AuthorizationUrlResult.Failure("Google OAuth not configured"));
+            }
+        }
+
         var url = provider switch
         {
             AuthProvider.GitHub => BuildGitHubAuthUrl(state, redirectUri),
             AuthProvider.Google => BuildGoogleAuthUrl(state, redirectUri),
-            _ => throw new ArgumentOutOfRangeException(nameof(provider))
+            _ => null
         };
 
-        return Task.FromResult(url);
+        if (url is null)
+            return Task.FromResult(AuthorizationUrlResult.Failure("Provider not supported"));
+
+        return Task.FromResult(AuthorizationUrlResult.Success(url));
     }
 
     public async Task<OAuthTokenResult> ExchangeCodeAsync(
@@ -62,22 +77,22 @@ public sealed class ProductionOAuthClient : IOAuthClient
         return new OAuthTokenResult(false, null, "Unknown provider");
     }
 
-    public async Task<OAuthUserProfile> GetUserProfileAsync(
+    public Task<UserProfileResult> GetUserProfileAsync(
         AuthProvider provider,
         string accessToken,
         CancellationToken cancellationToken = default)
     {
+        if (provider != AuthProvider.GitHub && provider != AuthProvider.Google)
+        {
+            return Task.FromResult(UserProfileResult.Failure("Provider not supported"));
+        }
+
         if (provider == AuthProvider.GitHub)
         {
-            return await GetGitHubUserProfileAsync(accessToken, cancellationToken);
+            return GetGitHubUserProfileAsync(accessToken, cancellationToken);
         }
 
-        if (provider == AuthProvider.Google)
-        {
-            return await GetGoogleUserProfileAsync(accessToken, cancellationToken);
-        }
-
-        throw new ArgumentOutOfRangeException(nameof(provider));
+        return GetGoogleUserProfileAsync(accessToken, cancellationToken);
     }
 
     private string BuildGitHubAuthUrl(string state, string redirectUri)
@@ -87,12 +102,7 @@ public sealed class ProductionOAuthClient : IOAuthClient
 
     private string BuildGoogleAuthUrl(string state, string redirectUri)
     {
-        if (string.IsNullOrEmpty(_settings.GoogleClientId) || string.IsNullOrEmpty(_settings.GoogleClientSecret))
-        {
-            throw new InvalidOperationException("Google OAuth not configured");
-        }
-
-        return $"{GoogleAuthUrl}?client_id={_settings.GoogleClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope=openid email profile&state={Uri.EscapeDataString(state)}&response_type=code";
+        return $"{GoogleAuthUrl}?client_id={_settings.GoogleClientId}&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope=openid%20email%20profile&state={Uri.EscapeDataString(state)}&response_type=code";
     }
 
     private async Task<OAuthTokenResult> ExchangeGitHubCodeAsync(string code, string redirectUri, CancellationToken cancellationToken)
@@ -107,6 +117,10 @@ public sealed class ProductionOAuthClient : IOAuthClient
         });
 
         var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+            return new OAuthTokenResult(false, null, $"GitHub token endpoint returned {(int)response.StatusCode}");
+
         var content = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: cancellationToken);
 
         if (content.TryGetProperty("access_token", out var accessToken))
@@ -131,6 +145,10 @@ public sealed class ProductionOAuthClient : IOAuthClient
         });
 
         var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+            return new OAuthTokenResult(false, null, $"Google token endpoint returned {(int)response.StatusCode}");
+
         var content = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: cancellationToken);
 
         if (content.TryGetProperty("access_token", out var accessToken))
@@ -142,12 +160,16 @@ public sealed class ProductionOAuthClient : IOAuthClient
         return new OAuthTokenResult(false, null, error);
     }
 
-    private async Task<OAuthUserProfile> GetGitHubUserProfileAsync(string accessToken, CancellationToken cancellationToken)
+    private async Task<UserProfileResult> GetGitHubUserProfileAsync(string accessToken, CancellationToken cancellationToken)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, GitHubUserUrl);
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
         var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+            return UserProfileResult.Failure($"GitHub user endpoint returned {(int)response.StatusCode}");
+
         var user = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: cancellationToken);
 
         var id = user.GetProperty("id").GetInt64().ToString();
@@ -155,21 +177,25 @@ public sealed class ProductionOAuthClient : IOAuthClient
         var name = user.TryGetProperty("name", out var n) ? n.GetString() ?? login : login;
         var avatar = user.GetProperty("avatar_url").GetString();
 
-        return new OAuthUserProfile(name, avatar, id);
+        return UserProfileResult.Success(new OAuthUserProfile(name, avatar, id));
     }
 
-    private async Task<OAuthUserProfile> GetGoogleUserProfileAsync(string accessToken, CancellationToken cancellationToken)
+    private async Task<UserProfileResult> GetGoogleUserProfileAsync(string accessToken, CancellationToken cancellationToken)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, GoogleUserUrl);
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
         var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+            return UserProfileResult.Failure($"Google user endpoint returned {(int)response.StatusCode}");
+
         var user = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: cancellationToken);
 
         var id = user.GetProperty("id").GetString() ?? "unknown";
         var name = user.GetProperty("name").GetString() ?? user.GetProperty("email").GetString() ?? "unknown";
         var avatar = user.TryGetProperty("picture", out var p) ? p.GetString() : null;
 
-        return new OAuthUserProfile(name, avatar, id);
+        return UserProfileResult.Success(new OAuthUserProfile(name, avatar, id));
     }
 }
