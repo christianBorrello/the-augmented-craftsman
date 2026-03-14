@@ -90,7 +90,9 @@ jobs:
 
     steps:
       - name: Install Koyeb CLI
-        run: curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+          echo "/home/runner/.koyeb/bin" >> $GITHUB_PATH
 
       - name: Force Koyeb to pull latest image
         env:
