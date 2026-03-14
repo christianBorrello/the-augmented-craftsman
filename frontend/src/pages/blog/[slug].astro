@@ -118,7 +118,7 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
         </div>
       </footer>
 
-      <CommentList server:defer slug={post.slug}>
+      <CommentList server:defer slug={post.slug} pageUrl={canonicalUrl}>
         <div slot="fallback" class="comment-skeleton">
           <div class="comment-skeleton-bar" style="width: 40%; height: 1.5rem; margin-bottom: 1.5rem;"></div>
           <div class="comment-skeleton-bar" style="width: 100%; height: 5rem; margin-bottom: 1rem;"></div>
