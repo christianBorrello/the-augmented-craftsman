@@ -1,17 +1,12 @@
 ---
+export const prerender = false;
+
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TagBadge from '../../components/TagBadge.astro';
 import CommentList from '../../components/CommentList.astro';
 import LikeButton from '../../components/LikeButton.tsx';
-import { fetchPosts, fetchPostBySlug } from '../../data/api';
+import { fetchPostBySlug } from '../../data/api';
 import { renderMarkdown, slugifyHeading } from '../../data/markdown';
-
-export async function getStaticPaths() {
-  const posts = await fetchPosts();
-  return posts.map(post => ({
-    params: { slug: post.slug },
-  }));
-}
 
 const { slug } = Astro.params;
 const post = await fetchPostBySlug(slug!);
@@ -118,14 +113,7 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
         </div>
       </footer>
 
-      <CommentList server:defer slug={post.slug} pageUrl={canonicalUrl}>
-        <div slot="fallback" class="comment-skeleton">
-          <div class="comment-skeleton-bar" style="width: 40%; height: 1.5rem; margin-bottom: 1.5rem;"></div>
-          <div class="comment-skeleton-bar" style="width: 100%; height: 5rem; margin-bottom: 1rem;"></div>
-          <div class="comment-skeleton-bar" style="width: 80%; height: 0.75rem; margin-bottom: 0.5rem;"></div>
-          <div class="comment-skeleton-bar" style="width: 60%; height: 0.75rem;"></div>
-        </div>
-      </CommentList>
+      <CommentList slug={post.slug} pageUrl={canonicalUrl} />
     </div>
   </article>
 
