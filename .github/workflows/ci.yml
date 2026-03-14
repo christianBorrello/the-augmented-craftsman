@@ -97,10 +97,12 @@ jobs:
       - name: Force Koyeb to pull latest image
         env:
           KOYEB_TOKEN: ${{ secrets.KOYEB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
         run: |
+          IMAGE_LC=$(echo "ghcr.io/${REPO_OWNER}/tacblog-api:latest" | tr '[:upper:]' '[:lower:]')
           koyeb services update ${{ vars.KOYEB_SERVICE }} \
             --app ${{ vars.KOYEB_APP }} \
-            --docker "ghcr.io/${{ github.repository_owner }}/tacblog-api:latest"
+            --docker "${IMAGE_LC}"
 
       - name: Wait for deployment to become healthy
         env:
