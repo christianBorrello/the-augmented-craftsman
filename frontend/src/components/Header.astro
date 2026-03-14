@@ -102,7 +102,7 @@ const navLinks = [
 
         container.replaceChildren(img, btn);
       })
-      .catch(function() {});
+      .catch(function() { container.replaceChildren(); });
   }
   initSession();
 
