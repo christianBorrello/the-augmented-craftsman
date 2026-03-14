@@ -138,7 +138,8 @@ function relativeTime(dateStr: string): string {
           return;
         }
 
-        window.location.href = window.location.pathname + '#comments';
+        sessionStorage.setItem('scrollToComments', '1');
+        window.location.reload();
       } catch {
         errorEl.textContent = 'Something went wrong. Please try again.';
         errorEl.style.display = '';
@@ -148,7 +149,8 @@ function relativeTime(dateStr: string): string {
     });
   }
 
-  if (window.location.hash === '#comments') {
+  if (window.location.hash === '#comments' || sessionStorage.getItem('scrollToComments')) {
+    sessionStorage.removeItem('scrollToComments');
     document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' });
   }
 </script>
