@@ -13,7 +13,6 @@ namespace TacBlog.Acceptance.Tests.StepDefinitions;
 public sealed class CommentSteps(
     CommentApiDriver commentDriver,
     ApiContext apiContext,
-    ReaderSessionContext sessionContext,
     TacBlogWebApplicationFactory factory)
 {
     private readonly Dictionary<string, Guid> _commentIdsByDisplayName = new();
