@@ -61,8 +61,8 @@ public static class OAuthEndpoints
             return Results.Redirect($"{returnUrl}?error={result.Error}");
         }
 
-        var isProduction = !httpContext.RequestServices
-            .GetRequiredService<IWebHostEnvironment>().IsDevelopment();
+        var isProduction = httpContext.RequestServices
+            .GetRequiredService<IWebHostEnvironment>().IsProduction();
 
         httpContext.Response.Cookies.Append(SessionCookieName, result.SessionId!.Value.ToString(), new CookieOptions
         {
@@ -70,7 +70,8 @@ public static class OAuthEndpoints
             Secure = isProduction,
             SameSite = SameSiteMode.Lax,
             MaxAge = TimeSpan.FromDays(30),
-            Path = "/"
+            Path = "/",
+            Domain = isProduction ? ".theaugmentedcraftsman.christianborrello.dev" : null
         });
 
         return Results.Redirect(returnUrl);
@@ -115,12 +116,16 @@ public static class OAuthEndpoints
 
         await signOut.ExecuteAsync(sessionId, cancellationToken);
 
+        var isProductionSignOut = httpContext.RequestServices
+            .GetRequiredService<IWebHostEnvironment>().IsProduction();
+
         httpContext.Response.Cookies.Delete(SessionCookieName, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
+            Secure = isProductionSignOut,
             SameSite = SameSiteMode.Lax,
-            Path = "/"
+            Path = "/",
+            Domain = isProductionSignOut ? ".theaugmentedcraftsman.christianborrello.dev" : null
         });
 
         return Results.NoContent();
