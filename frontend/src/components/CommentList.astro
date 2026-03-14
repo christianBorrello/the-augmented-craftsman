@@ -103,6 +103,65 @@ function relativeTime(dateStr: string): string {
 </section>
 
 <script>
+  function relativeTime(dateStr: string): string {
+    const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function appendComment(c: { displayName: string; avatarUrl: string | null; provider: string; text: string; createdAt: string }) {
+    const section = document.getElementById('comments')!;
+
+    const emptyMsg = section.querySelector('.comment-empty');
+    if (emptyMsg) emptyMsg.remove();
+
+    const countEl = section.querySelector('.comment-count');
+    if (countEl) {
+      const current = parseInt(countEl.textContent!.replace(/\D/g, ''), 10) || 0;
+      countEl.textContent = `(${current + 1})`;
+    }
+
+    const img = document.createElement('img');
+    img.src = c.avatarUrl || '/default-avatar.svg';
+    img.alt = '';
+    img.width = 32;
+    img.height = 32;
+    img.loading = 'lazy';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'comment-name';
+    nameSpan.textContent = c.displayName;
+
+    const providerSpan = document.createElement('span');
+    providerSpan.className = 'comment-provider-badge';
+    providerSpan.textContent = c.provider;
+
+    const time = document.createElement('time');
+    time.setAttribute('datetime', c.createdAt);
+    time.textContent = relativeTime(c.createdAt);
+
+    const meta = document.createElement('div');
+    meta.className = 'comment-meta';
+    meta.append(nameSpan, providerSpan, time);
+
+    const text = document.createElement('p');
+    text.className = 'comment-text';
+    text.textContent = c.text;
+
+    const div = document.createElement('div');
+    div.className = 'comment';
+    div.append(img, meta, text);
+
+    section.appendChild(div);
+    div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
   const form = document.getElementById('comment-form') as HTMLFormElement | null;
   if (form) {
     form.addEventListener('submit', async (e) => {
@@ -138,8 +197,10 @@ function relativeTime(dateStr: string): string {
           return;
         }
 
-        sessionStorage.setItem('scrollToComments', '1');
-        window.location.reload();
+        const comment = await res.json();
+        appendComment(comment);
+        textarea.value = '';
+        textarea.focus();
       } catch {
         errorEl.textContent = 'Something went wrong. Please try again.';
         errorEl.style.display = '';
@@ -149,8 +210,7 @@ function relativeTime(dateStr: string): string {
     });
   }
 
-  if (window.location.hash === '#comments' || sessionStorage.getItem('scrollToComments')) {
-    sessionStorage.removeItem('scrollToComments');
+  if (window.location.hash === '#comments') {
     document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' });
   }
 </script>
