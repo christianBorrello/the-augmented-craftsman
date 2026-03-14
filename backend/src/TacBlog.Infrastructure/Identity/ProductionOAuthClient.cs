@@ -97,6 +97,7 @@ public sealed class ProductionOAuthClient : IOAuthClient
     private async Task<OAuthTokenResult> ExchangeGitHubCodeAsync(string code, string redirectUri, CancellationToken cancellationToken)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, GitHubTokenUrl);
+        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
         request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["client_id"] = _settings.GitHubClientId,
