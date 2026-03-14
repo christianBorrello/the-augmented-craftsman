@@ -46,6 +46,16 @@ skills-lock.json
 .playwright-mcp/
 *.png
 
+# nWave execution artifacts
+nwave-errors.md
+**/execution-log.json
+**/execution-log.yaml
+**/roadmap.yaml
+**/roadmap.json
+**/roadmap-review.yaml
+docs/waves/
+backend/docs/
+
 # Test results
 **/TestResults/
 
