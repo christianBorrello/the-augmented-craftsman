@@ -12,8 +12,8 @@ const { title, subtitle, accent = true } = Astro.props;
   <div class="max-w-3xl">
     {accent && (
       <div class="mb-6 flex items-center gap-3 animate-fade-in">
-        <div class="h-px w-12 bg-[var(--color-accent)]"></div>
-        <span class="font-mono text-xs uppercase tracking-widest text-[var(--color-accent)]">
+        <div class="h-px w-12 bg-(--color-accent)"></div>
+        <span class="font-mono text-xs uppercase tracking-widest text-(--color-accent)">
           Software Craftsmanship
         </span>
       </div>
@@ -25,7 +25,7 @@ const { title, subtitle, accent = true } = Astro.props;
       {title}
     </h1>
     {subtitle && (
-      <p class="mt-6 text-body-lg text-[var(--color-text-muted)] text-pretty max-w-2xl animate-fade-up" style="animation-delay: 100ms;">
+      <p class="mt-6 text-body-lg text-(--color-text-muted) text-pretty max-w-2xl animate-fade-up" style="animation-delay: 100ms;">
         {subtitle}
       </p>
     )}

@@ -9,15 +9,15 @@ const navLinks = [
 ];
 ---
 
-<header class="sticky top-0 z-50 backdrop-blur-md bg-[var(--color-bg)]/80 border-b border-[var(--color-border)]">
+<header class="sticky top-0 z-50 backdrop-blur-md bg-(--color-bg)/80 border-b border-(--color-border)">
   <nav class="max-w-wide mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
 
     <!-- Logo / Craft Mark -->
     <a href="/" class="flex items-center gap-3 group" aria-label="Home">
       <div class="w-8 h-8 relative">
         <!-- Geometric craft mark: overlapping squares suggesting architecture -->
-        <div class="absolute inset-0 border-2 border-[var(--color-accent)] rounded-sm rotate-0 transition-transform duration-300 group-hover:rotate-6"></div>
-        <div class="absolute inset-1 border-2 border-[var(--color-text)] rounded-sm rotate-0 transition-transform duration-300 group-hover:-rotate-3 opacity-40"></div>
+        <div class="absolute inset-0 border-2 border-(--color-accent) rounded-sm rotate-0 transition-transform duration-300 group-hover:rotate-6"></div>
+        <div class="absolute inset-1 border-2 border-(--color-text) rounded-sm rotate-0 transition-transform duration-300 group-hover:-rotate-3 opacity-40"></div>
       </div>
       <span class="font-display font-semibold text-lg tracking-tight">
         The Augmented Craftsman
@@ -34,8 +34,8 @@ const navLinks = [
             class:list={[
               'px-3 py-1.5 rounded-lg text-body-sm font-body transition-all duration-200',
               isActive
-                ? 'text-[var(--color-accent)] bg-[var(--color-bg-surface)]'
-                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-surface)]',
+                ? 'text-(--color-accent) bg-(--color-bg-surface)'
+                : 'text-(--color-text-muted) hover:text-(--color-text) hover:bg-(--color-bg-surface)',
             ]}
           >
             {label}
@@ -49,7 +49,7 @@ const navLinks = [
       <!-- Theme Toggle -->
       <button
         id="theme-toggle"
-        class="ml-2 p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-surface)] transition-all duration-200"
+        class="ml-2 p-2 rounded-lg text-(--color-text-muted) hover:text-(--color-text) hover:bg-(--color-bg-surface) transition-all duration-200"
         aria-label="Toggle dark mode"
       >
         <!-- Sun (shown in dark mode) -->

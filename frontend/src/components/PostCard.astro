@@ -22,21 +22,21 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
 
 <article
   class:list={[
-    'group relative rounded-xl border border-[var(--color-border)] transition-all duration-300',
-    'hover:border-[var(--color-accent)]/40 hover:shadow-lg hover:shadow-[var(--color-accent)]/5',
+    'group relative rounded-xl border border-(--color-border) transition-all duration-300',
+    'hover:border-(--color-accent)/40 hover:shadow-lg hover:shadow-(--color-accent)/5',
     featured ? 'p-8 md:p-10' : 'p-6 md:p-8',
   ]}
 >
   <!-- Accent top border on hover -->
-  <div class="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+  <div class="absolute top-0 left-6 right-6 h-px bg-linear-to-r from-transparent via-(--color-accent) to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
   <a href={`/blog/${slug}`} class="block space-y-4">
     <!-- Meta -->
-    <div class="flex items-center gap-3 text-xs font-mono text-[var(--color-text-muted)]">
+    <div class="flex items-center gap-3 text-xs font-mono text-(--color-text-muted)">
       <time datetime={date}>{formattedDate}</time>
-      <span class="w-1 h-1 rounded-full bg-[var(--color-text-muted)]"></span>
+      <span class="w-1 h-1 rounded-full bg-(--color-text-muted)"></span>
       <span>{readingTime}</span>
-      <span class="w-1 h-1 rounded-full bg-[var(--color-text-muted)]"></span>
+      <span class="w-1 h-1 rounded-full bg-(--color-text-muted)"></span>
       <span class="postcard-likes" data-slug={slug}>
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -48,7 +48,7 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
     <!-- Title -->
     <h3
       class:list={[
-        'font-display font-semibold tracking-tight group-hover:text-[var(--color-accent)] transition-colors duration-200',
+        'font-display font-semibold tracking-tight group-hover:text-(--color-accent) transition-colors duration-200',
         featured ? 'text-display-md' : 'text-display-md text-xl',
       ]}
       transition:name={`post-title-${slug}`}
@@ -57,7 +57,7 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
     </h3>
 
     <!-- Excerpt -->
-    <p class="text-body-sm text-[var(--color-text-muted)] text-pretty line-clamp-3">
+    <p class="text-body-sm text-(--color-text-muted) text-pretty line-clamp-3">
       {excerpt}
     </p>
 

@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=JetBrains+Mono:wght@400;500;600&family=Literata:ital,opsz,wght@0,7..72,300..800;1,7..72,300..800&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@config "../../tailwind.config.mjs";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ═══════════════════════════════════════════
    FORGE & INK — Design System
@@ -360,60 +360,74 @@
   .code-block--minimal .code-block__filename { display: none; }
 }
 
-/* ═══════════════════════════════════════════
+@layer utilities {
+  /* ═══════════════════════════════════════════
    View Transitions — Smooth page navigation
    ═══════════════════════════════════════════ */
 
-@keyframes page-fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+  @keyframes page-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-@keyframes page-fade-out {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-4px); }
-}
+  @keyframes page-fade-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
 
-::view-transition-old(root) {
-  animation: page-fade-out 0.2s ease-in both;
-}
+  ::view-transition-old(root) {
+    animation: page-fade-out 0.2s ease-in both;
+  }
 
-::view-transition-new(root) {
-  animation: page-fade-in 0.3s ease-out 0.1s both;
-}
+  ::view-transition-new(root) {
+    animation: page-fade-in 0.3s ease-out 0.1s both;
+  }
 
-/* Post title morphing between list and detail */
-::view-transition-old(post-title) {
-  animation: page-fade-out 0.25s ease-in both;
-}
+  /* Post title morphing between list and detail */
+  ::view-transition-old(post-title) {
+    animation: page-fade-out 0.25s ease-in both;
+  }
 
-::view-transition-new(post-title) {
-  animation: page-fade-in 0.35s ease-out both;
-}
+  ::view-transition-new(post-title) {
+    animation: page-fade-in 0.35s ease-out both;
+  }
 
-/* ═══════════════════════════════════════════
+  /* ═══════════════════════════════════════════
    Scroll-driven animations (CSS only)
    ═══════════════════════════════════════════ */
 
-@supports (animation-timeline: view()) {
-  .reveal-on-scroll {
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeUp 0.6s ease-out both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 30%;
+  @supports (animation-timeline: view()) {
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.6s ease-out both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 30%;
+    }
   }
-}
 
-@supports not (animation-timeline: view()) {
-  .reveal-on-scroll {
-    opacity: 1;
+  @supports not (animation-timeline: view()) {
+    .reveal-on-scroll {
+      opacity: 1;
+    }
   }
-}
 
-/* ═══════════════════════════════════════════
+  /* ═══════════════════════════════════════════
    Utilities
    ═══════════════════════════════════════════ */
+}
 
 @layer utilities {
   .text-balance {

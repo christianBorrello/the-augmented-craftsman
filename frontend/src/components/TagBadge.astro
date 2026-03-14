@@ -22,7 +22,7 @@ const tagColors: Record<string, string> = {
 const slug = tag.toLowerCase().replace(/\s+/g, '-');
 
 const colorClass = tagColors[slug] ||
-  'bg-[var(--color-bg-surface)] text-[var(--color-text-muted)] border-[var(--color-border)]';
+  'bg-(--color-bg-surface) text-(--color-text-muted) border-(--color-border)';
 
 const sizeClass = size === 'md'
   ? 'px-3 py-1.5 text-sm'

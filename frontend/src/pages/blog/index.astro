@@ -30,10 +30,10 @@ const allTags = (() => {
   {allTags.length > 0 && (
     <section class="px-6 md:px-10 max-w-wide mx-auto mb-10">
       <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-        <span class="text-xs font-mono text-[var(--color-text-muted)] uppercase tracking-wider shrink-0">Filter:</span>
+        <span class="text-xs font-mono text-(--color-text-muted) uppercase tracking-wider shrink-0">Filter:</span>
         <a
           href="/blog"
-          class="px-3 py-1 rounded-md text-xs font-mono bg-[var(--color-accent)] text-white shrink-0"
+          class="px-3 py-1 rounded-md text-xs font-mono bg-(--color-accent) text-white shrink-0"
         >
           All
         </a>
@@ -55,7 +55,7 @@ const allTags = (() => {
   </section>
 
   <div class="mt-12 px-6 md:px-10 max-w-wide mx-auto text-center">
-    <p class="text-body-sm text-[var(--color-text-muted)] font-mono">
+    <p class="text-body-sm text-(--color-text-muted) font-mono">
       {posts.length} post{posts.length !== 1 ? 's' : ''}
     </p>
   </div>
