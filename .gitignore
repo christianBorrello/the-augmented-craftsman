@@ -41,6 +41,10 @@ skills-lock.json
 # Claude
 .claude/
 CLAUDE.md
+BEST_PRACTICES.md
+
+# Personal/tool docs (kept locally, not for contributors)
+docs/
 
 # Tools
 .nwave/
