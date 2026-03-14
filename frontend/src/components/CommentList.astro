@@ -1,8 +1,6 @@
 ---
 export const prerender = false;
 
-import { actions } from 'astro:actions';
-
 interface Props {
   slug: string;
   pageUrl: string;
@@ -29,9 +27,6 @@ if (sessionRes.ok) {
   }
 }
 
-const result = Astro.getActionResult(actions.postComment);
-const hasError = result?.error;
-
 function relativeTime(dateStr: string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
@@ -52,19 +47,14 @@ function relativeTime(dateStr: string): string {
   <h2>Conversation <span class="comment-count">({count})</span></h2>
   <div class="accent-line" style="margin-bottom: 1.5rem;"></div>
 
-  {hasError && (
-    <div class="comment-error" role="alert">
-      {result.error.message || 'Something went wrong. Please try again.'}
-    </div>
-  )}
+  <div id="comment-error" class="comment-error" role="alert" aria-live="polite" style="display:none"></div>
 
   {session.authenticated ? (
-    <form class="comment-compose" method="POST" action={actions.postComment}>
+    <form class="comment-compose" id="comment-form" data-slug={slug}>
       <div class="comment-compose-user">
         <img src={session.avatarUrl || '/default-avatar.svg'} alt="" width="24" height="24" />
         <span>{session.displayName}</span>
       </div>
-      <input type="hidden" name="slug" value={slug} />
       <textarea
         name="text"
         placeholder="Share your thoughts..."
@@ -109,12 +99,57 @@ function relativeTime(dateStr: string): string {
     </div>
   ))}
 
-  {comments.length === 0 && !hasError && (
+  {comments.length === 0 && (
     <p class="comment-empty">No comments yet. Be the first to share your thoughts.</p>
   )}
 </section>
 
 <script>
+  const form = document.getElementById('comment-form') as HTMLFormElement | null;
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const apiBase = document.querySelector<HTMLMetaElement>('meta[name="api-base"]')?.content
+        || 'http://localhost:5063';
+      const slug = form.dataset.slug!;
+      const textarea = form.elements.namedItem('text') as HTMLTextAreaElement;
+      const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+      const errorEl = document.getElementById('comment-error') as HTMLElement;
+
+      submitButton.disabled = true;
+      errorEl.style.display = 'none';
+
+      try {
+        const res = await fetch(`${apiBase}/api/posts/${slug}/comments`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: textarea.value }),
+        });
+
+        if (res.status === 401) {
+          errorEl.textContent = 'Session expired. Please sign in again.';
+          errorEl.style.display = '';
+          return;
+        }
+
+        if (!res.ok) {
+          errorEl.textContent = 'Failed to post comment. Please try again.';
+          errorEl.style.display = '';
+          return;
+        }
+
+        window.location.href = window.location.pathname + '#comments';
+      } catch {
+        errorEl.textContent = 'Something went wrong. Please try again.';
+        errorEl.style.display = '';
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+  }
+
   if (window.location.hash === '#comments') {
     document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' });
   }
