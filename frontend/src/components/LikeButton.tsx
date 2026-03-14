@@ -48,7 +48,7 @@ export default function LikeButton({ slug, shareTitle, shareUrl }: Props) {
 
     try {
       const [countRes, checkRes] = await Promise.all([
-        fetch(`${api}/api/posts/${slug}/likes`),
+        fetch(`${api}/api/posts/${slug}/likes/count`),
         fetch(`${api}/api/posts/${slug}/likes/check/${visitorId}`),
       ]);
       if (countRes.ok) {
