@@ -61,8 +61,8 @@ public static class OAuthEndpoints
             return Results.Redirect($"{returnUrl}?error={result.Error}");
         }
 
-        var isProduction = !httpContext.RequestServices
-            .GetRequiredService<IWebHostEnvironment>().IsDevelopment();
+        var isProduction = httpContext.RequestServices
+            .GetRequiredService<IWebHostEnvironment>().IsProduction();
 
         httpContext.Response.Cookies.Append(SessionCookieName, result.SessionId!.Value.ToString(), new CookieOptions
         {
@@ -116,8 +116,8 @@ public static class OAuthEndpoints
 
         await signOut.ExecuteAsync(sessionId, cancellationToken);
 
-        var isProductionSignOut = !httpContext.RequestServices
-            .GetRequiredService<IWebHostEnvironment>().IsDevelopment();
+        var isProductionSignOut = httpContext.RequestServices
+            .GetRequiredService<IWebHostEnvironment>().IsProduction();
 
         httpContext.Response.Cookies.Delete(SessionCookieName, new CookieOptions
         {
