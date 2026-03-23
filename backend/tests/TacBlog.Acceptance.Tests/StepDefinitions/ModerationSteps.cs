@@ -9,8 +9,7 @@ namespace TacBlog.Acceptance.Tests.StepDefinitions;
 public sealed class ModerationSteps(
     CommentApiDriver commentDriver,
     ApiContext apiContext,
-    AuthContext authContext,
-    ReaderSessionContext sessionContext)
+    AuthContext authContext)
 {
     private readonly Dictionary<string, Guid> _commentIdsByDisplayName = new();
 

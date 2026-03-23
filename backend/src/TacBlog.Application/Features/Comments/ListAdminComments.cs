@@ -12,8 +12,7 @@ public sealed record AdminCommentDto(
     DateTime CreatedAt);
 
 public sealed class ListAdminComments(
-    ICommentRepository commentRepository,
-    IBlogPostRepository postRepository)
+    ICommentRepository commentRepository)
 {
     public async Task<IReadOnlyList<AdminCommentDto>> ExecuteAsync(
         CancellationToken cancellationToken = default)
