@@ -1,3 +1,4 @@
+using TacBlog.Api;
 using TacBlog.Application.Features.Tags;
 using TacBlog.Application.Ports.Driven;
 
@@ -7,11 +8,11 @@ public static class TagEndpoints
 {
     public static void MapTagEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/tags", CreateTagAsync).RequireAuthorization();
+        app.MapPost("/api/tags", CreateTagAsync).AddEndpointFilter<AdminApiKeyFilter>();
         app.MapGet("/api/tags", ListTagsAsync).AllowAnonymous();
-        app.MapPut("/api/tags/{slug}", RenameTagAsync).RequireAuthorization();
-        app.MapDelete("/api/tags/{slug}", DeleteTagAsync).RequireAuthorization();
-        app.MapGet("/api/admin/tags", ListAllTagsAsync).RequireAuthorization();
+        app.MapPut("/api/tags/{slug}", RenameTagAsync).AddEndpointFilter<AdminApiKeyFilter>();
+        app.MapDelete("/api/tags/{slug}", DeleteTagAsync).AddEndpointFilter<AdminApiKeyFilter>();
+        app.MapGet("/api/admin/tags", ListAllTagsAsync).AddEndpointFilter<AdminApiKeyFilter>();
     }
 
     private static async Task<IResult> CreateTagAsync(

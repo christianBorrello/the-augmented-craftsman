@@ -1,3 +1,4 @@
+using TacBlog.Api;
 using TacBlog.Application.Features.Images;
 
 namespace TacBlog.Api.Endpoints;
@@ -6,9 +7,9 @@ public static class ImageEndpoints
 {
     public static void MapImageEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/images", UploadImageAsync).RequireAuthorization().DisableAntiforgery();
-        app.MapPut("/api/posts/{slug}/featured-image", SetFeaturedImageAsync).RequireAuthorization();
-        app.MapDelete("/api/posts/{slug}/featured-image", RemoveFeaturedImageAsync).RequireAuthorization();
+        app.MapPost("/api/images", UploadImageAsync).AddEndpointFilter<AdminApiKeyFilter>().DisableAntiforgery();
+        app.MapPut("/api/posts/{slug}/featured-image", SetFeaturedImageAsync).AddEndpointFilter<AdminApiKeyFilter>();
+        app.MapDelete("/api/posts/{slug}/featured-image", RemoveFeaturedImageAsync).AddEndpointFilter<AdminApiKeyFilter>();
     }
 
     private static async Task<IResult> UploadImageAsync(

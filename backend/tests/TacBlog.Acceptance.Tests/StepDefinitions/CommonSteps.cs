@@ -19,9 +19,9 @@ public sealed class CommonSteps
     }
 
     [Given("Christian is authenticated")]
-    public async Task GivenChristianIsAuthenticated()
+    public void GivenChristianIsAuthenticated()
     {
-        await _authDriver.Authenticate();
+        _authDriver.Authenticate();
     }
 
     [Given("no authentication is provided")]

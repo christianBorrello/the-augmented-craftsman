@@ -1,0 +1,370 @@
+{
+  "roadmap": {
+    "project_id": "author-mode",
+    "created_at": "2026-03-14T15:55:07Z",
+    "total_steps": 13,
+    "phases": 4
+  },
+  "phases": [
+    {
+      "id": "01",
+      "name": "Domain + Auth Backend",
+      "steps": [
+        {
+          "id": "01-01",
+          "name": "Extend BlogPost domain: Archived status + Archive/Restore behaviour",
+          "description": "Add PostStatus.Archived, PreviousStatus field to BlogPost, Archive() and Restore() domain methods, and an EF Core migration.",
+          "criteria": [
+            "A post can be archived; its status becomes Archived and its previous status is remembered.",
+            "A restored post returns to exactly the status it held before archiving.",
+            "The Archived status is persisted and survives a round-trip through the database.",
+            "Existing Draft and Published posts are unaffected by the migration."
+          ],
+          "test_file": "",
+          "scenario_name": "",
+          "files_to_modify": [
+            "backend/src/Domain/PostStatus.cs",
+            "backend/src/Domain/BlogPost.cs",
+            "backend/src/Infrastructure/Persistence/Migrations/AddArchivedStatusAndPreviousStatus.cs",
+            "backend/src/Infrastructure/Persistence/BlogPostConfiguration.cs"
+          ],
+          "dependencies": [],
+          "estimated_hours": 3,
+          "implementation_notes": "PostStatus is an existing enum — add Archived variant without breaking existing switch expressions. PreviousStatus is nullable (Draft | Published). Archive() guards against double-archiving. Restore() reads PreviousStatus; throw if null. EF migration: add PreviousStatus column as nullable int."
+        },
+        {
+          "id": "01-02",
+          "name": "Admin OAuth backend: token store, settings port, use cases, endpoints",
+          "description": "Implement IAdminTokenStore (Redis adapter), IAdminSettings port, HandleAdminOAuthCallback (email whitelist check), VerifyAdminToken (single-use JWT exchange), and the three admin OAuth endpoints.",
+          "criteria": [
+            "OAuth callback with a whitelisted email issues a single-use admin token.",
+            "OAuth callback with an unauthorised email is rejected; no token is issued.",
+            "A valid single-use token can be exchanged for an admin session exactly once.",
+            "Replaying a used or expired token is rejected with an unauthorised response.",
+            "Admin OAuth endpoints are reachable at GET /api/auth/admin/oauth/{provider}, GET /api/auth/admin/oauth/{provider}/callback, and POST /api/auth/admin/verify-token."
+          ],
+          "test_file": "",
+          "scenario_name": "",
+          "files_to_modify": [
+            "backend/src/Application/Ports/Driven/IAdminTokenStore.cs",
+            "backend/src/Application/Ports/Driven/IAdminSettings.cs",
+            "backend/src/Application/Features/Auth/HandleAdminOAuthCallback.cs",
+            "backend/src/Application/Features/Auth/VerifyAdminToken.cs",
+            "backend/src/Infrastructure/Auth/RedisAdminTokenStore.cs",
+            "backend/src/Infrastructure/Auth/AdminSettings.cs",
+            "backend/src/Api/Endpoints/AdminOAuthEndpoints.cs",
+            "backend/src/Api/Program.cs"
+          ],
+          "dependencies": [],
+          "estimated_hours": 5,
+          "implementation_notes": "IAdminTokenStore: store(token, ttl) + consume(token) -> bool (atomic delete). Token is a short-lived JWT nonce (HMAC-SHA256, 5-minute TTL). ADMIN_EMAIL from environment via IAdminSettings. HandleAdminOAuthCallback re-uses existing OAuthEndpoints OAuth flow but routes to admin callback. Do NOT reuse HandleOAuthCallback — it creates a ReaderSession. Separate use case, separate session cookie name."
+        },
+        {
+          "id": "01-03",
+          "name": "Archive/Restore use cases + endpoints",
+          "description": "Implement ArchivePost and RestorePost application use cases and expose PATCH /api/posts/{id}/archive and PATCH /api/posts/{id}/restore endpoints, both requiring an admin session.",
+          "criteria": [
+            "Archiving a published post removes it from the public blog and the default admin post list.",
+            "Archiving a draft post does not trigger a site rebuild.",
+            "Archiving a published post triggers a site rebuild.",
+            "Restoring an archived post returns it to its previous status.",
+            "Both endpoints require an active admin session; unauthenticated requests receive 401."
+          ],
+          "test_file": "",
+          "scenario_name": "",
+          "files_to_modify": [
+            "backend/src/Application/Features/Posts/ArchivePost.cs",
+            "backend/src/Application/Features/Posts/RestorePost.cs",
+            "backend/src/Api/Endpoints/PostEndpoints.cs"
+          ],
+          "dependencies": ["01-01"],
+          "estimated_hours": 3,
+          "implementation_notes": "ArchivePost delegates to BlogPost.Archive() then persists. Rebuild is triggered only when previous status was Published. RestorePost delegates to BlogPost.Restore() and triggers rebuild only when restored status is Published. ListPosts must exclude Archived by default; add optional status=archived filter for the archived tab."
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "name": "Walking Skeleton + Post API Coverage",
+      "steps": [
+        {
+          "id": "02-01",
+          "name": "Walking skeleton: OAuth login + create draft + list",
+          "description": "Make the single active acceptance scenario pass end-to-end: admin OAuth login, create a draft post, verify it appears in the admin list and is hidden from the public.",
+          "criteria": [
+            "An authenticated admin can create a post with a title and content and save it as Draft.",
+            "The new draft post appears in the admin post list with status Draft.",
+            "The draft post is not returned by the public posts endpoint.",
+            "The walking-skeleton scenario passes without @skip."
+          ],
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/AuthorMode/walking-skeleton.feature",
+          "scenario_name": "Author logs in via OAuth, creates a draft post, and sees it in the post list",
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/Steps/AuthorMode/WalkingSkeletonSteps.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Support/AdminAuthHelper.cs",
+            "backend/src/Api/Endpoints/PostEndpoints.cs"
+          ],
+          "dependencies": ["01-01", "01-02"],
+          "estimated_hours": 4,
+          "implementation_notes": "Step definitions wire up the stub admin session for acceptance tests — bypass real OAuth in test environment using a test-only token fixture. Confirm that POST /api/admin/posts accepts CoverImageUrl as optional. ListPosts for admin must include drafts. Public GET /api/posts must exclude drafts."
+        },
+        {
+          "id": "02-02",
+          "name": "Post creation + publish full API coverage",
+          "description": "Cover all post creation and publish edge cases: slug derivation, manual slug, duplicate slug rejection, empty title rejection, publish flow, slug lock after publish, update of published post.",
+          "criteria": [
+            "Creating a post without a title is rejected with a descriptive error.",
+            "Creating a post with a duplicate slug is rejected; form data is preserved.",
+            "Slug is derived from title when not specified.",
+            "A manually specified slug overrides the derived one.",
+            "Publishing a draft post makes it accessible at the public endpoint.",
+            "Updating a published post preserves the original slug.",
+            "Saving an edit as a draft does not trigger a rebuild."
+          ],
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/AuthorMode/milestone-2-post-creation.feature",
+          "scenario_name": "Author creates a new post and the slug is derived from the title",
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/Steps/AuthorMode/PostCreationSteps.cs",
+            "backend/src/Application/Features/Posts/CreatePost.cs",
+            "backend/src/Application/Features/Posts/EditPost.cs",
+            "backend/src/Application/Features/Posts/PublishPost.cs",
+            "backend/src/Api/Endpoints/PostEndpoints.cs"
+          ],
+          "dependencies": ["02-01"],
+          "estimated_hours": 5,
+          "implementation_notes": "Slug uniqueness check belongs in CreatePost use case against IBlogPostRepository. PublishPost sets PublishedAt = today. Slug is immutable after first publish — enforce in EditPost by ignoring slug field when status is Published. No rebuild port is wired yet; use a no-op or stub for draft saves."
+        },
+        {
+          "id": "02-03",
+          "name": "Cover image upload + CoverImageUrl on post endpoints",
+          "description": "Accept cover image uploads via the existing IImageStorage/UploadImage ports, wire CoverImageUrl into CreatePost/EditPost requests, and enforce size and format constraints.",
+          "criteria": [
+            "A valid JPG/PNG/WebP image under 5 MB is accepted and an image URL is returned.",
+            "An image exceeding 5 MB is rejected before upload with a clear error.",
+            "An unsupported format (e.g. BMP) is rejected with a clear error.",
+            "A post saved without a cover image has no featuredImageUrl in its response.",
+            "Cover image upload failure does not prevent saving the post without an image.",
+            "Uploaded image URL is persisted with the post when included in the save request."
+          ],
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/AuthorMode/milestone-3-image-and-toolbar.feature",
+          "scenario_name": "Author uploads a valid cover image and it is stored",
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/Steps/AuthorMode/ImageAndToolbarSteps.cs",
+            "backend/src/Application/Features/Posts/CreatePost.cs",
+            "backend/src/Application/Features/Posts/EditPost.cs",
+            "backend/src/Api/Endpoints/PostEndpoints.cs",
+            "backend/src/Application/Features/Images/UploadImage.cs"
+          ],
+          "dependencies": ["02-01"],
+          "estimated_hours": 4,
+          "implementation_notes": "CoverImageUrl is an optional string on CreatePostRequest and EditPostRequest — already identified in DESIGN as missing. Validation (size, format) belongs in UploadImage use case before delegating to IImageStorage. SetFeaturedImage is called in CreatePost/EditPost when CoverImageUrl is provided. Use NSubstitute to stub IImageStorage in acceptance tests."
+        },
+        {
+          "id": "02-04",
+          "name": "EditControls endpoint + tag list/create endpoints",
+          "description": "Implement GET /api/admin/posts/{id}/edit-controls returning toolbar data, and ensure GET /api/tags and POST /api/tags work correctly including duplicate rejection and autocomplete.",
+          "criteria": [
+            "Authenticated admin requesting edit controls for a post receives status and edit-page link.",
+            "Unauthenticated request for edit controls returns empty toolbar (no 401, no data).",
+            "Tag list endpoint returns all existing tags.",
+            "Tag list filtered by prefix returns only matching tags.",
+            "Creating a duplicate tag is rejected with a descriptive error.",
+            "A post can be saved with multiple tags in a single request."
+          ],
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/AuthorMode/milestone-3-image-and-toolbar.feature",
+          "scenario_name": "Authenticated author sees the edit toolbar on a published blog post",
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/Steps/AuthorMode/ImageAndToolbarSteps.cs",
+            "backend/src/Api/Endpoints/PostEndpoints.cs",
+            "backend/src/Application/Features/Posts/GetEditControls.cs",
+            "backend/src/Application/Features/Tags/ListTags.cs",
+            "backend/src/Application/Features/Tags/CreateTag.cs",
+            "backend/src/Api/Endpoints/TagEndpoints.cs"
+          ],
+          "dependencies": ["02-01"],
+          "estimated_hours": 3,
+          "implementation_notes": "EditControls response: { status, editUrl }. editUrl is /admin/posts/{id}/edit. Toolbar emptiness for unauthenticated is a 200 with empty payload — not a 401 — to avoid leaking post existence. ListTags accepts optional ?q= prefix filter. CreateTag uniqueness enforced in use case. Tag-post association goes through EditPost/CreatePost, not a separate endpoint."
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "name": "Astro Frontend",
+      "steps": [
+        {
+          "id": "03-01",
+          "name": "Astro hybrid mode + session middleware + login/callback pages",
+          "description": "Switch Astro to hybrid output mode, implement server-side session middleware (cookie-based admin session), and build the login page and OAuth callback page.",
+          "criteria": [
+            "Static public pages continue to build as SSG; admin pages render server-side.",
+            "A visitor without a session who accesses an admin route is redirected to /admin/login.",
+            "The login page is accessible without a session.",
+            "After successful OAuth, the callback page exchanges the token and sets the session cookie.",
+            "After failed OAuth (unauthorised email), the login page shows an error message."
+          ],
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/AuthorMode/milestone-1-auth.feature",
+          "scenario_name": "Author completes OAuth login with authorised Google account and gains access",
+          "files_to_modify": [
+            "frontend/astro.config.mjs",
+            "frontend/src/middleware/index.ts",
+            "frontend/src/pages/admin/login.astro",
+            "frontend/src/pages/admin/oauth/callback.astro",
+            "frontend/src/lib/session.ts"
+          ],
+          "dependencies": ["01-02"],
+          "estimated_hours": 5,
+          "implementation_notes": "Astro hybrid mode: output: 'hybrid' in astro.config.mjs; public pages keep export const prerender = true. Middleware checks for admin session cookie on /admin/* routes except /admin/login. Session cookie: HttpOnly, Secure, SameSite=Lax, 7-day expiry. Callback page calls POST /api/auth/admin/verify-token with the token query param."
+        },
+        {
+          "id": "03-02",
+          "name": "Admin pages: post list, new post form, edit post form",
+          "description": "Build the three core admin pages: post list with status filter tabs (Draft, Published, Archived), new post creation form, and pre-populated edit form.",
+          "criteria": [
+            "Admin post list shows all posts with title, status, and creation date.",
+            "Status filter tabs correctly filter to Draft, Published, or Archived posts.",
+            "New post form has fields for title, slug (optional), content, cover image, and tags.",
+            "Edit form is pre-populated with the existing post data.",
+            "Archived posts appear only in the Archived tab, not the default list."
+          ],
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/AuthorMode/milestone-2-post-creation.feature",
+          "scenario_name": "Author views the full post list in reverse chronological order",
+          "files_to_modify": [
+            "frontend/src/pages/admin/posts/index.astro",
+            "frontend/src/pages/admin/posts/new.astro",
+            "frontend/src/pages/admin/posts/[id]/edit.astro",
+            "frontend/src/components/admin/PostForm.astro",
+            "frontend/src/components/admin/PostListTable.astro"
+          ],
+          "dependencies": ["03-01"],
+          "estimated_hours": 6,
+          "implementation_notes": "Post list fetches from GET /api/admin/posts with optional ?status= query. Three tabs: All (default, excludes archived), Drafts, Published, Archived. Edit page fetches post by ID on server render. Slug field is read-only once a post is published. Tag input is a multi-select with autocomplete against GET /api/tags?q=."
+        },
+        {
+          "id": "03-03",
+          "name": "Astro Actions: createPost, updatePost, archivePost, restorePost, uploadCoverImage, createTag",
+          "description": "Implement all six Astro server actions that proxy to the backend API, with appropriate error handling and form state preservation on failure.",
+          "criteria": [
+            "createPost action creates a draft post and redirects to the post list on success.",
+            "updatePost action saves changes and preserves form data on backend validation failure.",
+            "archivePost action archives a post; the UI reflects the Archived status immediately.",
+            "restorePost action restores a post to its previous status.",
+            "uploadCoverImage action returns the stored image URL on success and a clear error on failure.",
+            "createTag action rejects duplicates with a descriptive error without losing form state."
+          ],
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/AuthorMode/milestone-4-tags-archive-restore.feature",
+          "scenario_name": "Author creates a new tag while saving a post",
+          "files_to_modify": [
+            "frontend/src/actions/posts.ts",
+            "frontend/src/actions/images.ts",
+            "frontend/src/actions/tags.ts",
+            "frontend/src/actions/index.ts"
+          ],
+          "dependencies": ["03-02", "01-03"],
+          "estimated_hours": 5,
+          "implementation_notes": "Astro Actions (defineAction) call the backend API with the admin session cookie forwarded. uploadCoverImage validates size/format client-side before sending to avoid wasted requests. archivePost shows a confirmation dialog (CSS-only, no JS island needed) before dispatching. createTag is called inline from the post form when a new tag value is entered."
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "name": "Milestone Acceptance Tests",
+      "steps": [
+        {
+          "id": "04-01",
+          "name": "Enable and pass milestone-1-auth scenarios (US-01, US-02)",
+          "description": "Remove @skip from all 11 auth scenarios, write or complete step definitions, and make them pass.",
+          "criteria": [
+            "All 11 scenarios in milestone-1-auth.feature pass without @skip.",
+            "Unauthorised email is rejected and no session is created.",
+            "Single-use token cannot be replayed.",
+            "Expired session redirects to login with an expiry message.",
+            "All admin routes (except /admin/login) redirect unauthenticated visitors."
+          ],
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/AuthorMode/milestone-1-auth.feature",
+          "scenario_name": "OAuth login with an unauthorised email is rejected",
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/Steps/AuthorMode/AuthSteps.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Support/AdminAuthHelper.cs"
+          ],
+          "dependencies": ["03-01"],
+          "estimated_hours": 4,
+          "implementation_notes": "Step definitions require a test Redis instance (Testcontainers). Expired-session scenario requires time-travel — inject a clock abstraction or manually expire the cookie in the test. Token replay scenario calls verify-token twice with the same nonce. GitHub OAuth scenario needs a second provider configured in test settings."
+        },
+        {
+          "id": "04-02",
+          "name": "Enable and pass milestone-2 and milestone-3 scenarios",
+          "description": "Remove @skip from all 18 post-creation scenarios and all 9 image/toolbar scenarios; complete step definitions and make them all pass.",
+          "criteria": [
+            "All 18 scenarios in milestone-2-post-creation.feature pass.",
+            "All 9 scenarios in milestone-3-image-and-toolbar.feature pass.",
+            "Backend unavailable scenarios use a stopped test container to simulate failure.",
+            "Edit toolbar returns empty payload for unauthenticated requests.",
+            "Cover image size and format rejections are verified at the API boundary."
+          ],
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/AuthorMode/milestone-2-post-creation.feature",
+          "scenario_name": "Saving a draft update does not trigger a site rebuild",
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/Steps/AuthorMode/PostCreationSteps.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Steps/AuthorMode/ImageAndToolbarSteps.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Support/ImageStorageStubFactory.cs"
+          ],
+          "dependencies": ["02-02", "02-03", "02-04", "04-01"],
+          "estimated_hours": 6,
+          "implementation_notes": "Backend unavailable scenarios: stop the Testcontainers PostgreSQL instance mid-test. IImageStorage is stubbed via NSubstitute in acceptance context — do not hit ImageKit in CI. Rebuild trigger assertions use a spy on the rebuild port (no-op in tests, verify call count). 'Form data preserved' AC is verified by checking the response body contains original field values."
+        },
+        {
+          "id": "04-03",
+          "name": "Enable and pass milestone-4 scenarios (tags, archive, restore)",
+          "description": "Remove @skip from all 18 scenarios in milestone-4; complete step definitions for tag management, archive, restore, and rebuild feedback stories.",
+          "criteria": [
+            "All 18 scenarios in milestone-4-tags-archive-restore.feature pass.",
+            "Restoring an archived post that was published results in Published status, not Draft.",
+            "Archiving a published post triggers a rebuild; archiving a draft does not.",
+            "Tag autocomplete returns only prefix-matched results.",
+            "Duplicate tag creation is rejected without creating a second tag."
+          ],
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/AuthorMode/milestone-4-tags-archive-restore.feature",
+          "scenario_name": "Restored post returns to its exact prior status, not always to draft",
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/Steps/AuthorMode/TagsArchiveRestoreSteps.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Support/RebuildSpyFactory.cs"
+          ],
+          "dependencies": ["01-03", "04-02"],
+          "estimated_hours": 5,
+          "implementation_notes": "PreviousStatus is the authoritative source for restore target — test the Published->Archived->Restore->Published round-trip explicitly. Rebuild spy must be registered in the DI container for the test host; real rebuild webhook port is a no-op in tests. Tag autocomplete test seeds tags then calls GET /api/tags?q=Clean and asserts only prefix matches are returned."
+        }
+      ]
+    }
+  ],
+  "implementation_scope": {
+    "source_directories": [
+      "backend/src/Domain",
+      "backend/src/Application/Features",
+      "backend/src/Application/Ports",
+      "backend/src/Infrastructure/Auth",
+      "backend/src/Infrastructure/Persistence/Migrations",
+      "backend/src/Api/Endpoints",
+      "frontend/src/pages/admin",
+      "frontend/src/actions",
+      "frontend/src/middleware",
+      "frontend/src/components/admin"
+    ],
+    "test_directories": [
+      "backend/tests/TacBlog.Acceptance.Tests/Features/AuthorMode",
+      "backend/tests/TacBlog.Acceptance.Tests/Steps/AuthorMode",
+      "backend/tests/TacBlog.Acceptance.Tests/Support"
+    ],
+    "excluded_patterns": [
+      "*.g.cs",
+      "obj/**",
+      ".astro/**",
+      "node_modules/**",
+      "dist/**"
+    ]
+  },
+  "validation": {
+    "status": "pending",
+    "reviewer": "solution-architect-reviewer",
+    "approved_at": "TODO"
+  }
+}

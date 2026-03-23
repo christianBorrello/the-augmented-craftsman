@@ -150,23 +150,23 @@ namespace TacBlog.Acceptance.Tests.Features.Epic2_TagManagement
             else
             {
                 await this.ScenarioStartAsync();
-                global::Reqnroll.Table table15 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table16 = new global::Reqnroll.Table(new string[] {
                             "name",
                             "post_count"});
-                table15.AddRow(new string[] {
+                table16.AddRow(new string[] {
                             "TDD",
                             "5"});
-                table15.AddRow(new string[] {
+                table16.AddRow(new string[] {
                             "Clean Code",
                             "3"});
-                table15.AddRow(new string[] {
+                table16.AddRow(new string[] {
                             "Architecture",
                             "2"});
-                table15.AddRow(new string[] {
+                table16.AddRow(new string[] {
                             "DDD",
                             "1"});
 #line 10
-    await testRunner.GivenAsync("these tags exist with post counts:", ((string)(null)), table15, "Given ");
+    await testRunner.GivenAsync("these tags exist with post counts:", ((string)(null)), table16, "Given ");
 #line hidden
 #line 16
     await testRunner.WhenAsync("a GET request is sent to \"/api/tags\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");

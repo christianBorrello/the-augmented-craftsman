@@ -1,0 +1,137 @@
+{
+  "roadmap": {
+    "project_id": "admin-auth-simplification",
+    "created_at": "2026-03-15T19:09:12Z",
+    "total_steps": 4,
+    "phases": 1
+  },
+  "phases": [
+    {
+      "id": "01",
+      "name": "Replace OAuth admin flow with email/password login",
+      "steps": [
+        {
+          "id": "01-01",
+          "name": "Fix LoginHandler JWT: emit role claim, inline JWT construction",
+          "description": "LoginHandler must issue a JWT signed with IAdminSettings.JwtSecret, carrying a role:admin claim, with 480-minute lifetime. Remove ITokenGenerator dependency. Narrow IAdminSettings to JwtSecret only (drop AdminEmail). Update AdminSettings accordingly.",
+          "criteria": [
+            "Successful login returns a token that authorises access to the admin post list",
+            "Token carries admin authorisation as verified by the admin post list endpoint",
+            "Login with wrong password is rejected with 'Invalid email or password'",
+            "Login with unknown email is rejected with 'Invalid email or password'",
+            "Fifth consecutive failed attempt is rejected with 'Too many failed attempts. Try again in 15 minutes.'"
+          ],
+          "time_estimate": "2h",
+          "dependencies": [],
+          "files_to_modify": [
+            "backend/src/TacBlog.Application/Features/Auth/Login.cs",
+            "backend/src/TacBlog.Application/Ports/Driven/IAdminSettings.cs",
+            "backend/src/TacBlog.Infrastructure/Auth/AdminSettings.cs"
+          ],
+          "implementation_notes": "LoginHandler: replace ITokenGenerator dependency with IAdminSettings. Issue JWT with role:admin claim, signed with IAdminSettings.JwtSecret, expiring in 480 minutes. IAdminSettings interface: remove AdminEmail property, retain JwtSecret. AdminSettings implementation: remove adminEmail constructor parameter and property. Unit test (LoginHandlerShould) stubs IAdminSettings only.",
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/Epic1_AdminAuth/admin-login.feature",
+          "scenario_name": "Christian logs in and can immediately manage posts"
+        },
+        {
+          "id": "01-02",
+          "name": "Delete 10 dead OAuth files and clean up registrations",
+          "description": "Remove all OAuth admin infrastructure: 10 source files deleted, DI registrations removed from Program.cs, test overrides removed from WebApplicationFactory. No new logic — deletion and cleanup only.",
+          "criteria": [
+            "GET /api/auth/admin/login returns 404",
+            "GET /api/auth/admin/callback returns 404",
+            "Backend builds and all existing tests pass after deletions",
+            "All acceptance tests leveraging admin authentication pass without OAuth infrastructure stubs"
+          ],
+          "time_estimate": "1h",
+          "dependencies": ["01-01"],
+          "files_to_modify": [
+            "backend/src/TacBlog.Api/Program.cs",
+            "backend/tests/TacBlog.Acceptance.Tests/Support/TacBlogWebApplicationFactory.cs"
+          ],
+          "files_to_delete": [
+            "backend/src/TacBlog.Application/Features/Auth/InitiateAdminOAuth.cs",
+            "backend/src/TacBlog.Application/Features/Auth/HandleAdminOAuthCallback.cs",
+            "backend/src/TacBlog.Application/Features/Auth/VerifyAdminToken.cs",
+            "backend/src/TacBlog.Application/Ports/Driven/IAdminTokenStore.cs",
+            "backend/src/TacBlog.Application/Ports/Driven/ITokenGenerator.cs",
+            "backend/src/TacBlog.Infrastructure/Auth/InMemoryAdminTokenStore.cs",
+            "backend/src/TacBlog.Infrastructure/Auth/RedisAdminTokenStore.cs",
+            "backend/src/TacBlog.Infrastructure/Identity/JwtTokenGenerator.cs",
+            "backend/src/TacBlog.Api/Endpoints/AdminOAuthEndpoints.cs",
+            "frontend/src/pages/admin/oauth/callback.astro"
+          ],
+          "implementation_notes": "Program.cs: remove Redis block, keyed IOAuthClient('admin'), ITokenGenerator registration, app.MapAdminOAuthEndpoints() call. WebApplicationFactory: remove TestAdminOAuthEmail constant, keyed IOAuthClient('admin') override, IAdminTokenStore override, Admin:Email config key. Enable F-09 and F-10 scenarios.",
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/Epic1_AdminAuth/admin-login.feature",
+          "scenario_name": "Old admin OAuth initiate endpoint is no longer available"
+        },
+        {
+          "id": "01-03",
+          "name": "Update AuthorMode step definitions to use login endpoint",
+          "description": "Replace OAuth stub calls in three AuthSteps methods with direct POST /api/auth/login via the auth driver. Acceptance tests relying on GivenChristianIsAuthenticatedAsAdmin must pass without any OAuth infrastructure.",
+          "criteria": [
+            "Authenticated author can access the admin post list after login via the auth driver",
+            "Acceptance tests GivenChristianIsAuthenticatedAsAdmin, GivenChristianHasAValidAdminSession pass without OAuth stubs",
+            "No OAuth-related step definitions remain in AuthSteps.cs"
+          ],
+          "time_estimate": "1h",
+          "dependencies": ["01-02"],
+          "files_to_modify": [
+            "backend/tests/TacBlog.Acceptance.Tests/Steps/AuthorMode/AuthSteps.cs"
+          ],
+          "implementation_notes": "Update three step definitions to authenticate via POST /api/auth/login with admin credentials instead of OAuth stubs. Remove all OAuth-related calls. Enable F-01 scenario.",
+          "test_file": "backend/tests/TacBlog.Acceptance.Tests/Features/Epic1_AdminAuth/admin-login.feature",
+          "scenario_name": "Authenticated author accesses the admin post list without interruption"
+        },
+        {
+          "id": "01-04",
+          "name": "Replace OAuth button on admin login page with email/password form",
+          "description": "Update admin/login.astro: remove OAuth redirect button, add email/password form with fetch-based submit, loading state, inline error display, and lockout message on 429 response.",
+          "criteria": [
+            "Admin login page renders an email input, password input, and submit button",
+            "Successful login redirects to the admin area",
+            "Wrong credentials display an inline error message without page reload",
+            "429 response displays the lockout message inline",
+            "npm run build passes with no errors"
+          ],
+          "time_estimate": "1h",
+          "dependencies": ["01-03"],
+          "files_to_modify": [
+            "frontend/src/pages/admin/login.astro"
+          ],
+          "implementation_notes": "No BDD scenario targets this step — quality gate is a passing frontend build. Remove OAuth button and OAuth-related links. Admin login form submits email/password to POST /api/auth/login endpoint. Display errors inline without page reload. Handle 429 response with inline lockout message.",
+          "test_file": "",
+          "scenario_name": "npm run build"
+        }
+      ]
+    }
+  ],
+  "implementation_scope": {
+    "source_directories": [
+      "backend/src/TacBlog.Application/Features/Auth/",
+      "backend/src/TacBlog.Application/Ports/Driven/",
+      "backend/src/TacBlog.Infrastructure/Auth/",
+      "backend/src/TacBlog.Infrastructure/Identity/",
+      "backend/src/TacBlog.Api/Endpoints/",
+      "backend/src/TacBlog.Api/",
+      "frontend/src/pages/admin/"
+    ],
+    "test_directories": [
+      "backend/tests/TacBlog.Application.Tests/Features/Auth/",
+      "backend/tests/TacBlog.Acceptance.Tests/Features/Epic1_AdminAuth/",
+      "backend/tests/TacBlog.Acceptance.Tests/Steps/AuthorMode/",
+      "backend/tests/TacBlog.Acceptance.Tests/Support/"
+    ],
+    "excluded_patterns": [
+      "bin/**",
+      "obj/**",
+      "*.user",
+      "node_modules/**",
+      ".astro/**"
+    ]
+  },
+  "validation": {
+    "status": "approved",
+    "reviewer": "solution-architect-reviewer",
+    "approved_at": "2026-03-15"
+  }
+}

@@ -2,7 +2,7 @@ namespace TacBlog.Acceptance.Tests.Contexts;
 
 public sealed class AuthContext
 {
-    public string? JwtToken { get; set; }
+    public string? ApiKey { get; set; }
 
-    public bool IsAuthenticated => JwtToken is not null;
+    public bool IsAuthenticated => ApiKey is not null;
 }

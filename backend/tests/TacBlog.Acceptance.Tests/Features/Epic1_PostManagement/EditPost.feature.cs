@@ -166,14 +166,14 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
     await testRunner.GivenAsync("a published post \"TDD Is Not About Testing\" exists with slug \"tdd-is-not-about-te" +
                         "sting\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-                global::Reqnroll.Table table11 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table12 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "TDD Is About Design, Not Testing"});
-                table11.AddRow(new string[] {
+                table12.AddRow(new string[] {
                             "content",
                             "Updated Markdown content"});
 #line 14
-    await testRunner.WhenAsync("Christian updates the post with:", ((string)(null)), table11, "When ");
+    await testRunner.WhenAsync("Christian updates the post with:", ((string)(null)), table12, "When ");
 #line hidden
 #line 17
     await testRunner.ThenAsync("the response status is 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
@@ -244,29 +244,29 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
 #line 9
   await this.FeatureBackgroundAsync();
 #line hidden
-                global::Reqnroll.Table table12 = new global::Reqnroll.Table(new string[] {
-                            "title",
-                            "TDD Is Not About Testing"});
-                table12.AddRow(new string[] {
-                            "slug",
-                            "tdd-is-not-about-testing"});
-                table12.AddRow(new string[] {
-                            "tags",
-                            "TDD, Clean Code"});
-#line 27
-    await testRunner.GivenAsync("a post exists with:", ((string)(null)), table12, "Given ");
-#line hidden
-#line 31
-    await testRunner.WhenAsync("Christian retrieves the post for editing", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
                 global::Reqnroll.Table table13 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "TDD Is Not About Testing"});
                 table13.AddRow(new string[] {
                             "slug",
                             "tdd-is-not-about-testing"});
+                table13.AddRow(new string[] {
+                            "tags",
+                            "TDD, Clean Code"});
+#line 27
+    await testRunner.GivenAsync("a post exists with:", ((string)(null)), table13, "Given ");
+#line hidden
+#line 31
+    await testRunner.WhenAsync("Christian retrieves the post for editing", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+                global::Reqnroll.Table table14 = new global::Reqnroll.Table(new string[] {
+                            "title",
+                            "TDD Is Not About Testing"});
+                table14.AddRow(new string[] {
+                            "slug",
+                            "tdd-is-not-about-testing"});
 #line 32
-    await testRunner.ThenAsync("the response contains:", ((string)(null)), table13, "Then ");
+    await testRunner.ThenAsync("the response contains:", ((string)(null)), table14, "Then ");
 #line hidden
 #line 35
     await testRunner.AndAsync("the post has tags \"TDD\" and \"Clean Code\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");

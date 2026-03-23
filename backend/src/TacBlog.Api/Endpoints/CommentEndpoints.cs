@@ -1,3 +1,4 @@
+using TacBlog.Api;
 using TacBlog.Application.Features.Comments;
 
 namespace TacBlog.Api.Endpoints;
@@ -11,8 +12,8 @@ public static class CommentEndpoints
         app.MapPost("/api/posts/{slug}/comments", PostCommentAsync).AllowAnonymous();
         app.MapGet("/api/posts/{slug}/comments", GetCommentsAsync).AllowAnonymous();
         app.MapGet("/api/posts/{slug}/comments/count", GetCommentCountAsync).AllowAnonymous();
-        app.MapDelete("/api/posts/{slug}/comments/{commentId:guid}", DeleteCommentAsync).RequireAuthorization();
-        app.MapGet("/api/admin/comments", ListAdminCommentsAsync).RequireAuthorization();
+        app.MapDelete("/api/posts/{slug}/comments/{commentId:guid}", DeleteCommentAsync).AddEndpointFilter<AdminApiKeyFilter>();
+        app.MapGet("/api/admin/comments", ListAdminCommentsAsync).AddEndpointFilter<AdminApiKeyFilter>();
     }
 
     private static async Task<IResult> PostCommentAsync(

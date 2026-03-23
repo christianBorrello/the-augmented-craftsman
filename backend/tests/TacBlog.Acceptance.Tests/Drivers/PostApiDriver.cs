@@ -70,7 +70,7 @@ public sealed class PostApiDriver(HttpClient client, ApiContext apiContext, Auth
         var request = new HttpRequestMessage(method, path) { Content = content };
 
         if (authContext.IsAuthenticated)
-            request.Headers.Authorization = new("Bearer", authContext.JwtToken);
+            request.Headers.Add("X-Admin-Key", authContext.ApiKey);
 
         var response = await client.SendAsync(request);
         await apiContext.CaptureResponse(response);

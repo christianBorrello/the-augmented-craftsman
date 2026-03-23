@@ -150,33 +150,33 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
             else
             {
                 await this.ScenarioStartAsync();
-                global::Reqnroll.Table table21 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table22 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "tags"});
-                table21.AddRow(new string[] {
+                table22.AddRow(new string[] {
                             "TDD Is Not About Testing",
                             "TDD, Clean Code"});
-                table21.AddRow(new string[] {
+                table22.AddRow(new string[] {
                             "The Red-Green-Refactor Cycle",
                             "TDD"});
-                table21.AddRow(new string[] {
+                table22.AddRow(new string[] {
                             "Test Doubles Explained",
                             "TDD, Testing"});
-                table21.AddRow(new string[] {
+                table22.AddRow(new string[] {
                             "Why Value Objects Matter",
                             "DDD"});
 #line 13
-    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table21, "Given ");
+    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table22, "Given ");
 #line hidden
 #line 19
     await testRunner.WhenAsync("a reader requests related posts for \"tdd-is-not-about-testing\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-                global::Reqnroll.Table table22 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table23 = new global::Reqnroll.Table(new string[] {
                             "The Red-Green-Refactor Cycle"});
-                table22.AddRow(new string[] {
+                table23.AddRow(new string[] {
                             "Test Doubles Explained"});
 #line 20
-    await testRunner.ThenAsync("the related posts include:", ((string)(null)), table22, "Then ");
+    await testRunner.ThenAsync("the related posts include:", ((string)(null)), table23, "Then ");
 #line hidden
 #line 23
     await testRunner.AndAsync("\"Why Value Objects Matter\" is not in the related posts", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
@@ -206,28 +206,28 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
             else
             {
                 await this.ScenarioStartAsync();
-                global::Reqnroll.Table table23 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table24 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "date",
                             "tags"});
-                table23.AddRow(new string[] {
+                table24.AddRow(new string[] {
                             "TDD Is Not About Testing",
                             "2026-03-05",
                             "TDD, Clean Code, SOLID"});
-                table23.AddRow(new string[] {
+                table24.AddRow(new string[] {
                             "Clean Code Fundamentals",
                             "2026-03-04",
                             "Clean Code, SOLID"});
-                table23.AddRow(new string[] {
+                table24.AddRow(new string[] {
                             "Red-Green-Refactor",
                             "2026-03-03",
                             "TDD"});
-                table23.AddRow(new string[] {
+                table24.AddRow(new string[] {
                             "SOLID Deep Dive",
                             "2026-03-02",
                             "SOLID"});
 #line 27
-    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table23, "Given ");
+    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table24, "Given ");
 #line hidden
 #line 33
     await testRunner.WhenAsync("a reader requests related posts for \"tdd-is-not-about-testing\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
@@ -263,24 +263,24 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
             else
             {
                 await this.ScenarioStartAsync();
-                global::Reqnroll.Table table24 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table25 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "date",
                             "tags"});
-                table24.AddRow(new string[] {
+                table25.AddRow(new string[] {
                             "TDD Is Not About Testing",
                             "2026-03-05",
                             "TDD"});
-                table24.AddRow(new string[] {
+                table25.AddRow(new string[] {
                             "Older TDD Post",
                             "2026-03-01",
                             "TDD"});
-                table24.AddRow(new string[] {
+                table25.AddRow(new string[] {
                             "Newer TDD Post",
                             "2026-03-04",
                             "TDD"});
 #line 39
-    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table24, "Given ");
+    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table25, "Given ");
 #line hidden
 #line 44
     await testRunner.WhenAsync("a reader requests related posts for \"tdd-is-not-about-testing\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
@@ -310,26 +310,26 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
             else
             {
                 await this.ScenarioStartAsync();
-                global::Reqnroll.Table table25 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table26 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "tags"});
-                table25.AddRow(new string[] {
+                table26.AddRow(new string[] {
                             "TDD Is Not About Testing",
                             "TDD"});
-                table25.AddRow(new string[] {
+                table26.AddRow(new string[] {
                             "Related Post 1",
                             "TDD"});
-                table25.AddRow(new string[] {
+                table26.AddRow(new string[] {
                             "Related Post 2",
                             "TDD"});
-                table25.AddRow(new string[] {
+                table26.AddRow(new string[] {
                             "Related Post 3",
                             "TDD"});
-                table25.AddRow(new string[] {
+                table26.AddRow(new string[] {
                             "Related Post 4",
                             "TDD"});
 #line 48
-    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table25, "Given ");
+    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table26, "Given ");
 #line hidden
 #line 55
     await testRunner.WhenAsync("a reader requests related posts for \"tdd-is-not-about-testing\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
@@ -359,17 +359,17 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
             else
             {
                 await this.ScenarioStartAsync();
-                global::Reqnroll.Table table26 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table27 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "tags"});
-                table26.AddRow(new string[] {
+                table27.AddRow(new string[] {
                             "TDD Is Not About Testing",
                             "TDD"});
-                table26.AddRow(new string[] {
+                table27.AddRow(new string[] {
                             "Another TDD Post",
                             "TDD"});
 #line 59
-    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table26, "Given ");
+    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table27, "Given ");
 #line hidden
 #line 63
     await testRunner.WhenAsync("a reader requests related posts for \"tdd-is-not-about-testing\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");

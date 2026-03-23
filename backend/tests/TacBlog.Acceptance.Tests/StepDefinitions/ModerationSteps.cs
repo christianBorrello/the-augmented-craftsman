@@ -18,13 +18,13 @@ public sealed class ModerationSteps(
     public async Task WhenTheAdminDeletesTheCommentByOn(string displayName, string postSlug)
     {
         var commentId = await FindCommentIdByDisplayName(displayName, postSlug);
-        await commentDriver.DeleteComment(postSlug, commentId, authContext.JwtToken);
+        await commentDriver.DeleteComment(postSlug, commentId, authContext.ApiKey);
     }
 
     [When("the admin deletes a non-existent comment on {string}")]
     public async Task WhenTheAdminDeletesANonExistentCommentOn(string postSlug)
     {
-        await commentDriver.DeleteComment(postSlug, Guid.NewGuid(), authContext.JwtToken);
+        await commentDriver.DeleteComment(postSlug, Guid.NewGuid(), authContext.ApiKey);
     }
 
     [When("an unauthenticated user deletes the comment by {string} on {string}")]
@@ -44,7 +44,7 @@ public sealed class ModerationSteps(
     [When("the admin lists all comments")]
     public async Task WhenTheAdminListsAllComments()
     {
-        await commentDriver.GetAdminComments(authContext.JwtToken);
+        await commentDriver.GetAdminComments(authContext.ApiKey);
     }
 
     [When("an unauthenticated user lists all comments")]

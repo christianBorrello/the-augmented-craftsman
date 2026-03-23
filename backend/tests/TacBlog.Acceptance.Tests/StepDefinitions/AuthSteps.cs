@@ -17,30 +17,21 @@ public sealed class AuthSteps
         _authContext = authContext;
     }
 
-    [When("Christian logs in with email {string} and password {string}")]
-    public async Task WhenChristianLogsInWith(string email, string password)
+    [Given("Christian provides the correct API key")]
+    public void GivenChristianProvidesTheCorrectApiKey()
     {
-        await _authDriver.Login(email, password);
+        _authDriver.Authenticate();
     }
 
-    [Given("Christian has failed login {int} times in the last {int} minutes")]
-    public async Task GivenChristianHasFailedLoginNTimes(int attempts, int minutes)
+    [When("Christian provides a wrong API key")]
+    public void WhenChristianProvidesAWrongApiKey()
     {
-        for (var i = 0; i < attempts; i++)
-        {
-            await _authDriver.Login("christian.borrello@live.it", "wrong-password");
-        }
+        _authContext.ApiKey = "wrong-api-key";
     }
 
-    [Then("the response contains a valid authentication token")]
-    public void ThenTheResponseContainsAValidAuthenticationToken()
+    [Then("Christian is authenticated as admin")]
+    public void ThenChristianIsAuthenticatedAsAdmin()
     {
-        _authContext.JwtToken.Should().NotBeNullOrWhiteSpace();
-    }
-
-    [Then("no authentication token is issued")]
-    public void ThenNoAuthenticationTokenIsIssued()
-    {
-        _authContext.JwtToken.Should().BeNull();
+        _authContext.IsAuthenticated.Should().BeTrue();
     }
 }

@@ -33,7 +33,7 @@ public sealed class TagApiDriver(HttpClient client, ApiContext apiContext, AuthC
         var request = new HttpRequestMessage(method, path) { Content = content };
 
         if (authContext.IsAuthenticated)
-            request.Headers.Authorization = new("Bearer", authContext.JwtToken);
+            request.Headers.Add("X-Admin-Key", authContext.ApiKey);
 
         var response = await client.SendAsync(request);
         await apiContext.CaptureResponse(response);

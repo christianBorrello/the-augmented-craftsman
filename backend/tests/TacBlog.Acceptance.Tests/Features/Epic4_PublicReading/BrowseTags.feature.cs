@@ -150,23 +150,23 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
             else
             {
                 await this.ScenarioStartAsync();
-                global::Reqnroll.Table table16 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table17 = new global::Reqnroll.Table(new string[] {
                             "name",
                             "post_count"});
-                table16.AddRow(new string[] {
+                table17.AddRow(new string[] {
                             "TDD",
                             "5"});
-                table16.AddRow(new string[] {
+                table17.AddRow(new string[] {
                             "Clean Code",
                             "3"});
-                table16.AddRow(new string[] {
+                table17.AddRow(new string[] {
                             "Architecture",
                             "2"});
-                table16.AddRow(new string[] {
+                table17.AddRow(new string[] {
                             "DDD",
                             "1"});
 #line 11
-    await testRunner.GivenAsync("these tags exist with published post counts:", ((string)(null)), table16, "Given ");
+    await testRunner.GivenAsync("these tags exist with published post counts:", ((string)(null)), table17, "Given ");
 #line hidden
 #line 17
     await testRunner.WhenAsync("a reader requests all tags", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");

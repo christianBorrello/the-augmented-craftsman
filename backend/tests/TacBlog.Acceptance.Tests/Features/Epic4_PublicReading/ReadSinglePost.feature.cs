@@ -150,23 +150,23 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
             else
             {
                 await this.ScenarioStartAsync();
-                global::Reqnroll.Table table20 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table21 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "TDD Is Not About Testing"});
-                table20.AddRow(new string[] {
+                table21.AddRow(new string[] {
                             "date",
                             "2026-03-05"});
-                table20.AddRow(new string[] {
+                table21.AddRow(new string[] {
                             "tags",
                             "TDD, Clean Code"});
-                table20.AddRow(new string[] {
+                table21.AddRow(new string[] {
                             "image",
                             "https://ik.imagekit.io/augmented/tdd-cycle.png"});
-                table20.AddRow(new string[] {
+                table21.AddRow(new string[] {
                             "content",
                             "Technical content with a code example"});
 #line 10
-    await testRunner.GivenAsync("a published post exists:", ((string)(null)), table20, "Given ");
+    await testRunner.GivenAsync("a published post exists:", ((string)(null)), table21, "Given ");
 #line hidden
 #line 16
     await testRunner.WhenAsync("a reader requests the post with slug \"tdd-is-not-about-testing\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");

@@ -1,0 +1,259 @@
+journey:
+  name: "Admin Login"
+  feature_id: "admin-auth-simplification"
+  goal: "Authenticate to the admin panel to manage blog posts"
+  persona: "Christian — sole author and administrator of The Augmented Craftsman"
+  trigger: "Christian navigates to /admin or /admin/login"
+  date: "2026-03-15"
+
+  emotional_arc:
+    start: "Purposeful — intent to write or manage content"
+    middle: "Focused & Calm — entering known credentials into a familiar form"
+    end: "Settled & Productive — inside the admin dashboard, ready to write"
+    pattern: "Problem Relief"
+    notes: >
+      Former OAuth flow introduced anxiety (redirect to GitHub, wait for callback,
+      potential token failures). The simplified flow removes all external dependencies,
+      restoring the feeling of control. The emotion arc is intentionally flat and
+      frictionless — no dramatic moments, because there should be none.
+
+steps:
+  - id: 1
+    name: "View Admin Login Page"
+    action: "Navigate to /admin/login"
+    actor: "Christian (browser)"
+
+    web_mockup: |
+      +-- Admin Login Page (/admin/login) ----------------------------+
+      |  The Augmented Craftsman                                      |
+      |  ── Admin Login ─────────────────────────────────────────    |
+      |                                                               |
+      |  Email                                                        |
+      |  ┌────────────────────────────────────────────────────┐      |
+      |  │ ${admin_email}                                      │      |
+      |  └────────────────────────────────────────────────────┘      |
+      |                                                               |
+      |  Password                                                     |
+      |  ┌────────────────────────────────────────────────────┐      |
+      |  │ ••••••••••••                                        │      |
+      |  └────────────────────────────────────────────────────┘      |
+      |                                                               |
+      |  [          Sign In          ]                                |
+      |                                                               |
+      +---------------------------------------------------------------+
+
+    shared_artifacts:
+      - name: "admin_email"
+        source: "appsettings / environment variable ADMIN_EMAIL"
+        displayed_as: "pre-fill hint (optional, browser autocomplete)"
+        consumers:
+          - "frontend/src/pages/admin/login.astro (form)"
+          - "Application/Features/Auth/Login.cs (LoginHandler validation)"
+
+    emotional_state:
+      entry: "Purposeful — has a content task to complete"
+      exit: "Familiar & Expected — standard email/password form"
+
+    integration_checkpoint: |
+      Page loads without any OAuth redirect.
+      No GitHub OAuth app dependency.
+      No IAdminTokenStore required.
+
+    gherkin: |
+      Scenario: Admin login page renders correctly
+        Given Christian navigates to /admin/login
+        When the page loads
+        Then an email field and a password field are visible
+        And a "Sign In" button is visible
+        And no OAuth redirect occurs
+
+  - id: 2
+    name: "Submit Credentials"
+    action: "POST /api/auth/login with email and password"
+    actor: "Christian (browser form submit)"
+
+    web_mockup: |
+      +-- Sign In (in-flight) ----------------------------------------+
+      |  [   Signing in...   ]  (button disabled, loading indicator)  |
+      +---------------------------------------------------------------+
+
+    shared_artifacts:
+      - name: "admin_email"
+        source: "appsettings / environment variable ADMIN_EMAIL"
+        displayed_as: "request body field: email"
+        consumers:
+          - "Application/Features/Auth/Login.cs (LoginHandler)"
+      - name: "admin_password_hash"
+        source: "appsettings / environment variable ADMIN_PASSWORD_HASH (bcrypt)"
+        displayed_as: "validated internally (not displayed)"
+        consumers:
+          - "Application/Features/Auth/Login.cs (FailureTracker + bcrypt verify)"
+
+    emotional_state:
+      entry: "Focused & Calm"
+      exit: "Anticipating — brief API response wait (<200ms expected)"
+
+    integration_checkpoint: |
+      LoginHandler receives request.
+      FailureTracker checked BEFORE credential validation (lockout-first check).
+      bcrypt comparison occurs only when not locked out.
+
+    gherkin: |
+      Scenario: Valid credentials submitted
+        Given Christian is on the admin login page
+        And the account is not locked out
+        When Christian enters his email and correct password
+        And clicks "Sign In"
+        Then a POST request is sent to /api/auth/login
+        And the button shows a loading state
+
+      Scenario: Invalid credentials submitted
+        Given Christian is on the admin login page
+        And the account is not locked out
+        When Christian enters his email and an incorrect password
+        And clicks "Sign In"
+        Then a POST request is sent to /api/auth/login
+
+  - id: 3
+    name: "Receive Authentication Result"
+    action: "API responds with JWT or error"
+    actor: "LoginHandler (.NET)"
+
+    web_mockup_success: |
+      +-- Success (transparent, redirect in <50ms) -------------------+
+      |  (No visible state — redirect fires immediately)              |
+      +---------------------------------------------------------------+
+
+    web_mockup_failure: |
+      +-- Login Error ------------------------------------------------+
+      |  The Augmented Craftsman — Admin Login                        |
+      |                                                               |
+      |  ✗  Invalid email or password.                                |
+      |                                                               |
+      |  Email                                                        |
+      |  ┌────────────────────────────────────────────────────┐      |
+      |  │ ${admin_email}                                      │      |
+      |  └────────────────────────────────────────────────────┘      |
+      |  Password  [field highlighted in error state]                 |
+      |  ┌────────────────────────────────────────────────────┐      |
+      |  │ ••••••••                                            │      |
+      |  └────────────────────────────────────────────────────┘      |
+      |                                                               |
+      |  [          Sign In          ]                                |
+      +---------------------------------------------------------------+
+
+    web_mockup_lockout: |
+      +-- Lockout Active ---------------------------------------------+
+      |  ✗  Too many failed attempts. Try again in 15 minutes.       |
+      |                                                               |
+      |  [Sign In] (disabled)                                         |
+      +---------------------------------------------------------------+
+
+    shared_artifacts:
+      - name: "admin_jwt_token"
+        source: "Application/Features/Auth/Login.cs (LoginHandler — emits token)"
+        displayed_as: "httpOnly cookie or Authorization header (DESIGN wave decision)"
+        consumers:
+          - "Api/Endpoints/* (all admin endpoints — Bearer token validation)"
+          - "frontend/src/pages/admin/* (Astro admin pages — session check)"
+      - name: "jwt_secret"
+        source: "IAdminSettings.JwtSecret (from appsettings / environment variable)"
+        displayed_as: "used for HMAC signing (not displayed)"
+        consumers:
+          - "Application/Features/Auth/Login.cs (token signing)"
+          - "Api/Auth middleware (token verification)"
+
+    emotional_state:
+      entry: "Anticipating"
+      exit_success: "Immediate Relief — token issued, redirecting"
+      exit_failure: "Alert but guided — error is clear and non-technical"
+      exit_lockout: "Resigned but reassured — duration shown explicitly"
+
+    integration_checkpoint: |
+      JWT MUST contain claim: role = "admin".
+      JWT MUST be signed with IAdminSettings.JwtSecret (NOT the reader JWT secret).
+      JWT lifetime: 480 minutes (8 hours) — covers a full writing session.
+      All existing admin endpoints validate role = "admin" claim — no changes needed there.
+
+    gherkin: |
+      Scenario: Authentication succeeds — admin JWT issued
+        Given Christian submits correct credentials
+        When LoginHandler processes the request
+        Then a JWT is issued containing the claim role = "admin"
+        And the JWT is signed with the admin JWT secret
+        And the JWT has a lifetime of 480 minutes
+        And the response redirects Christian to /admin/dashboard
+
+      Scenario: Authentication fails — wrong password
+        Given Christian submits an incorrect password
+        When LoginHandler processes the request
+        Then a 401 response is returned
+        And the error message is "Invalid email or password" (generic)
+        And the failed attempt is recorded in FailureTracker
+        And Christian remains on the login page
+
+      Scenario: Lockout threshold reached
+        Given Christian has failed 5 consecutive login attempts
+        When Christian attempts to log in again
+        Then LoginHandler rejects the request before checking the password
+        And the response indicates the account is locked
+        And the lockout duration (15 minutes) is communicated
+        And no password comparison is performed
+
+  - id: 4
+    name: "Access Admin Dashboard"
+    action: "Browser loads /admin/dashboard"
+    actor: "Christian (authenticated)"
+
+    web_mockup: |
+      +-- Admin Dashboard (/admin/dashboard) ------------------------+
+      |  The Augmented Craftsman — Admin                             |
+      |  ── Dashboard ───────────────────────────────────────────   |
+      |                                                              |
+      |  [+ New Post]  [Drafts (3)]  [Published (42)]               |
+      |                                                              |
+      +--------------------------------------------------------------+
+
+    shared_artifacts:
+      - name: "admin_jwt_token"
+        source: "Step 3 — LoginHandler"
+        displayed_as: "Bearer token in request (transparent to Christian)"
+        consumers:
+          - "All /admin/* API endpoints"
+
+    emotional_state:
+      entry: "Immediate Relief"
+      exit: "Settled & Productive — goal achieved"
+
+    integration_checkpoint: |
+      Admin endpoints accept the JWT issued by LoginHandler.
+      role = "admin" claim passes existing authorization middleware.
+      No IAdminTokenStore required. No Redis dependency for auth.
+
+    gherkin: |
+      Scenario: Admin dashboard accessible after login
+        Given Christian has successfully authenticated
+        When the browser is redirected to /admin/dashboard
+        Then the admin dashboard renders
+        And Christian can access post management features
+        And the session persists for the duration of the JWT lifetime (480 min)
+
+integration_validation:
+  shared_artifact_consistency:
+    - artifact: "admin_jwt_token"
+      must_match_across: [3, 4]
+      failure_message: >
+        JWT issued in Step 3 must be accepted by all admin endpoints in Step 4.
+        Failure mode: different JWT secrets used for signing vs. verification.
+
+    - artifact: "jwt_secret"
+      must_match_across: [3, 4]
+      failure_message: >
+        IAdminSettings.JwtSecret must be the same value at token issuance and
+        token verification. Configuration drift here causes silent auth failures.
+
+    - artifact: "admin_email"
+      must_match_across: [1, 2]
+      failure_message: >
+        Email used in form must match email stored in AdminCredentials configuration.
+        Case-sensitive comparison risk.

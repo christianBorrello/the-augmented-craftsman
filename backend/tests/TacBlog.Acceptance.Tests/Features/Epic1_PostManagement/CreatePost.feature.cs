@@ -165,14 +165,14 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
 #line 14
     await testRunner.GivenAsync("tags \"TDD\" and \"Clean Code\" exist", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-                global::Reqnroll.Table table7 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table8 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "TDD Is Not About Testing"});
-                table7.AddRow(new string[] {
+                table8.AddRow(new string[] {
                             "content",
                             "## The Misconception\nTDD is about **design**, not verification."});
 #line 15
-    await testRunner.WhenAsync("Christian creates a post with:", ((string)(null)), table7, "When ");
+    await testRunner.WhenAsync("Christian creates a post with:", ((string)(null)), table8, "When ");
 #line hidden
 #line 18
     await testRunner.AndAsync("assigns tags \"TDD\" and \"Clean Code\" to the post", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
@@ -214,14 +214,14 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
 #line 10
   await this.FeatureBackgroundAsync();
 #line hidden
-                global::Reqnroll.Table table8 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table9 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "Quick Note on Refactoring"});
-                table8.AddRow(new string[] {
+                table9.AddRow(new string[] {
                             "content",
                             "Refactor on green."});
 #line 25
-    await testRunner.WhenAsync("Christian creates a post with:", ((string)(null)), table8, "When ");
+    await testRunner.WhenAsync("Christian creates a post with:", ((string)(null)), table9, "When ");
 #line hidden
 #line 28
     await testRunner.ThenAsync("the response status is 201", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
@@ -260,14 +260,14 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
 #line 10
   await this.FeatureBackgroundAsync();
 #line hidden
-                global::Reqnroll.Table table9 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table10 = new global::Reqnroll.Table(new string[] {
                             "title",
                             ""});
-                table9.AddRow(new string[] {
+                table10.AddRow(new string[] {
                             "content",
                             "Some content"});
 #line 34
-    await testRunner.WhenAsync("Christian creates a post with:", ((string)(null)), table9, "When ");
+    await testRunner.WhenAsync("Christian creates a post with:", ((string)(null)), table10, "When ");
 #line hidden
 #line 37
     await testRunner.ThenAsync("the response status is 400", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
@@ -303,14 +303,14 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
 #line 41
     await testRunner.GivenAsync("a post exists with slug \"tdd-is-not-about-testing\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-                global::Reqnroll.Table table10 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table11 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "TDD Is Not About Testing"});
-                table10.AddRow(new string[] {
+                table11.AddRow(new string[] {
                             "content",
                             "Different content"});
 #line 42
-    await testRunner.WhenAsync("Christian creates a post with:", ((string)(null)), table10, "When ");
+    await testRunner.WhenAsync("Christian creates a post with:", ((string)(null)), table11, "When ");
 #line hidden
 #line 45
     await testRunner.ThenAsync("the response status is 409", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");

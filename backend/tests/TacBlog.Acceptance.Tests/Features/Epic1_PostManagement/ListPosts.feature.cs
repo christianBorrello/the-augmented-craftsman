@@ -162,24 +162,24 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
 #line 9
   await this.FeatureBackgroundAsync();
 #line hidden
-                global::Reqnroll.Table table14 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table15 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "status",
                             "date"});
-                table14.AddRow(new string[] {
+                table15.AddRow(new string[] {
                             "TDD Is Not About Testing",
                             "Published",
                             "2026-03-05"});
-                table14.AddRow(new string[] {
+                table15.AddRow(new string[] {
                             "Draft: Upcoming Post",
                             "Draft",
                             "2026-03-06"});
-                table14.AddRow(new string[] {
+                table15.AddRow(new string[] {
                             "Value Objects Are Not DTOs",
                             "Published",
                             "2026-03-04"});
 #line 13
-    await testRunner.GivenAsync("these posts exist:", ((string)(null)), table14, "Given ");
+    await testRunner.GivenAsync("these posts exist:", ((string)(null)), table15, "Given ");
 #line hidden
 #line 18
     await testRunner.WhenAsync("Christian requests the admin post list", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");

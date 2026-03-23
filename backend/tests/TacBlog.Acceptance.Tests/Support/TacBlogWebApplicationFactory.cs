@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,9 +12,7 @@ namespace TacBlog.Acceptance.Tests.Support;
 
 public sealed class TacBlogWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private const string TestAdminEmail = "christian.borrello@live.it";
-    private const string TestAdminPassword = "valid-password";
-    private const string TestJwtSecret = "test-jwt-secret-key-minimum-32-characters-long!";
+    public const string TestAdminApiKey = "test-admin-api-key";
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:16-alpine")
@@ -30,17 +27,11 @@ public sealed class TacBlogWebApplicationFactory : WebApplicationFactory<Program
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        var hashedPassword = new PasswordHasher<string>().HashPassword(string.Empty, TestAdminPassword);
-
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["AdminCredentials:Email"] = TestAdminEmail,
-                ["AdminCredentials:HashedPassword"] = hashedPassword,
-                ["Jwt:Secret"] = TestJwtSecret,
-                ["Jwt:Issuer"] = "TacBlog-Test",
-                ["Jwt:ExpiryInMinutes"] = "60",
+                ["Admin:ApiKey"] = TestAdminApiKey,
                 ["OAuth:GitHub:ClientId"] = "test-github-client-id",
                 ["OAuth:GitHub:ClientSecret"] = "test-github-client-secret"
             });

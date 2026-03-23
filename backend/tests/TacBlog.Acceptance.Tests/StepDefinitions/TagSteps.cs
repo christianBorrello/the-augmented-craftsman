@@ -73,7 +73,7 @@ public sealed class TagSteps(
     [Given("these tags exist with post counts:")]
     public async Task GivenTheseTagsExistWithPostCounts(DataTable table)
     {
-        await authDriver.Authenticate();
+        authDriver.Authenticate();
 
         foreach (var row in table.Rows)
         {
@@ -312,7 +312,7 @@ public sealed class TagSteps(
     [Given("these tags exist with published post counts:")]
     public async Task GivenTheseTagsExistWithPublishedPostCounts(DataTable table)
     {
-        await authDriver.Authenticate();
+        authDriver.Authenticate();
 
         foreach (var row in table.Rows)
         {
@@ -368,7 +368,7 @@ public sealed class TagSteps(
     [Given("a tag {string} exists with slug {string} and {int} published posts")]
     public async Task GivenATagExistsWithSlugAndPublishedPosts(string name, string slug, int count)
     {
-        await authDriver.Authenticate();
+        authDriver.Authenticate();
 
         await CreateAndStoreTag(name);
         await CreateAndPublishPostsWithTag(name, count);
@@ -383,7 +383,7 @@ public sealed class TagSteps(
     [Given("a tag {string} exists with {int} published posts")]
     public async Task GivenATagExistsWithPublishedPosts(string name, int count)
     {
-        await authDriver.Authenticate();
+        authDriver.Authenticate();
 
         await CreateAndStoreTag(name);
         await CreateAndPublishPostsWithTag(name, count);

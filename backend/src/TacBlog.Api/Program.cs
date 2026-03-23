@@ -1,11 +1,8 @@
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
+using TacBlog.Api;
 using TacBlog.Api.Endpoints;
-using TacBlog.Application.Features.Auth;
 using TacBlog.Application.Features.Images;
 using TacBlog.Application.Features.Posts;
 using TacBlog.Application.Features.Comments;
@@ -109,68 +106,6 @@ builder.Services.AddScoped<UploadImage>();
 builder.Services.AddScoped<SetFeaturedImage>();
 builder.Services.AddScoped<RemoveFeaturedImage>();
 
-builder.Services.AddSingleton(sp =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    var section = config.GetSection("AdminCredentials");
-    var email = section["Email"];
-    var hashedPassword = section["HashedPassword"];
-
-    if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(hashedPassword))
-        return new AdminCredentials(email, hashedPassword);
-
-    if (!builder.Environment.IsDevelopment())
-        throw new InvalidOperationException(
-            "AdminCredentials:Email and AdminCredentials:HashedPassword are required in production.");
-
-    var passwordHasher = new AspNetPasswordHasher();
-    return new AdminCredentials(
-        "admin@localhost",
-        passwordHasher.Hash("dev-admin-password"));
-});
-
-builder.Services.AddSingleton(sp =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    var section = config.GetSection("Jwt");
-    var secret = section["Secret"];
-
-    if (string.IsNullOrEmpty(secret) && !builder.Environment.IsDevelopment())
-        throw new InvalidOperationException(
-            "Jwt:Secret is required in production. Set it via environment variable Jwt__Secret.");
-
-    secret ??= "dev-only-jwt-secret-that-must-not-be-used-in-production-minimum-length";
-
-    return new JwtSettings(
-        secret,
-        section["Issuer"] ?? "TacBlog",
-        int.TryParse(section["ExpiryInMinutes"], out var expiry) ? expiry : 60);
-});
-
-builder.Services.AddSingleton<IPasswordHasher, AspNetPasswordHasher>();
-builder.Services.AddSingleton<ITokenGenerator, JwtTokenGenerator>();
-builder.Services.AddSingleton<LoginHandler>();
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer();
-
-builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-    .Configure<JwtSettings>((options, settings) =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = settings.Issuer,
-            ValidAudience = settings.Issuer,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.Secret))
-        };
-    });
-
-builder.Services.AddAuthorization();
-
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -205,8 +140,6 @@ using (var scope = app.Services.CreateScope())
 
 app.UseSerilogRequestLogging();
 app.UseCors();
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
@@ -226,7 +159,6 @@ app.MapGet("/health/ready", async (TacBlogDbContext db) =>
 });
 
 app.MapPostEndpoints();
-app.MapAuthEndpoints();
 app.MapTagEndpoints();
 app.MapImageEndpoints();
 app.MapLikeEndpoints();

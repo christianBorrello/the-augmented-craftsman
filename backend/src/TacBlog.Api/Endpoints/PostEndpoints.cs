@@ -1,3 +1,4 @@
+using TacBlog.Api;
 using TacBlog.Application.Features.Posts;
 using TacBlog.Application.Ports.Driven;
 using TacBlog.Domain;
@@ -8,16 +9,16 @@ public static class PostEndpoints
 {
     public static void MapPostEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/posts", CreatePostAsync).RequireAuthorization();
+        app.MapPost("/api/posts", CreatePostAsync).AddEndpointFilter<AdminApiKeyFilter>();
         app.MapGet("/api/posts", BrowsePostsAsync).AllowAnonymous();
         app.MapGet("/api/posts/{slug}", ReadPostBySlugAsync).AllowAnonymous();
         app.MapGet("/api/posts/{slug}/related", GetRelatedPostsAsync).AllowAnonymous();
-        app.MapPut("/api/posts/{id:guid}", EditPostAsync).RequireAuthorization();
-        app.MapDelete("/api/posts/{id:guid}", DeletePostAsync).RequireAuthorization();
-        app.MapPost("/api/posts/{id:guid}/publish", PublishPostAsync).RequireAuthorization();
-        app.MapGet("/api/posts/{id:guid}/preview", PreviewPostAsync).RequireAuthorization();
-        app.MapGet("/api/admin/posts", ListAllPostsAsync).RequireAuthorization();
-        app.MapGet("/api/admin/posts/{slug}", GetAdminPostBySlugAsync).RequireAuthorization();
+        app.MapPut("/api/posts/{id:guid}", EditPostAsync).AddEndpointFilter<AdminApiKeyFilter>();
+        app.MapDelete("/api/posts/{id:guid}", DeletePostAsync).AddEndpointFilter<AdminApiKeyFilter>();
+        app.MapPost("/api/posts/{id:guid}/publish", PublishPostAsync).AddEndpointFilter<AdminApiKeyFilter>();
+        app.MapGet("/api/posts/{id:guid}/preview", PreviewPostAsync).AddEndpointFilter<AdminApiKeyFilter>();
+        app.MapGet("/api/admin/posts", ListAllPostsAsync).AddEndpointFilter<AdminApiKeyFilter>();
+        app.MapGet("/api/admin/posts/{slug}", GetAdminPostBySlugAsync).AddEndpointFilter<AdminApiKeyFilter>();
     }
 
     private static async Task<IResult> BrowsePostsAsync(

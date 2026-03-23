@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
@@ -16,10 +15,7 @@ namespace TacBlog.Api.Tests.Endpoints;
 
 public sealed class PostEndpointsShould : IAsyncLifetime
 {
-    private const string JwtSecret = "test-jwt-secret-key-minimum-32-characters-long!";
-    private const string JwtIssuer = "TacBlog-Test";
-    private const string AdminEmail = "admin@test.com";
-    private const string AdminPassword = "test-admin-password";
+    private const string AdminApiKey = "test-admin-api-key";
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:16-alpine")
@@ -40,14 +36,9 @@ public sealed class PostEndpointsShould : IAsyncLifetime
             {
                 builder.ConfigureAppConfiguration((_, config) =>
                 {
-                    var passwordHasher = new Infrastructure.Identity.AspNetPasswordHasher();
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        ["AdminCredentials:Email"] = AdminEmail,
-                        ["AdminCredentials:HashedPassword"] = passwordHasher.Hash(AdminPassword),
-                        ["Jwt:Secret"] = JwtSecret,
-                        ["Jwt:Issuer"] = JwtIssuer,
-                        ["Jwt:ExpiryInMinutes"] = "60"
+                        ["Admin:ApiKey"] = AdminApiKey
                     });
                 });
 
@@ -67,12 +58,11 @@ public sealed class PostEndpointsShould : IAsyncLifetime
             });
 
         _client = _factory.CreateClient();
+        _client.DefaultRequestHeaders.Add("X-Admin-Key", AdminApiKey);
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<TacBlogDbContext>();
         await db.Database.MigrateAsync();
-
-        await AuthenticateAsync();
     }
 
     async Task IAsyncLifetime.DisposeAsync()
@@ -80,16 +70,6 @@ public sealed class PostEndpointsShould : IAsyncLifetime
         _client.Dispose();
         await _factory.DisposeAsync();
         await _postgres.DisposeAsync();
-    }
-
-    private async Task AuthenticateAsync()
-    {
-        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login",
-            new LoginRequest(AdminEmail, AdminPassword));
-
-        var login = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
-        _client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", login!.Token);
     }
 
     private async Task<PostResponse> CreatePostViaApiAsync(
@@ -201,7 +181,7 @@ public sealed class PostEndpointsShould : IAsyncLifetime
     }
 
     [Fact]
-    public async Task require_auth_for_admin_list()
+    public async Task require_api_key_for_admin_list()
     {
         var unauthenticatedClient = _factory.CreateClient();
 
@@ -238,7 +218,7 @@ public sealed class PostEndpointsShould : IAsyncLifetime
     [Theory]
     [InlineData("PUT")]
     [InlineData("DELETE")]
-    public async Task require_auth_for_write_endpoints(string method)
+    public async Task require_api_key_for_write_endpoints(string method)
     {
         var unauthenticatedClient = _factory.CreateClient();
         var id = Guid.NewGuid();
@@ -256,7 +236,7 @@ public sealed class PostEndpointsShould : IAsyncLifetime
     }
 
     [Fact]
-    public async Task require_auth_for_publish()
+    public async Task require_api_key_for_publish()
     {
         var unauthenticatedClient = _factory.CreateClient();
 

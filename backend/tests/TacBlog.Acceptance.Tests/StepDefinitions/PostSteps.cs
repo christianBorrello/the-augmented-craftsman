@@ -635,7 +635,7 @@ public sealed class PostSteps
     [Given("these published posts exist:")]
     public async Task GivenThesePublishedPostsExist(DataTable table)
     {
-        await _authDriver.Authenticate();
+        _authDriver.Authenticate();
 
         var rows = table.Rows.ToList();
 
@@ -718,7 +718,7 @@ public sealed class PostSteps
     [Given("{int} published posts and {int} draft posts exist")]
     public async Task GivenPublishedPostsAndDraftPostsExist(int published, int drafts)
     {
-        await _authDriver.Authenticate();
+        _authDriver.Authenticate();
 
         for (var i = 1; i <= published; i++)
         {
@@ -767,7 +767,7 @@ public sealed class PostSteps
     [Given("a published post {string} exists with tags {string} and {string}")]
     public async Task GivenAPublishedPostExistsWithTags(string title, string tag1, string tag2)
     {
-        await _authDriver.Authenticate();
+        _authDriver.Authenticate();
 
         await _postDriver.CreatePostWithTags(title, $"Content for {title}.", [tag1, tag2]);
         CapturePostIdFromResponse();
@@ -842,7 +842,7 @@ public sealed class PostSteps
     [Given("no posts are tagged {string}")]
     public async Task GivenNoPostsAreTagged(string tag)
     {
-        await _authDriver.Authenticate();
+        _authDriver.Authenticate();
         await _tagDriver.CreateTag(tag);
     }
 
@@ -851,7 +851,7 @@ public sealed class PostSteps
     [Given("a published post exists:")]
     public async Task GivenAPublishedPostExistsTable(DataTable table)
     {
-        await _authDriver.Authenticate();
+        _authDriver.Authenticate();
 
         var data = ParseVerticalTable(table);
         var title = data["title"];
@@ -978,7 +978,7 @@ public sealed class PostSteps
     [Given("only one post exists tagged {string}")]
     public async Task GivenOnlyOnePostExistsTagged(string tag)
     {
-        await _authDriver.Authenticate();
+        _authDriver.Authenticate();
 
         await _postDriver.CreatePostWithTags($"Solo {tag} Post", $"Content about {tag}.", [tag]);
         CapturePostIdFromResponse();
@@ -1083,7 +1083,7 @@ public sealed class PostSteps
 
     private async Task EnsureAuthenticated()
     {
-        await _authDriver.Authenticate();
+        _authDriver.Authenticate();
     }
 
     private static Dictionary<string, string> ParseVerticalTable(DataTable table)

@@ -37,7 +37,7 @@ public sealed class ImageApiDriver(HttpClient client, ApiContext apiContext, Aut
     private async Task SendAuthenticatedAsync(HttpRequestMessage request)
     {
         if (authContext.IsAuthenticated)
-            request.Headers.Authorization = new("Bearer", authContext.JwtToken);
+            request.Headers.Add("X-Admin-Key", authContext.ApiKey);
 
         var response = await client.SendAsync(request);
         await apiContext.CaptureResponse(response);

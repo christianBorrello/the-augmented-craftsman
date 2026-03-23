@@ -150,24 +150,24 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
             else
             {
                 await this.ScenarioStartAsync();
-                global::Reqnroll.Table table19 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table20 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "date",
                             "tags"});
-                table19.AddRow(new string[] {
+                table20.AddRow(new string[] {
                             "TDD Is Not About Testing",
                             "2026-03-05",
                             "TDD, Clean Code"});
-                table19.AddRow(new string[] {
+                table20.AddRow(new string[] {
                             "Hexagonal Architecture",
                             "2026-03-04",
                             "Architecture"});
-                table19.AddRow(new string[] {
+                table20.AddRow(new string[] {
                             "Why Value Objects Matter",
                             "2026-03-03",
                             "DDD"});
 #line 10
-    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table19, "Given ");
+    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table20, "Given ");
 #line hidden
 #line 15
     await testRunner.WhenAsync("a GET request is sent to \"/api/posts\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");

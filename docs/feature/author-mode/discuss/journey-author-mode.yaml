@@ -1,0 +1,451 @@
+journey:
+  name: "Author Mode"
+  goal: "Christian Borrello puo' pubblicare e modificare i post del suo blog senza accedere direttamente all'API o al database"
+  persona: "Christian Borrello — unico autore del blog The Augmented Craftsman"
+  feature_id: "author-mode"
+  date: "2026-03-14"
+
+  emotional_arc:
+    start: "Neutro/pratico — accede per fare un lavoro specifico"
+    middle: "Concentrato e in flusso — la scrittura assorbe l'attenzione"
+    peak_tension: "Incertezza al salvataggio — il rebuild funzionerà?"
+    end: "Soddisfazione — il post è online e visibile ai lettori"
+
+  sub_journeys:
+    - id: A
+      name: "Login Admin"
+      trigger: "Christian vuole scrivere o modificare un post e non ha una sessione attiva"
+
+    - id: B
+      name: "Crea Nuovo Post"
+      trigger: "Christian ha un'idea e vuole pubblicarla"
+      depends_on: [A]
+
+    - id: C
+      name: "Modifica Post Esistente (In-Place)"
+      trigger: "Christian legge un suo post e nota un errore o vuole aggiornarlo"
+      depends_on: [A]
+
+    - id: D
+      name: "Gestione Lista Post"
+      trigger: "Christian vuole una visione d'insieme del blog (pubblicati, bozze, archiviati)"
+      depends_on: [A]
+
+steps:
+  # ─── JOURNEY A: LOGIN ───────────────────────────────────────────────────────
+  - id: "A1"
+    journey: "A"
+    name: "Accesso alla pagina di login"
+    action: "GET /admin/login"
+    page_type: "SSR (prerender = false)"
+
+    tui_mockup: |
+      +--------------------------------------------------+
+      |  The Augmented Craftsman                         |
+      +--------------------------------------------------+
+      |                                                  |
+      |         Accesso Autore                           |
+      |                                                  |
+      |    [G]  Accedi con Google                        |
+      |    [GH] Accedi con GitHub                        |
+      |                                                  |
+      |    Solo l'autore autorizzato può accedere        |
+      |    a questa sezione del blog.                    |
+      |                                                  |
+      +--------------------------------------------------+
+
+    shared_artifacts:
+      - name: "session.user"
+        source: "Upstash Redis via Astro Sessions"
+        displayed_as: "assente — pagina login non richiede sessione"
+        consumers: ["middleware /admin/*", "EditControls Server Island", "action handlers"]
+
+    emotional_state:
+      entry: "Neutro — accede come parte di una routine"
+      exit: "Orientato — sa cosa fare dopo il login"
+
+    error_paths:
+      - condition: "Email OAuth non corrisponde a ADMIN_EMAIL"
+        response: "Banner: 'Account non autorizzato. Solo l'autore del blog può accedere.'"
+        recovery: "Riprova con l'account corretto"
+      - condition: "Provider OAuth non disponibile"
+        response: "Banner: 'Autenticazione temporaneamente non disponibile. Riprova tra qualche minuto.'"
+        recovery: "Attesa e nuovo tentativo"
+
+    gherkin: |
+      Scenario: Autore accede con successo via OAuth
+        Given Christian visita /admin/login senza una sessione attiva
+        When Christian clicca "Accedi con Google"
+        And il flow OAuth completa con l'email christian.borrello@gmail.com
+        And il backend verifica che christian.borrello@gmail.com == ADMIN_EMAIL
+        Then Christian viene reindirizzato a /admin/posts
+        And la sessione admin è creata con isAdmin = true
+
+      Scenario: Email OAuth non autorizzata
+        Given Christian visita /admin/login
+        When il flow OAuth completa con l'email altro@gmail.com
+        And il backend verifica che altro@gmail.com != ADMIN_EMAIL
+        Then Christian rimane su /admin/login
+        And vede il messaggio "Account non autorizzato"
+
+  - id: "A2"
+    journey: "A"
+    name: "Sessione scaduta durante navigazione admin"
+    action: "Middleware intercetta richiesta /admin/* con sessione invalida"
+
+    emotional_state:
+      entry: "Ignaro — stava lavorando"
+      exit: "Leggermente frustrato ma con percorso chiaro"
+
+    error_paths:
+      - condition: "Sessione scaduta o rimossa da Redis"
+        response: "Redirect silenzioso a /admin/login con banner 'Sessione scaduta. Accedi di nuovo.'"
+        recovery: "Re-login OAuth"
+
+    gherkin: |
+      Scenario: Sessione scaduta durante navigazione
+        Given Christian è autenticato con una sessione attiva
+        And la sessione scade o viene invalidata in Redis
+        When Christian naviga su qualsiasi pagina /admin/*
+        Then il middleware lo reindirizza a /admin/login
+        And vede il banner "Sessione scaduta. Accedi di nuovo."
+
+  # ─── JOURNEY B: CREA NUOVO POST ─────────────────────────────────────────────
+  - id: "B1"
+    journey: "B"
+    name: "Form creazione nuovo post"
+    action: "GET /admin/posts/new"
+    page_type: "SSR (prerender = false)"
+
+    tui_mockup: |
+      +--------------------------------------------------+
+      |  The Augmented Craftsman — Admin [< Lista post]  |
+      +--------------------------------------------------+
+      |  Nuovo post                                      |
+      |                                                  |
+      |  Titolo *                                        |
+      |  [TDD con .NET 10: la doppia copertura         ] |
+      |                                                  |
+      |  Slug (auto-generato, editabile)                 |
+      |  [tdd-con-dotnet-10-la-doppia-copertura        ] |
+      |                                                  |
+      |  Contenuto *                                     |
+      |  [B][I][H2][H3][Link][Codice][Img]               |
+      |  +--------------------------------------------+  |
+      |  | Il test outside-in parte sempre da...      |  |
+      |  +--------------------------------------------+  |
+      |                                                  |
+      |  Tag: [TDD x] [.NET x] [+ Aggiungi tag]          |
+      |                                                  |
+      |  Immagine copertina: [Scegli file]               |
+      |                                                  |
+      |  Stato: ( ) Bozza  (*) Pubblica ora              |
+      |                                                  |
+      |  [Salva bozza]              [Pubblica]           |
+      +--------------------------------------------------+
+
+    shared_artifacts:
+      - name: "post.slug"
+        source: "Derivato dal titolo dal backend .NET (endpoint createPost)"
+        displayed_as: "Campo slug editabile nel form"
+        consumers: ["URL pubblica /blog/{slug}", "redirect post-save", "EditControls"]
+      - name: "tags[]"
+        source: "Backend .NET — lista tag esistenti via GET /api/tags"
+        displayed_as: "Tag selezionati nel form"
+        consumers: ["pagina pubblica post", "filtro lista admin"]
+      - name: "coverImage.url"
+        source: "ImageKit via backend .NET (upload proxy)"
+        displayed_as: "Preview immagine nel form"
+        consumers: ["pagina pubblica post", "lista admin (thumbnail)"]
+
+    emotional_state:
+      entry: "Motivato — ha un'idea da pubblicare"
+      exit: "Concentrato — immerso nella scrittura"
+
+    integration_checkpoint: |
+      - GET /api/tags deve restituire tag esistenti prima del render del form
+      - La sessione admin deve essere valida (middleware guard)
+
+    gherkin: |
+      Scenario: Autore apre il form per un nuovo post
+        Given Christian è autenticato come admin
+        When Christian naviga su /admin/posts/new
+        Then vede il form con campi: Titolo, Slug, Contenuto, Tag, Immagine, Stato
+        And il campo Slug è vuoto e diventa editabile dopo che il Titolo viene compilato
+        And l'editor Tiptap è disponibile per il contenuto
+
+  - id: "B2"
+    journey: "B"
+    name: "Compilazione e salvataggio come bozza"
+    action: "POST action admin.createPost (status: draft)"
+
+    shared_artifacts:
+      - name: "post.id"
+        source: "Backend .NET — generato all'inserimento in database"
+        displayed_as: "Usato per URL /admin/posts/{id}/edit e API calls successive"
+        consumers: ["form edit", "lista admin", "EditControls Server Island"]
+      - name: "post.status"
+        source: "Backend .NET"
+        displayed_as: "Badge 'Bozza' nella lista admin e nella toolbar EditControls"
+        consumers: ["lista admin", "EditControls", "pagina pubblica (non visibile ai lettori)"]
+
+    emotional_state:
+      entry: "Determinato — ha abbozzato il contenuto"
+      exit: "Sollievo — il lavoro è salvato, può continuare dopo"
+
+    error_paths:
+      - condition: "Titolo vuoto"
+        response: "Validazione inline: 'Il titolo è obbligatorio'"
+        recovery: "Compila il titolo e riprova"
+      - condition: "Backend .NET non raggiungibile"
+        response: "Banner di errore: 'Impossibile salvare. Controlla la connessione e riprova.'"
+        recovery: "Il form mantiene i dati compilati, l'autore può riprovare"
+      - condition: "Upload immagine fallisce"
+        response: "Messaggio inline: 'Upload immagine fallito. Il post verrà salvato senza immagine.'"
+        recovery: "Post salvato senza copertina, upload ritentabile dalla pagina edit"
+
+    gherkin: |
+      Scenario: Autore salva un post come bozza
+        Given Christian ha compilato il form con titolo "TDD con .NET 10"
+        And ha scritto il corpo del post nell'editor
+        And ha selezionato lo stato "Bozza"
+        When Christian clicca "Salva bozza"
+        Then l'Action admin.createPost viene chiamata con status "draft"
+        And Christian viene reindirizzato a /admin/posts
+        And il post appare in lista con stato "Bozza"
+        And il post NON è visibile ai lettori su /blog/
+
+      Scenario: Form con titolo mancante
+        Given Christian ha aperto il form per un nuovo post
+        And ha lasciato il campo Titolo vuoto
+        When Christian clicca "Salva bozza"
+        Then vede il messaggio di validazione "Il titolo è obbligatorio"
+        And il form non viene inviato
+        And i dati già inseriti sono preservati
+
+  - id: "B3"
+    journey: "B"
+    name: "Pubblicazione con rebuild"
+    action: "POST action admin.createPost (status: published) + Vercel rebuild hook"
+
+    tui_mockup: |
+      +--------------------------------------------------+
+      |  The Augmented Craftsman — Admin                 |
+      +--------------------------------------------------+
+      |                                                  |
+      |    Pubblicazione in corso...                     |
+      |                                                  |
+      |    [##########          ] 50%                    |
+      |                                                  |
+      |    Rebuild del sito statico in corso.            |
+      |    Il post sarà visibile ai lettori              |
+      |    tra qualche secondo.                          |
+      |                                                  |
+      |    Non chiudere questa finestra.                 |
+      |                                                  |
+      +--------------------------------------------------+
+
+    emotional_state:
+      entry: "Picco di incertezza — 'funziona? il rebuild parte?'"
+      exit: "Soddisfazione — vede il post live sul suo blog"
+
+    error_paths:
+      - condition: "Rebuild Vercel fallisce o timeout"
+        response: "Banner: 'Il post è stato salvato ma il sito non è ancora aggiornato. Il rebuild si ripeterà automaticamente. Controlla tra qualche minuto.'"
+        recovery: "Link manuale a /blog/{slug} per verificare"
+
+    gherkin: |
+      Scenario: Autore pubblica un nuovo post con rebuild
+        Given Christian ha compilato il form con titolo "TDD con .NET 10"
+        And ha selezionato lo stato "Pubblica ora"
+        When Christian clicca "Pubblica"
+        Then l'Action admin.createPost viene chiamata con status "published"
+        And viene mostrato lo spinner "Pubblicazione in corso..."
+        And il rebuild Vercel si avvia
+        And al completamento Christian viene reindirizzato a /blog/tdd-con-dotnet-10
+        And il post è visibile ai lettori
+
+  # ─── JOURNEY C: MODIFICA IN-PLACE ───────────────────────────────────────────
+  - id: "C1"
+    journey: "C"
+    name: "Autore vede toolbar EditControls sulla pagina pubblica"
+    action: "GET /_server-islands/EditControls (server:defer)"
+
+    tui_mockup: |
+      +--------------------------------------------------+
+      |  The Augmented Craftsman   [Pubblicato][Modifica]|
+      +--------------------------------------------------+
+      |                                                  |
+      |  TDD con .NET 10: la doppia copertura            |
+      |  14 marzo 2026 · 8 min lettura                   |
+      |  [TDD] [.NET] [Clean Architecture]               |
+      |                                                  |
+      |  Il test outside-in parte sempre da un           |
+      |  confine reale del sistema...                    |
+      |                                                  |
+      +--------------------------------------------------+
+
+    shared_artifacts:
+      - name: "session.user.isAdmin"
+        source: "Astro Sessions via Upstash Redis"
+        displayed_as: "Presenza/assenza della toolbar EditControls"
+        consumers: ["Server Island EditControls", "ogni pagina /blog/{slug}"]
+      - name: "post.status"
+        source: "Backend .NET via props criptate della Server Island"
+        displayed_as: "Badge [Pubblicato] o [Bozza] nella toolbar"
+        consumers: ["toolbar EditControls"]
+      - name: "post.id"
+        source: "Backend .NET via props criptate della Server Island"
+        displayed_as: "Non visibile — usato per costruire link a /admin/posts/{id}/edit"
+        consumers: ["link Modifica nella toolbar"]
+
+    emotional_state:
+      entry: "Leggermente irritato (ha visto un errore) o curioso (vuole aggiornare)"
+      exit: "Orientato — la toolbar è discreta, non invadente"
+
+    gherkin: |
+      Scenario: Autore autenticato vede toolbar sulla pagina pubblica
+        Given Christian è autenticato come admin
+        And Christian visita /blog/tdd-con-dotnet-10
+        When la Server Island EditControls fa GET al server
+        And il server verifica la sessione admin
+        Then la toolbar floating appare con [Pubblicato][Modifica]
+        And il badge indica lo stato corrente del post
+
+      Scenario: Lettore non autenticato non vede nessuna toolbar
+        Given un lettore visita /blog/tdd-con-dotnet-10 senza sessione admin
+        When la Server Island EditControls fa GET al server
+        And il server non trova sessione admin
+        Then viene restituito un fragment HTML vuoto
+        And il lettore non vede nessun elemento extra
+        And non c'è impatto sulle performance della pagina
+
+  - id: "C2"
+    journey: "C"
+    name: "Autore clicca Modifica e arriva alla pagina edit"
+    action: "Link a /admin/posts/{id}/edit"
+
+    emotional_state:
+      entry: "Focalizzato — sa cosa vuole correggere"
+      exit: "Concentrato sull'editing — il form è familiare"
+
+    gherkin: |
+      Scenario: Autore naviga all'editor dal post pubblico
+        Given Christian vede la toolbar EditControls su /blog/tdd-con-dotnet-10
+        When Christian clicca "Modifica"
+        Then viene reindirizzato a /admin/posts/{id}/edit
+        And il form è pre-compilato con il titolo, contenuto, tag e immagine attuali
+        And lo slug attuale è mostrato (non modificabile per evitare broken links)
+
+  - id: "C3"
+    journey: "C"
+    name: "Salvataggio modifica e redirect al post pubblico"
+    action: "POST action admin.updatePost + eventuale rebuild"
+
+    emotional_state:
+      entry: "Soddisfatto della correzione, incerto sul rebuild"
+      exit: "Sollievo + soddisfazione — la correzione è live"
+
+    gherkin: |
+      Scenario: Autore salva modifiche a post pubblicato
+        Given Christian ha modificato il titolo su /admin/posts/42/edit
+        When Christian clicca "Salva modifiche"
+        Then l'Action admin.updatePost viene chiamata con i dati aggiornati
+        And viene mostrato lo spinner di rebuild
+        And al completamento Christian viene reindirizzato a /blog/tdd-con-dotnet-10
+        And il post mostra il titolo aggiornato
+
+  # ─── JOURNEY D: LISTA POST ───────────────────────────────────────────────────
+  - id: "D1"
+    journey: "D"
+    name: "Visualizzazione lista post"
+    action: "GET /admin/posts"
+    page_type: "SSR (prerender = false)"
+
+    tui_mockup: |
+      +--------------------------------------------------+
+      |  The Augmented Craftsman — Admin  [+ Nuovo post] |
+      +--------------------------------------------------+
+      |  I tuoi post (12 totali)                         |
+      |  [Tutti] [Pubblicati] [Bozze] [Archiviati]       |
+      |                                                  |
+      |  Titolo           Stato       Data    Azioni     |
+      |  TDD con .NET 10  Pubblicato  14/03   [M] [A]   |
+      |  Clean Arch intro Bozza       12/03   [M] [A]   |
+      |  DDD per blog     Pubblicato  10/03   [M] [A]   |
+      |                                                  |
+      +--------------------------------------------------+
+
+    shared_artifacts:
+      - name: "post.status"
+        source: "Backend .NET"
+        displayed_as: "Badge Stato in ogni riga della lista"
+        consumers: ["lista admin", "EditControls toolbar", "form edit"]
+
+    emotional_state:
+      entry: "Orientato — vuole avere il controllo del blog"
+      exit: "Soddisfatto — ha una visione chiara di cosa c'è pubblicato"
+
+    gherkin: |
+      Scenario: Autore vede la lista completa dei post
+        Given Christian è autenticato come admin
+        When Christian naviga su /admin/posts
+        Then vede tutti i post (pubblicati, bozze, archiviati) in ordine cronologico inverso
+        And ogni riga mostra: titolo, stato, data, azioni [Modifica][Archivia]
+        And i tab permettono di filtrare per stato
+
+  - id: "D2"
+    journey: "D"
+    name: "Archiviazione post (soft delete)"
+    action: "POST action admin.archivePost"
+
+    emotional_state:
+      entry: "Deciso — ha identificato un post da rimuovere"
+      exit: "Sollievo — il post è nascosto ma recuperabile"
+
+    error_paths:
+      - condition: "Archiviazione fallisce sul backend"
+        response: "Banner: 'Impossibile archiviare il post. Riprova.'"
+        recovery: "Il post rimane visibile nella lista, l'autore può riprovare"
+
+    gherkin: |
+      Scenario: Autore archivia un post
+        Given Christian è sulla lista post /admin/posts
+        When Christian clicca [A] sul post "Clean Arch intro"
+        And conferma l'archiviazione nella modale di conferma
+        Then l'Action admin.archivePost viene chiamata
+        And il post scompare dalla tab "Tutti" e "Pubblicati"
+        And appare nella tab "Archiviati"
+        And il post NON è più accessibile dai lettori su /blog/
+
+      Scenario: Autore vede i post archiviati
+        Given Christian è sulla lista post /admin/posts
+        When Christian clicca il tab "Archiviati"
+        Then vede i post archiviati con data di archiviazione
+        And ogni riga ha l'azione [Ripristina] al posto di [Archivia]
+
+integration_validation:
+  shared_artifact_consistency:
+    - artifact: "session.user.isAdmin"
+      must_match_across: ["middleware", "EditControls Server Island", "action handlers"]
+      failure_message: "Sessione invalida — accesso non autorizzato non bloccato"
+
+    - artifact: "post.id"
+      must_match_across: ["lista admin", "form edit URL", "EditControls props", "action updatePost"]
+      failure_message: "ID post incoerente — modifica applicata al post sbagliato"
+
+    - artifact: "post.slug"
+      must_match_across: ["URL pubblica /blog/{slug}", "redirect post-save", "EditControls link"]
+      failure_message: "Slug incoerente — redirect porta a URL inesistente"
+
+    - artifact: "post.status"
+      must_match_across: ["lista admin badge", "EditControls badge", "form edit stato"]
+      failure_message: "Stato incoerente — l'autore vede informazioni contraddittorie"
+
+    - artifact: "tags[]"
+      must_match_across: ["form creazione", "form edit", "pagina pubblica post"]
+      failure_message: "Tag incoerenti tra admin e pagina pubblica"
+
+    - artifact: "coverImage.url"
+      must_match_across: ["preview form", "pagina pubblica", "lista admin thumbnail"]
+      failure_message: "Immagine copertina non aggiornata dopo upload"

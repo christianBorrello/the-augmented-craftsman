@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using System.Text.Json;
 using TacBlog.Acceptance.Tests.Contexts;
 
 namespace TacBlog.Acceptance.Tests.Drivers;
@@ -36,11 +35,11 @@ public sealed class CommentApiDriver(HttpClient client, ApiContext apiContext, R
         await apiContext.CaptureResponse(response);
     }
 
-    public async Task DeleteComment(string slug, Guid commentId, string? jwtToken = null)
+    public async Task DeleteComment(string slug, Guid commentId, string? adminApiKey = null)
     {
         var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/posts/{slug}/comments/{commentId}");
-        if (jwtToken is not null)
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+        if (adminApiKey is not null)
+            request.Headers.Add("X-Admin-Key", adminApiKey);
 
         var response = await client.SendAsync(request);
         await apiContext.CaptureResponse(response);
@@ -55,11 +54,11 @@ public sealed class CommentApiDriver(HttpClient client, ApiContext apiContext, R
         await apiContext.CaptureResponse(response);
     }
 
-    public async Task GetAdminComments(string? jwtToken = null)
+    public async Task GetAdminComments(string? adminApiKey = null)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/admin/comments");
-        if (jwtToken is not null)
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+        if (adminApiKey is not null)
+            request.Headers.Add("X-Admin-Key", adminApiKey);
 
         var response = await client.SendAsync(request);
         await apiContext.CaptureResponse(response);

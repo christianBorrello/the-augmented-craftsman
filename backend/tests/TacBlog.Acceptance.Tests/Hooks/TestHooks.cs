@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Reqnroll;
 using TacBlog.Acceptance.Tests.Support;
-using TacBlog.Application.Features.Auth;
 
 namespace TacBlog.Acceptance.Tests.Hooks;
 
@@ -20,9 +19,6 @@ public sealed class TestHooks
     public async Task CleanDatabase()
     {
         await _factory.EnsureMigratedAsync();
-
-        var loginHandler = _factory.Services.GetRequiredService<LoginHandler>();
-        loginHandler.ResetFailedAttempts();
 
         var stubImageStorage = _factory.Services.GetRequiredService<StubImageStorage>();
         stubImageStorage.ShouldFail = false;

@@ -150,20 +150,20 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
             else
             {
                 await this.ScenarioStartAsync();
-                global::Reqnroll.Table table17 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table18 = new global::Reqnroll.Table(new string[] {
                             "title",
                             "tags"});
-                table17.AddRow(new string[] {
+                table18.AddRow(new string[] {
                             "TDD Is Not About Testing",
                             "TDD, Clean Code"});
-                table17.AddRow(new string[] {
+                table18.AddRow(new string[] {
                             "The Red-Green-Refactor Cycle",
                             "TDD"});
-                table17.AddRow(new string[] {
+                table18.AddRow(new string[] {
                             "Why Value Objects Matter",
                             "DDD"});
 #line 10
-    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table17, "Given ");
+    await testRunner.GivenAsync("these published posts exist:", ((string)(null)), table18, "Given ");
 #line hidden
 #line 15
     await testRunner.WhenAsync("a reader filters posts by tag \"TDD\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
@@ -171,12 +171,12 @@ namespace TacBlog.Acceptance.Tests.Features.Epic4_PublicReading
 #line 16
     await testRunner.ThenAsync("the response status is 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-                global::Reqnroll.Table table18 = new global::Reqnroll.Table(new string[] {
+                global::Reqnroll.Table table19 = new global::Reqnroll.Table(new string[] {
                             "TDD Is Not About Testing"});
-                table18.AddRow(new string[] {
+                table19.AddRow(new string[] {
                             "The Red-Green-Refactor Cycle"});
 #line 17
-    await testRunner.AndAsync("only posts tagged \"TDD\" are returned:", ((string)(null)), table18, "And ");
+    await testRunner.AndAsync("only posts tagged \"TDD\" are returned:", ((string)(null)), table19, "And ");
 #line hidden
 #line 20
     await testRunner.AndAsync("\"Why Value Objects Matter\" is not included", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");

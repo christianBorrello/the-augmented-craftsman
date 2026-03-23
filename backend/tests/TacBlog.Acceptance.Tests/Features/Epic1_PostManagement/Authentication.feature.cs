@@ -28,8 +28,8 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
                 "epic1",
                 "api"};
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en"), "Features/Epic1_PostManagement", "Authenticate as admin", "  As Christian (the author)\n  I want to log in to the admin area\n  So that I can " +
-                "manage blog content securely", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en"), "Features/Epic1_PostManagement", "Authenticate as admin", "  As Christian (the author)\n  I want to access admin endpoints with an API key\n  " +
+                "So that I can manage blog content securely without a login UI", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
@@ -132,14 +132,14 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
             await this.TestTearDownAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Successful login with valid credentials")]
+        [Xunit.SkippableFactAttribute(DisplayName="API key grants access to protected endpoints")]
         [Xunit.TraitAttribute("FeatureTitle", "Authenticate as admin")]
-        [Xunit.TraitAttribute("Description", "Successful login with valid credentials")]
-        public async global::System.Threading.Tasks.Task SuccessfulLoginWithValidCredentials()
+        [Xunit.TraitAttribute("Description", "API key grants access to protected endpoints")]
+        public async global::System.Threading.Tasks.Task APIKeyGrantsAccessToProtectedEndpoints()
         {
             string[] tagsOfScenario = ((string[])(null));
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Successful login with valid credentials", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("API key grants access to protected endpoints", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 9
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -151,118 +151,10 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
             {
                 await this.ScenarioStartAsync();
 #line 10
-    await testRunner.WhenAsync("Christian logs in with email \"christian.borrello@live.it\" and password \"valid-pas" +
-                        "sword\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+    await testRunner.GivenAsync("Christian provides the correct API key", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 11
-    await testRunner.ThenAsync("the response status is 200", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
-#line hidden
-#line 12
-    await testRunner.AndAsync("the response contains a valid authentication token", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-            }
-            await this.ScenarioCleanupAsync();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="Failed login with incorrect password")]
-        [Xunit.TraitAttribute("FeatureTitle", "Authenticate as admin")]
-        [Xunit.TraitAttribute("Description", "Failed login with incorrect password")]
-        public async global::System.Threading.Tasks.Task FailedLoginWithIncorrectPassword()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Failed login with incorrect password", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 14
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
-#line 15
-    await testRunner.WhenAsync("Christian logs in with email \"christian.borrello@live.it\" and password \"wrong-pas" +
-                        "sword\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 16
-    await testRunner.ThenAsync("the response status is 401", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
-#line hidden
-#line 17
-    await testRunner.AndAsync("the response contains \"Invalid email or password\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 18
-    await testRunner.AndAsync("no authentication token is issued", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-            }
-            await this.ScenarioCleanupAsync();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="Failed login with unknown email")]
-        [Xunit.TraitAttribute("FeatureTitle", "Authenticate as admin")]
-        [Xunit.TraitAttribute("Description", "Failed login with unknown email")]
-        public async global::System.Threading.Tasks.Task FailedLoginWithUnknownEmail()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Failed login with unknown email", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 20
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
-#line 21
-    await testRunner.WhenAsync("Christian logs in with email \"unknown@example.com\" and password \"any-password\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 22
-    await testRunner.ThenAsync("the response status is 401", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
-#line hidden
-#line 23
-    await testRunner.AndAsync("the response contains \"Invalid email or password\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 24
-    await testRunner.AndAsync("no authentication token is issued", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-            }
-            await this.ScenarioCleanupAsync();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="Account locked after 5 failed attempts")]
-        [Xunit.TraitAttribute("FeatureTitle", "Authenticate as admin")]
-        [Xunit.TraitAttribute("Description", "Account locked after 5 failed attempts")]
-        public async global::System.Threading.Tasks.Task AccountLockedAfter5FailedAttempts()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Account locked after 5 failed attempts", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 26
-  this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
-#line 27
-    await testRunner.GivenAsync("Christian has failed login 5 times in the last 10 minutes", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
-#line hidden
-#line 28
-    await testRunner.WhenAsync("Christian logs in with email \"christian.borrello@live.it\" and password \"any-passw" +
-                        "ord\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 29
-    await testRunner.ThenAsync("the response status is 429", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
-#line hidden
-#line 30
-    await testRunner.AndAsync("the response contains \"Too many attempts. Try again in 15 minutes.\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.ThenAsync("Christian is authenticated as admin", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -276,7 +168,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
             string[] tagsOfScenario = ((string[])(null));
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Unauthenticated access to protected features is rejected", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 32
+#line 13
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -286,7 +178,7 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
             else
             {
                 await this.ScenarioStartAsync();
-#line 33
+#line 14
     await testRunner.GivenAsync("no authentication is provided", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
                 global::Reqnroll.Table table6 = new global::Reqnroll.Table(new string[] {
@@ -295,10 +187,47 @@ namespace TacBlog.Acceptance.Tests.Features.Epic1_PostManagement
                 table6.AddRow(new string[] {
                             "content",
                             "Should be blocked"});
-#line 34
+#line 15
     await testRunner.WhenAsync("a POST request is sent to \"/api/posts\" with:", ((string)(null)), table6, "When ");
 #line hidden
-#line 37
+#line 18
+    await testRunner.ThenAsync("the response status is 401", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Wrong API key is rejected")]
+        [Xunit.TraitAttribute("FeatureTitle", "Authenticate as admin")]
+        [Xunit.TraitAttribute("Description", "Wrong API key is rejected")]
+        public async global::System.Threading.Tasks.Task WrongAPIKeyIsRejected()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Wrong API key is rejected", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 20
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 21
+    await testRunner.WhenAsync("Christian provides a wrong API key", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+                global::Reqnroll.Table table7 = new global::Reqnroll.Table(new string[] {
+                            "title",
+                            "Unauthorized Post"});
+                table7.AddRow(new string[] {
+                            "content",
+                            "Should be blocked"});
+#line 22
+    await testRunner.WhenAsync("a POST request is sent to \"/api/posts\" with:", ((string)(null)), table7, "When ");
+#line hidden
+#line 25
     await testRunner.ThenAsync("the response status is 401", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
