@@ -160,18 +160,6 @@ class BlogPostShould
 | No generic repo | Specific repositories | Generic `IRepository<T>` is a leaky abstraction |
 | Image hosting | ImageKit over Cloudinary | 20GB storage + 20GB bandwidth free tier; unlimited transforms; no suspension risk; official .NET SDK |
 
-## nWave Error Tracking
-
-When encountering any problem, bug, or unexpected behavior related to **nWave** (skills, agents, workflows), document it in `nwave-errors.md` at the project root. This file serves as a log for opening issues on the nWave repository.
-
-Each entry should include:
-- **Date** of occurrence
-- **Skill/Agent** involved (e.g., `nw:deliver`, `nw:execute`)
-- **Description** of the problem
-- **Steps to reproduce** (if identifiable)
-- **Error output** or unexpected behavior observed
-- **Workaround** (if any was found)
-
 ## Commands
 
 ```bash
