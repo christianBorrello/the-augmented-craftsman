@@ -165,6 +165,9 @@ app.MapLikeEndpoints();
 app.MapCommentEndpoints();
 app.MapOAuthEndpoints();
 
+if (app.Environment.IsDevelopment())
+    app.MapLocalEndpoints();
+
 app.Run();
 
 public partial class Program;

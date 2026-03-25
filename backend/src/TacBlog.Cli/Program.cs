@@ -4,7 +4,7 @@ using TacBlog.Cli.Commands;
 
 var urlOpt = new Option<string>(
     "--url",
-    () => Environment.GetEnvironmentVariable("TAC_API_URL") ?? "http://localhost:5205",
+    () => Environment.GetEnvironmentVariable("TAC_API_URL") ?? "http://localhost:5063",
     "API base URL");
 
 var keyOpt = new Option<string>(
