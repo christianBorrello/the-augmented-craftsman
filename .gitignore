@@ -55,6 +55,7 @@ StrykerOutput/
 
 # Personal content & workflow
 docs/
+scripts/
 tac-ui.sh
 CLAUDE.md
 BEST_PRACTICES.md
