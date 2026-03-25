@@ -52,3 +52,9 @@ skills-lock.json
 # Stryker
 StrykerOutput/
 .vercel
+
+# Personal content & workflow
+docs/
+tac-ui.sh
+CLAUDE.md
+BEST_PRACTICES.md
