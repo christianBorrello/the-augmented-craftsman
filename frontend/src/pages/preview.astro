@@ -1,0 +1,92 @@
+---
+export const prerender = false;
+
+import { readFileSync } from 'node:fs';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TagBadge from '../components/TagBadge.astro';
+import PostEditor from '../components/PostEditor.tsx';
+import { renderMarkdown } from '../data/markdown';
+
+// Block access in production builds
+if (import.meta.env.PROD) {
+  return Astro.redirect('/404');
+}
+
+const filePath = Astro.url.searchParams.get('file');
+
+if (!filePath) {
+  return Astro.redirect('/404');
+}
+
+let raw: string;
+try {
+  raw = readFileSync(filePath, 'utf-8');
+} catch {
+  return Astro.redirect('/404');
+}
+
+// Strip YAML frontmatter and extract metadata
+const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+const yaml = match?.[1] ?? '';
+const body = match?.[2] ?? raw;
+
+const titleMatch = yaml.match(/^title:\s*["']?(.+?)["']?\s*$/m);
+const tagsMatch = yaml.match(/^tags:\s*\[([^\]]*)\]/m);
+
+const title = titleMatch?.[1] ?? 'Untitled Preview';
+const tags: string[] = tagsMatch?.[1]
+  ? tagsMatch[1].split(',').map(t => t.trim()).filter(Boolean)
+  : [];
+
+const contentHtml = await renderMarkdown(body);
+const editMode = Astro.url.searchParams.has('edit');
+---
+
+<BaseLayout title={`[PREVIEW] ${title} — The Augmented Craftsman`}>
+
+  <article class="px-6 md:px-10 max-w-wide mx-auto pt-12 md:pt-20">
+    <div class="max-w-4xl mx-auto">
+
+      <header class="mb-12 md:mb-16 animate-fade-up">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded font-mono text-xs font-bold uppercase tracking-widest mb-6"
+             style="background: var(--color-accent); color: var(--color-bg);">
+          ⚠ PREVIEW — not published
+        </div>
+
+        <div class="flex items-center gap-3 text-body-sm font-mono text-[var(--color-text-muted)] mb-4">
+          <span class="font-mono text-xs">Local file: {filePath}</span>
+        </div>
+
+        <h1 class="font-display font-semibold text-display-lg md:text-display-xl text-balance">
+          {title}
+        </h1>
+
+        {tags.length > 0 && (
+          <div class="flex flex-wrap gap-2 mt-6">
+            {tags.map((tag) => (
+              <TagBadge tag={tag} size="md" />
+            ))}
+          </div>
+        )}
+      </header>
+
+      <div class="flex-1 min-w-0 animate-fade-up" style="animation-delay: 150ms;">
+        <PostEditor
+          filePath={filePath}
+          initialContent={raw}
+          renderedHtml={contentHtml}
+          editMode={editMode}
+          client:load
+        />
+      </div>
+
+      <footer class="mt-16 pt-8 border-t border-[var(--color-border)]">
+        <p class="font-mono text-xs text-[var(--color-text-muted)]">
+          Preview only — Cmd+S or "Refresh Preview" to re-render in place (no page reload)
+        </p>
+      </footer>
+
+    </div>
+  </article>
+
+</BaseLayout>
