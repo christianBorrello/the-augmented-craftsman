@@ -43,6 +43,7 @@ skills-lock.json
 
 # Tools
 .nwave/
+.obsidian/
 .playwright-mcp/
 *.png
 

@@ -133,18 +133,24 @@ jobs:
         env:
           SMOKE_URL: ${{ vars.API_URL }}
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${SMOKE_URL}/health")
-          if [ "$STATUS" != "200" ]; then
-            echo "Smoke test failed: /health returned $STATUS"
-            exit 1
-          fi
+          for i in $(seq 1 6); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "${SMOKE_URL}/health" 2>/dev/null || echo "000")
+            echo "Attempt $i/6: /health returned $STATUS"
+            [ "$STATUS" = "200" ] && echo "Liveness check passed" && exit 0
+            sleep 10
+          done
+          echo "Smoke test failed: /health did not return 200 after 6 attempts"
+          exit 1
 
       - name: Smoke test (readiness)
         env:
           SMOKE_URL: ${{ vars.API_URL }}
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${SMOKE_URL}/health/ready")
-          if [ "$STATUS" != "200" ]; then
-            echo "Smoke test failed: /health/ready returned $STATUS (database may be unreachable)"
-            exit 1
-          fi
+          for i in $(seq 1 6); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "${SMOKE_URL}/health/ready" 2>/dev/null || echo "000")
+            echo "Attempt $i/6: /health/ready returned $STATUS"
+            [ "$STATUS" = "200" ] && echo "Readiness check passed" && exit 0
+            sleep 10
+          done
+          echo "Smoke test failed: /health/ready did not return 200 after 6 attempts (database may be unreachable)"
+          exit 1

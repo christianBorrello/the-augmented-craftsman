@@ -62,15 +62,34 @@ function toFrontendPost(post: ApiPost): BlogPost {
   };
 }
 
+async function fetchWithRetry(url: string, retries = 3, baseDelay = 5000): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url);
+      if (response.ok || response.status < 500) return response;
+      if (attempt === retries) return response;
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.warn(`fetchWithRetry: ${url} returned ${response.status}, retrying in ${delay}ms (${attempt + 1}/${retries})`);
+      await new Promise((r) => setTimeout(r, delay));
+    } catch (err) {
+      if (attempt === retries) throw err;
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.warn(`fetchWithRetry: ${url} network error, retrying in ${delay}ms (${attempt + 1}/${retries})`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw new Error(`fetchWithRetry: exhausted retries for ${url}`);
+}
+
 export async function fetchPosts(): Promise<BlogPost[]> {
-  const response = await fetch(`${API_BASE}/api/posts`);
+  const response = await fetchWithRetry(`${API_BASE}/api/posts`);
   if (!response.ok) throw new Error(`Failed to fetch posts: ${response.status} ${response.statusText}`);
   const posts: ApiPost[] = await response.json();
   return posts.map(toFrontendPost);
 }
 
 export async function fetchPostBySlug(slug: string): Promise<BlogPost | null> {
-  const response = await fetch(`${API_BASE}/api/posts/${slug}`);
+  const response = await fetchWithRetry(`${API_BASE}/api/posts/${slug}`);
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Failed to fetch post ${slug}: ${response.status} ${response.statusText}`);
   const post: ApiPost = await response.json();
@@ -78,13 +97,13 @@ export async function fetchPostBySlug(slug: string): Promise<BlogPost | null> {
 }
 
 export async function fetchTags(): Promise<TagInfo[]> {
-  const response = await fetch(`${API_BASE}/api/tags`);
+  const response = await fetchWithRetry(`${API_BASE}/api/tags`);
   if (!response.ok) throw new Error(`Failed to fetch tags: ${response.status} ${response.statusText}`);
   return response.json();
 }
 
 export async function fetchPostsByTag(tagSlug: string): Promise<BlogPost[]> {
-  const response = await fetch(`${API_BASE}/api/posts?tag=${encodeURIComponent(tagSlug)}`);
+  const response = await fetchWithRetry(`${API_BASE}/api/posts?tag=${encodeURIComponent(tagSlug)}`);
   if (!response.ok) throw new Error(`Failed to fetch posts for tag ${tagSlug}: ${response.status} ${response.statusText}`);
   const posts: ApiPost[] = await response.json();
   return posts.map(toFrontendPost);

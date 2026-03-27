@@ -46,6 +46,23 @@ jobs:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
+      - name: Wait for API to be available
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          echo "Waiting for API at ${API_URL}/health ..."
+          for i in $(seq 1 18); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "${API_URL}/health" 2>/dev/null || echo "000")
+            echo "Attempt $i/18: HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "API is available"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "API did not become available within 3 minutes"
+          exit 1
+
       - name: Build
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: frontend
