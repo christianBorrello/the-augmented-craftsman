@@ -62,3 +62,4 @@ scripts/
 tac-ui.sh
 CLAUDE.md
 BEST_PRACTICES.md
+feedback*.json
