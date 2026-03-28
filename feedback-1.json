@@ -1,0 +1,35 @@
+{
+  "reviews": [
+    {
+      "run_id": "eval-linked-list-pointers-with_skill",
+      "feedback": "I want the skill to ask me questions about the article while writing it, i dont like to just invent something never happened, i want the skill just to help me with the structured writing. I also like more code snippets to refer during the article to give some real code to think about during the reading. In this case for example i would have liked that the example about the pointer to pointer passed to the insert function was provided with also real C code to represent the issue and then the refined working implementation",
+      "timestamp": "2026-03-28T20:23:00.894Z"
+    },
+    {
+      "run_id": "eval-linked-list-pointers-without_skill",
+      "feedback": "",
+      "timestamp": "2026-03-28T20:23:00.894Z"
+    },
+    {
+      "run_id": "eval-tdd-practice-with_skill",
+      "feedback": "Phrases are too short, i dont like the writing style, it reminds me of a motivational guru. I just want to share my experience on different stuff i study and work with, i have no interest on giving advices or result \"a good software engineer\", this post feels like it's written to show off not to really provide something to the community",
+      "timestamp": "2026-03-28T20:23:00.894Z"
+    },
+    {
+      "run_id": "eval-tdd-practice-without_skill",
+      "feedback": "",
+      "timestamp": "2026-03-28T20:23:00.894Z"
+    },
+    {
+      "run_id": "eval-clean-architecture-with_skill",
+      "feedback": "Good approach, i like question that asks for more context, expecially when the prompt is too generic, but also to avoid writing completely invented stories, the skill should make question to make the post the most near to reality possible",
+      "timestamp": "2026-03-28T20:23:00.894Z"
+    },
+    {
+      "run_id": "eval-clean-architecture-without_skill",
+      "feedback": "",
+      "timestamp": "2026-03-28T20:23:00.894Z"
+    }
+  ],
+  "status": "complete"
+}
