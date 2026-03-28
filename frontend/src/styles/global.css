@@ -589,16 +589,18 @@
   }
 }
 
-/* --- Post Card like count --- */
+/* --- Post Card engagement counters --- */
 
 @layer components {
-  .postcard-likes {
+  .postcard-likes,
+  .postcard-comments {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
   }
 
-  .postcard-likes svg {
+  .postcard-likes svg,
+  .postcard-comments svg {
     width: 12px;
     height: 12px;
     color: var(--color-text-muted);
