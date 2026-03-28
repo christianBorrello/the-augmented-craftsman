@@ -59,6 +59,7 @@ StrykerOutput/
 docs/
 backend/docs/
 scripts/
+!frontend/public/scripts/
 tac-ui.sh
 CLAUDE.md
 BEST_PRACTICES.md
