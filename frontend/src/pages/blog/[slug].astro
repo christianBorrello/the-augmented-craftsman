@@ -89,7 +89,8 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
               {headings.map(({ text, id }) => (
                 <a
                   href={`#${id}`}
-                  class="block text-body-sm text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors py-1 border-l-2 border-[var(--color-border)] hover:border-[var(--color-accent)] pl-3"
+                  data-toc-link={id}
+                  class="block text-body-sm text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors py-1 border-l-2 border-[var(--color-border)] hover:border-[var(--color-accent)] [&.active]:text-[var(--color-accent)] [&.active]:border-[var(--color-accent)] pl-3"
                 >
                   {text}
                 </a>
@@ -176,6 +177,30 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
   }
   initCopyButtons();
   document.addEventListener('astro:after-swap', initCopyButtons);
+</script>
+
+<script>
+  function initScrollSpy() {
+    const tocLinks = document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]');
+    if (!tocLinks.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            tocLinks.forEach(link => link.classList.remove('active'));
+            document.querySelector<HTMLAnchorElement>(`[data-toc-link="${entry.target.id}"]`)?.classList.add('active');
+          }
+        }
+      },
+      { rootMargin: '0px 0px -60% 0px' }
+    );
+
+    document.querySelectorAll('.prose-forge h2[id]').forEach(heading => observer.observe(heading));
+  }
+
+  initScrollSpy();
+  document.addEventListener('astro:after-swap', initScrollSpy);
 </script>
 
 </BaseLayout>
