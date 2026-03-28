@@ -199,6 +199,13 @@ export async function renderMarkdown(content: string): Promise<string> {
         const id = slugifyHeading(text);
         return `<h${depth} id="${id}">${text}</h${depth}>\n`;
       },
+      link({ href, text }) {
+        const isExternal = href && /^https?:\/\//.test(href);
+        if (isExternal) {
+          return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        }
+        return `<a href="${href}">${text}</a>`;
+      },
       code({ text, lang: rawLang }) {
         const { lang, filename } = parseLangTag(rawLang ?? '');
         const lineCount = text.split('\n').length;

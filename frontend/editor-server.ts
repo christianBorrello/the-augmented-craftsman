@@ -2,8 +2,8 @@
 // Binds to 127.0.0.1:3456 (loopback only — not reachable from the network)
 
 import * as http from 'node:http';
-import { readFile, writeFile } from 'node:fs/promises';
-import { isAbsolute } from 'node:path';
+import { readFile, writeFile, mkdir, rename, unlink } from 'node:fs/promises';
+import { isAbsolute, basename, dirname, join } from 'node:path';
 import { renderMarkdown, slugifyHeading } from './src/data/markdown';
 import { buildHtml } from './editor-template';
 
@@ -96,7 +96,8 @@ async function handleEdit(req: http.IncomingMessage, res: http.ServerResponse, u
   const words = body.split(/\s+/).filter(Boolean).length;
   const readingTime = `${Math.max(1, Math.ceil(words / 200))} min read`;
 
-  const html = buildHtml({ filePath, title, tags, postId, scheduledAt, initialContent: raw, renderedHtml, headings, readingTime, editMode });
+  const isDraft = filePath.includes('/drafts/');
+  const html = buildHtml({ filePath, title, tags, postId, scheduledAt, initialContent: raw, renderedHtml, headings, readingTime, editMode, isDraft });
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(html);
 }
@@ -141,6 +142,54 @@ async function handleFilePut(req: http.IncomingMessage, res: http.ServerResponse
   res.end('ok');
 }
 
+async function handleMarkReady(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const bodyText = await readBody(req);
+  let parsed: { filePath?: unknown };
+  try {
+    parsed = JSON.parse(bodyText);
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'text/plain' });
+    res.end('Invalid JSON');
+    return;
+  }
+
+  if (!isValidPath(parsed.filePath) || !parsed.filePath.includes('/drafts/')) {
+    res.writeHead(400, { 'Content-Type': 'text/plain' });
+    res.end('File must be in drafts/');
+    return;
+  }
+
+  const readyDir = dirname(parsed.filePath).replace('/drafts', '/ready');
+  await mkdir(readyDir, { recursive: true });
+  const newPath = join(readyDir, basename(parsed.filePath));
+  await rename(parsed.filePath, newPath);
+
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ newPath }));
+}
+
+async function handleDeleteFile(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const bodyText = await readBody(req);
+  let parsed: { filePath?: unknown };
+  try {
+    parsed = JSON.parse(bodyText);
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'text/plain' });
+    res.end('Invalid JSON');
+    return;
+  }
+
+  if (!isValidPath(parsed.filePath) || !parsed.filePath.includes('/drafts/')) {
+    res.writeHead(400, { 'Content-Type': 'text/plain' });
+    res.end('Only draft files can be deleted');
+    return;
+  }
+
+  await unlink(parsed.filePath);
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('ok');
+}
+
 // ── Server ──────────────────────────────────────────
 
 const server = http.createServer(async (req, res) => {
@@ -165,6 +214,16 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'PUT' && url.pathname === '/file') {
       await handleFilePut(req, res);
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/mark-ready') {
+      await handleMarkReady(req, res);
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/delete-file') {
+      await handleDeleteFile(req, res);
       return;
     }
 

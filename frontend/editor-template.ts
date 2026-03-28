@@ -11,6 +11,7 @@ export interface BuildHtmlOptions {
   headings: Array<{text: string, id: string}>;
   readingTime: string;
   editMode: boolean;
+  isDraft: boolean;
 }
 
 function escapeHtml(s: string): string {
@@ -171,7 +172,7 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   margin: 0;
-  padding-top: 36px;
+  padding-top: 66px;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -193,35 +194,69 @@ body::before {
 .editor-strip {
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 36px;
   z-index: 200;
-  background: var(--color-accent);
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  padding: 0 1rem;
+  background: var(--color-surface, #1a1a1a);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.6875rem;
 }
 
+.strip-row {
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  height: 32px;
+  gap: 0.75rem;
+}
+
+.strip-row--info {
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
 .strip-draft {
   font-weight: 700;
-  color: white;
-  letter-spacing: 0.06em;
+  color: var(--color-accent, #c87941);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-size: 0.6rem;
+  padding: 0.15rem 0.5rem;
+  background: rgba(200,121,65,0.15);
+  border-radius: 3px;
   flex-shrink: 0;
 }
 
-.strip-filepath {
-  color: rgba(255,255,255,0.8);
+.strip-title {
+  color: rgba(255,255,255,0.85);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
-  max-width: 50vw;
+  font-weight: 500;
+}
+
+.strip-save-status {
+  color: rgba(255,255,255,0.6);
+  min-width: 4ch;
+  flex-shrink: 0;
 }
 
 .strip-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.strip-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255,255,255,0.2);
+  margin: 0 0.25rem;
+  flex-shrink: 0;
+}
+
+.strip-lifecycle {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -231,28 +266,32 @@ body::before {
 
 .strip-btn {
   padding: 0.2rem 0.6rem;
-  background: rgba(255,255,255,0.15);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 3px;
   cursor: pointer;
   font-family: inherit;
   font-size: inherit;
   font-weight: 500;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
   white-space: nowrap;
 }
 
-.strip-btn:hover { background: rgba(255,255,255,0.25); }
-.strip-btn--active { background: rgba(255,255,255,0.3); font-weight: 700; }
+.strip-btn:hover { background: rgba(255,255,255,0.18); color: white; }
+.strip-btn--active { background: rgba(255,255,255,0.2); color: white; font-weight: 700; }
+.strip-btn--ready { background: rgba(46,125,50,0.5); color: rgba(255,255,255,0.9); border-color: rgba(46,125,50,0.4); }
+.strip-btn--ready:hover { background: rgba(46,125,50,0.75); color: white; }
+.strip-btn--ready:disabled { opacity: 0.5; cursor: default; }
+.strip-btn--delete { background: transparent; color: rgba(255,100,100,0.7); border-color: rgba(255,100,100,0.25); }
+.strip-btn--delete:hover { background: rgba(183,28,28,0.3); color: rgba(255,100,100,1); }
 
-.strip-save-status { color: white; min-width: 4ch; }
-.strip-cmd-hint { color: rgba(255,255,255,0.7); }
+.strip-cmd-hint { color: rgba(255,255,255,0.35); }
 
 /* ── Site Header (sticky below strip) ─────────────── */
 .site-header {
   position: sticky;
-  top: 36px;
+  top: 66px;
   z-index: 50;
   background: var(--color-bg-alpha80);
   backdrop-filter: blur(12px);
@@ -453,7 +492,7 @@ body::before {
 
 .toc-nav {
   position: sticky;
-  top: 124px; /* 36px strip + 64px header + 24px padding */
+  top: 154px; /* 66px strip + 64px header + 24px padding */
 }
 
 .toc-label {
@@ -642,7 +681,7 @@ body::before {
 .footer-craft-icon-inner { position: absolute; inset: 0; border: 1px solid var(--color-accent); border-radius: 2px; transform: rotate(45deg); }
 
 /* ── Edit Container ────────────────────────────────── */
-.edit-container { min-height: calc(100vh - 36px); display: flex; flex-direction: column; }
+.edit-container { min-height: calc(100vh - 66px); display: flex; flex-direction: column; }
 
 .editor-textarea {
   flex: 1;
@@ -1053,6 +1092,31 @@ function buildScript(filePath: string, initialMode: string, postId: string | nul
     proseContent.replaceChildren.apply(proseContent, nodes);
   }
 
+  function updateToc() {
+    var tocNav = document.querySelector('.toc-nav');
+    if (!tocNav) return;
+    var headings = proseContent.querySelectorAll('h2, h3');
+    // Rebuild TOC links from rendered headings using safe DOM methods
+    while (tocNav.firstChild) tocNav.removeChild(tocNav.firstChild);
+    var label = document.createElement('p');
+    label.className = 'toc-label';
+    label.textContent = 'On this page';
+    tocNav.appendChild(label);
+    var count = 0;
+    headings.forEach(function (h) {
+      var id = h.id || h.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      if (!h.id) h.id = id;
+      var a = document.createElement('a');
+      a.href = '#' + id;
+      a.className = 'toc-link';
+      a.textContent = h.textContent;
+      tocNav.appendChild(a);
+      count++;
+    });
+    var sidebar = tocNav.closest('.toc-sidebar');
+    if (sidebar) sidebar.style.display = count > 1 ? '' : 'none';
+  }
+
   function doRefreshPreview() {
     fetch('/render', {
       method: 'POST',
@@ -1064,6 +1128,7 @@ function buildScript(filePath: string, initialMode: string, postId: string | nul
       if (!data) return;
       applyRenderedHtml(data.html);
       wireCopyButtons();
+      updateToc();
       setMode('preview');
     }).catch(function () {});
   }
@@ -1130,11 +1195,30 @@ function buildScript(filePath: string, initialMode: string, postId: string | nul
   editArea.addEventListener('keyup', updateStatus);
   updateStatus();
 
+  // ── Delete draft ────────────────────────────────────
+  function doDeleteDraft() {
+    if (!FILE_PATH.includes('/drafts/')) return;
+    if (!confirm('Delete this draft? This cannot be undone.')) return;
+    fetch('/delete-file', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filePath: FILE_PATH }),
+    }).then(function (res) {
+      if (res.ok) window.close();
+    }).catch(function () {});
+  }
+
+  // ── Delete draft button ─────────────────────────────
+  var deleteDraftBtn = document.getElementById('delete-draft-btn');
+  if (deleteDraftBtn) {
+    deleteDraftBtn.addEventListener('click', doDeleteDraft);
+  }
+
   // ── Keyboard shortcuts ──────────────────────────────
   document.addEventListener('keydown', function(e) {
-    if (mode !== 'edit') return;
     var mod = e.metaKey || e.ctrlKey;
     if (!mod) return;
+    if (mode !== 'edit') return;
     switch (e.key) {
       case 's': e.preventDefault(); doRefreshPreview(); break;
       case 'b': e.preventDefault(); TOOLBAR_ACTIONS.bold();   break;
@@ -1189,6 +1273,35 @@ function buildScript(filePath: string, initialMode: string, postId: string | nul
     });
   }
 
+  // ── Mark as ready button ──────────────────────────
+  var markReadyBtn = document.getElementById('mark-ready-btn');
+  if (markReadyBtn) {
+    markReadyBtn.addEventListener('click', function () {
+      markReadyBtn.disabled = true;
+      markReadyBtn.textContent = 'Moving\u2026';
+      fetch('/mark-ready', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filePath: FILE_PATH }),
+      }).then(function (res) {
+        return res.ok ? res.json() : null;
+      }).then(function (data) {
+        if (data && data.newPath) {
+          markReadyBtn.textContent = 'Ready \\u2713';
+          markReadyBtn.style.background = 'rgba(46,125,50,0.85)';
+          var draftLabel = document.querySelector('.strip-draft');
+          if (draftLabel) draftLabel.textContent = '\\u2714 READY';
+        } else {
+          markReadyBtn.textContent = 'Error';
+          markReadyBtn.disabled = false;
+        }
+      }).catch(function () {
+        markReadyBtn.textContent = 'Error';
+        markReadyBtn.disabled = false;
+      });
+    });
+  }
+
   setMode(mode);
   wireCopyButtons();
 }());`;
@@ -1197,7 +1310,7 @@ function buildScript(filePath: string, initialMode: string, postId: string | nul
 // ── Public API ────────────────────────────────────────
 
 export function buildHtml(opts: BuildHtmlOptions): string {
-  const { filePath, title, tags, postId, scheduledAt, initialContent, renderedHtml, headings, readingTime, editMode } = opts;
+  const { filePath, title, tags, postId, scheduledAt, initialContent, renderedHtml, headings, readingTime, editMode, isDraft } = opts;
 
   const initialMode     = editMode ? 'edit' : 'preview';
   const previewDisplay  = editMode ? 'none' : 'block';
@@ -1233,13 +1346,18 @@ export function buildHtml(opts: BuildHtmlOptions): string {
 
 <!-- Editor Strip (fixed, always visible) -->
 <div class="editor-strip">
-  <span class="strip-draft">\u26a0 DRAFT</span>
-  <span class="strip-filepath">${escapeHtml(basename)}</span>
-  <div class="strip-actions">
-    <button id="mode-toggle" class="strip-btn${toggleActive}">${escapeHtml(toggleText)}</button>
-    <button id="refresh-btn" class="strip-btn" style="display:${refreshDisplay}">Refresh</button>
+  <div class="strip-row strip-row--info">
+    <span class="strip-draft">${isDraft ? '\u270f DRAFT' : '\u2714 READY'}</span>
+    <span class="strip-title">${escapeHtml(title)}</span>
     <span id="save-status" class="strip-save-status"></span>
-    <span id="cmd-hint" class="strip-cmd-hint" style="display:${hintDisplay}">Cmd+S to refresh</span>
+  </div>
+  <div class="strip-row">
+    <div class="strip-actions">
+      <button id="mode-toggle" class="strip-btn${toggleActive}">${escapeHtml(toggleText)}</button>
+      <button id="refresh-btn" class="strip-btn" style="display:${refreshDisplay}">Refresh</button>
+      <span id="cmd-hint" class="strip-cmd-hint" style="display:${hintDisplay}">Cmd+S to refresh</span>
+    </div>
+    ${isDraft ? '<span class="strip-divider"></span><div class="strip-lifecycle"><button id="mark-ready-btn" class="strip-btn strip-btn--ready">\u2713 Ready</button><button id="delete-draft-btn" class="strip-btn strip-btn--delete">Delete</button></div>' : ''}
   </div>
 </div>
 
