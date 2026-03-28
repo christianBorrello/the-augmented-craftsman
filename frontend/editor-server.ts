@@ -14,6 +14,7 @@ const HOST = '127.0.0.1';
 
 interface Frontmatter {
   body: string;
+  frontmatterBlock: string;
   title: string;
   tags: string[];
   postId: string | null;
@@ -22,10 +23,11 @@ interface Frontmatter {
 
 function parseFrontmatter(raw: string): Frontmatter {
   const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
-  if (!match) return { body: raw, title: 'Untitled', tags: [], postId: null, scheduledAt: null };
+  if (!match) return { body: raw, frontmatterBlock: '', title: 'Untitled', tags: [], postId: null, scheduledAt: null };
 
   const yaml = match[1];
   const body = match[2];
+  const frontmatterBlock = `---\n${yaml}\n---\n`;
 
   const titleMatch       = yaml.match(/^title:\s*["']?(.+?)["']?\s*$/m);
   const tagsMatch        = yaml.match(/^tags:\s*\[([^\]]*)\]/m);
@@ -39,7 +41,7 @@ function parseFrontmatter(raw: string): Frontmatter {
   const postId      = postIdMatch?.[1] ?? null;
   const scheduledAt = scheduledAtMatch?.[1] ?? null;
 
-  return { body, title, tags, postId, scheduledAt };
+  return { body, frontmatterBlock, title, tags, postId, scheduledAt };
 }
 
 // ── Security validation ─────────────────────────────
@@ -82,7 +84,7 @@ async function handleEdit(req: http.IncomingMessage, res: http.ServerResponse, u
     return;
   }
 
-  const { body, title, tags, postId, scheduledAt } = parseFrontmatter(raw);
+  const { body, frontmatterBlock, title, tags, postId, scheduledAt } = parseFrontmatter(raw);
   const renderedHtml = await renderMarkdown(body);
   const editMode = url.searchParams.has('edit');
 
@@ -97,7 +99,7 @@ async function handleEdit(req: http.IncomingMessage, res: http.ServerResponse, u
   const readingTime = `${Math.max(1, Math.ceil(words / 200))} min read`;
 
   const isDraft = filePath.includes('/drafts/');
-  const html = buildHtml({ filePath, title, tags, postId, scheduledAt, initialContent: raw, renderedHtml, headings, readingTime, editMode, isDraft });
+  const html = buildHtml({ filePath, title, tags, postId, scheduledAt, initialContent: body, frontmatterBlock, renderedHtml, headings, readingTime, editMode, isDraft });
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(html);
 }

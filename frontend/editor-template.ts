@@ -6,7 +6,8 @@ export interface BuildHtmlOptions {
   tags: string[];
   postId: string | null;
   scheduledAt: string | null;
-  initialContent: string;    // raw (with frontmatter) → textarea
+  initialContent: string;    // body only (no frontmatter) → textarea
+  frontmatterBlock: string;  // raw frontmatter block (---\n...\n---\n) for saving
   renderedHtml: string;      // rendered HTML of the body
   headings: Array<{text: string, id: string}>;
   readingTime: string;
@@ -172,7 +173,7 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   margin: 0;
-  padding-top: 66px;
+  padding-top: 36px;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -195,39 +196,42 @@ body::before {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 200;
-  background: var(--color-surface, #1a1a1a);
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.6875rem;
-}
-
-.strip-row {
   display: flex;
   align-items: center;
   padding: 0 1rem;
-  height: 32px;
+  height: 36px;
   gap: 0.75rem;
 }
 
-.strip-row--info {
-  background: rgba(255,255,255,0.03);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+.strip-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .strip-draft {
   font-weight: 700;
-  color: var(--color-accent, #c87941);
+  color: var(--color-accent);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.6rem;
   padding: 0.15rem 0.5rem;
-  background: rgba(200,121,65,0.15);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
   border-radius: 3px;
   flex-shrink: 0;
 }
 
 .strip-title {
-  color: rgba(255,255,255,0.85);
+  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -236,7 +240,7 @@ body::before {
 }
 
 .strip-save-status {
-  color: rgba(255,255,255,0.6);
+  color: var(--color-text-muted);
   min-width: 4ch;
   flex-shrink: 0;
 }
@@ -245,14 +249,6 @@ body::before {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex: 1;
-}
-
-.strip-divider {
-  width: 1px;
-  height: 18px;
-  background: rgba(255,255,255,0.2);
-  margin: 0 0.25rem;
   flex-shrink: 0;
 }
 
@@ -260,38 +256,46 @@ body::before {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-left: auto;
   flex-shrink: 0;
 }
 
 .strip-btn {
   padding: 0.2rem 0.6rem;
-  background: rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.8);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 3px;
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
   cursor: pointer;
   font-family: inherit;
   font-size: inherit;
   font-weight: 500;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   white-space: nowrap;
 }
 
-.strip-btn:hover { background: rgba(255,255,255,0.18); color: white; }
-.strip-btn--active { background: rgba(255,255,255,0.2); color: white; font-weight: 700; }
-.strip-btn--ready { background: rgba(46,125,50,0.5); color: rgba(255,255,255,0.9); border-color: rgba(46,125,50,0.4); }
-.strip-btn--ready:hover { background: rgba(46,125,50,0.75); color: white; }
-.strip-btn--ready:disabled { opacity: 0.5; cursor: default; }
-.strip-btn--delete { background: transparent; color: rgba(255,100,100,0.7); border-color: rgba(255,100,100,0.25); }
-.strip-btn--delete:hover { background: rgba(183,28,28,0.3); color: rgba(255,100,100,1); }
+.strip-btn:hover { background: var(--color-bg); color: var(--color-text); border-color: var(--color-text-muted); }
+.strip-btn--active { background: var(--color-accent); color: white; border-color: var(--color-accent); font-weight: 700; }
+.strip-btn--active:hover { background: var(--color-accent-hover); border-color: var(--color-accent-hover); }
+.strip-btn--ready {
+  background: color-mix(in srgb, #4a7c59 15%, transparent);
+  color: #6aae7b;
+  border-color: color-mix(in srgb, #6aae7b 30%, transparent);
+}
+.strip-btn--ready:hover { background: color-mix(in srgb, #4a7c59 35%, transparent); color: #8ec99c; border-color: #6aae7b; }
+.strip-btn--ready:disabled { opacity: 0.4; cursor: default; }
+.strip-btn--delete {
+  background: transparent;
+  color: var(--color-text-muted);
+  border-color: transparent;
+}
+.strip-btn--delete:hover { background: color-mix(in srgb, #c44 10%, transparent); color: #d77; border-color: color-mix(in srgb, #c44 25%, transparent); }
 
-.strip-cmd-hint { color: rgba(255,255,255,0.35); }
+.strip-cmd-hint { color: var(--color-text-muted); opacity: 0.6; }
 
 /* ── Site Header (sticky below strip) ─────────────── */
 .site-header {
   position: sticky;
-  top: 66px;
+  top: 36px;
   z-index: 50;
   background: var(--color-bg-alpha80);
   backdrop-filter: blur(12px);
@@ -492,7 +496,7 @@ body::before {
 
 .toc-nav {
   position: sticky;
-  top: 154px; /* 66px strip + 64px header + 24px padding */
+  top: 124px; /* 36px strip + 64px header + 24px padding */
 }
 
 .toc-label {
@@ -681,7 +685,7 @@ body::before {
 .footer-craft-icon-inner { position: absolute; inset: 0; border: 1px solid var(--color-accent); border-radius: 2px; transform: rotate(45deg); }
 
 /* ── Edit Container ────────────────────────────────── */
-.edit-container { min-height: calc(100vh - 66px); display: flex; flex-direction: column; }
+.edit-container { min-height: calc(100vh - 36px); display: flex; flex-direction: column; }
 
 .editor-textarea {
   flex: 1;
@@ -705,12 +709,15 @@ body::before {
 
 /* ── Markdown Toolbar ──────────────────────────────── */
 .md-toolbar {
+  position: sticky;
+  top: 36px;
+  z-index: 100;
   flex-shrink: 0;
   height: 32px;
   display: flex;
   align-items: center;
   padding: 0 0.75rem;
-  background: var(--color-bg-surface);
+  background: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
@@ -989,7 +996,7 @@ body::before {
 
 // ── Vanilla JS ────────────────────────────────────────
 
-function buildScript(filePath: string, initialMode: string, postId: string | null, scheduledAt: string | null): string {
+function buildScript(filePath: string, initialMode: string, postId: string | null, scheduledAt: string | null, frontmatterBlock: string): string {
   return `(function () {
   var FILE_PATH = ${JSON.stringify(filePath)};
   var DEBOUNCE_MS = 1500;
@@ -1004,6 +1011,7 @@ function buildScript(filePath: string, initialMode: string, postId: string | nul
   var editContainer= document.getElementById('edit-container');
   var proseContent = document.getElementById('prose-content');
   var editArea     = document.getElementById('edit-area');
+  var FRONTMATTER  = ${JSON.stringify(frontmatterBlock)};
 
   // ── Theme toggle ───────────────────────────────────
   var themeToggle = document.getElementById('theme-toggle');
@@ -1046,7 +1054,7 @@ function buildScript(filePath: string, initialMode: string, postId: string | nul
     fetch('/file', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filePath: FILE_PATH, content: editArea.value }),
+      body: JSON.stringify({ filePath: FILE_PATH, content: FRONTMATTER + editArea.value }),
     }).then(function (res) {
       if (res.ok) {
         saveStatus.textContent = 'Saved \\u2713';
@@ -1250,11 +1258,10 @@ function buildScript(filePath: string, initialMode: string, postId: string | nul
 
     scheduledInput.addEventListener('change', function () {
       var isoVal = scheduledInput.value + ':00Z';
-      var text = editArea.value;
-      if (/^scheduledAt:/m.test(text)) {
-        editArea.value = text.replace(/^scheduledAt:.*$/m, 'scheduledAt: ' + isoVal);
+      if (/^scheduledAt:/m.test(FRONTMATTER)) {
+        FRONTMATTER = FRONTMATTER.replace(/^scheduledAt:.*$/m, 'scheduledAt: ' + isoVal);
       } else {
-        editArea.value = text.replace(/^(---\\n[\\s\\S]*?)(\\n---)/, '$1\\nscheduledAt: ' + isoVal + '$2');
+        FRONTMATTER = FRONTMATTER.replace(/(---\\n)$/, 'scheduledAt: ' + isoVal + '\\n$1');
       }
       editArea.dispatchEvent(new Event('input'));
     });
@@ -1310,7 +1317,7 @@ function buildScript(filePath: string, initialMode: string, postId: string | nul
 // ── Public API ────────────────────────────────────────
 
 export function buildHtml(opts: BuildHtmlOptions): string {
-  const { filePath, title, tags, postId, scheduledAt, initialContent, renderedHtml, headings, readingTime, editMode, isDraft } = opts;
+  const { filePath, title, tags, postId, scheduledAt, initialContent, frontmatterBlock, renderedHtml, headings, readingTime, editMode, isDraft } = opts;
 
   const initialMode     = editMode ? 'edit' : 'preview';
   const previewDisplay  = editMode ? 'none' : 'block';
@@ -1346,19 +1353,17 @@ export function buildHtml(opts: BuildHtmlOptions): string {
 
 <!-- Editor Strip (fixed, always visible) -->
 <div class="editor-strip">
-  <div class="strip-row strip-row--info">
-    <span class="strip-draft">${isDraft ? '\u270f DRAFT' : '\u2714 READY'}</span>
-    <span class="strip-title">${escapeHtml(title)}</span>
+  <div class="strip-actions">
+    <button id="mode-toggle" class="strip-btn${toggleActive}">${escapeHtml(toggleText)}</button>
+    <button id="refresh-btn" class="strip-btn" style="display:${refreshDisplay}">Refresh</button>
+    <span id="cmd-hint" class="strip-cmd-hint" style="display:${hintDisplay}">Cmd+S to refresh</span>
     <span id="save-status" class="strip-save-status"></span>
   </div>
-  <div class="strip-row">
-    <div class="strip-actions">
-      <button id="mode-toggle" class="strip-btn${toggleActive}">${escapeHtml(toggleText)}</button>
-      <button id="refresh-btn" class="strip-btn" style="display:${refreshDisplay}">Refresh</button>
-      <span id="cmd-hint" class="strip-cmd-hint" style="display:${hintDisplay}">Cmd+S to refresh</span>
-    </div>
-    ${isDraft ? '<span class="strip-divider"></span><div class="strip-lifecycle"><button id="mark-ready-btn" class="strip-btn strip-btn--ready">\u2713 Ready</button><button id="delete-draft-btn" class="strip-btn strip-btn--delete">Delete</button></div>' : ''}
+  <div class="strip-center">
+    <span class="strip-draft">${isDraft ? '\u270f DRAFT' : '\u2714 READY'}</span>
+    <span class="strip-title">${escapeHtml(title)}</span>
   </div>
+  ${isDraft ? '<div class="strip-lifecycle"><button id="mark-ready-btn" class="strip-btn strip-btn--ready">\u2713 Ready</button><button id="delete-draft-btn" class="strip-btn strip-btn--delete">Delete</button></div>' : ''}
 </div>
 
 <!-- Page Chrome (preview mode) -->
@@ -1450,14 +1455,6 @@ export function buildHtml(opts: BuildHtmlOptions): string {
     </div>
   </div>
 
-  <div class="editor-meta-row" id="editor-meta-row">
-    <span class="meta-label">Post ID</span>
-    <span class="meta-postid" id="meta-postid" title="${postId ? 'Click to copy' : ''}">${escapeHtml(postId ?? '—')}</span>
-    <span class="meta-sep">·</span>
-    <label class="meta-label" for="scheduled-input">Scheduled</label>
-    <input type="datetime-local" id="scheduled-input" class="meta-datetime">
-  </div>
-
   <textarea id="edit-area" class="editor-textarea" spellcheck="false"
   >${escapeHtml(initialContent)}</textarea>
 
@@ -1472,7 +1469,7 @@ export function buildHtml(opts: BuildHtmlOptions): string {
 
 </div>
 
-<script>${buildScript(filePath, initialMode, postId, scheduledAt)}<\/script>
+<script>${buildScript(filePath, initialMode, postId, scheduledAt, frontmatterBlock)}<\/script>
 </body>
 </html>`;
 }
