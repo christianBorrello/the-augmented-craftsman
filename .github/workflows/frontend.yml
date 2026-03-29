@@ -14,7 +14,26 @@ on:
   workflow_dispatch:
 
 jobs:
+  should-run:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Check if backend also changed
+        id: check
+        if: github.event_name == 'push'
+        run: |
+          BACKEND_CHANGES=$(git diff --name-only HEAD~1 HEAD -- backend/ | wc -l | tr -d ' ')
+          echo "skip=$( [ "$BACKEND_CHANGES" -gt 0 ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+
   build-and-deploy:
+    needs: should-run
+    if: needs.should-run.outputs.skip != 'true'
     runs-on: ubuntu-latest
 
     steps:

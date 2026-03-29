@@ -154,3 +154,14 @@ jobs:
           done
           echo "Smoke test failed: /health/ready did not return 200 after 6 attempts (database may be unreachable)"
           exit 1
+
+  trigger-frontend:
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+
+    steps:
+      - name: Trigger frontend rebuild
+        run: gh workflow run frontend.yml --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
