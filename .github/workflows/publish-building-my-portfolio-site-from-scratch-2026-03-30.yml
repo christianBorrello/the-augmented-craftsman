@@ -1,0 +1,14 @@
+name: Publish — building-my-portfolio-site-from-scratch
+on:
+  schedule:
+    - cron: '0 9 30 3 *'   # 2026-03-30 09:00:00Z UTC
+  workflow_dispatch:
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish post
+        run: |
+          curl -sf -X POST \
+            -H "X-Admin-Key: ${{ secrets.TAC_API_KEY }}" \
+            https://api.theaugmentedcraftsman.christianborrello.dev/api/posts/5576752a-95f1-4a4d-b105-63c84f1b94eb/publish
