@@ -1,5 +1,12 @@
 // editor-template.ts — Standalone editor HTML template (Forge & Ink design, no Astro/Tailwind)
 
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const logoBase64 = `data:image/png;base64,${readFileSync(join(__dirname, 'public/assets/tac-logo.png')).toString('base64')}`;
+
 export interface BuildHtmlOptions {
   filePath: string;
   title: string;
@@ -51,10 +58,7 @@ function buildNavHtml(): string {
   return `<header class="site-header">
     <nav class="site-nav">
       <a href="/" class="logo-link" aria-label="Home">
-        <div class="craft-mark">
-          <div class="craft-mark-outer"></div>
-          <div class="craft-mark-inner"></div>
-        </div>
+        <img src="${logoBase64}" alt="The Augmented Craftsman" width="32" height="32" class="craft-mark-img" />
         <span class="logo-text">The Augmented Craftsman</span>
       </a>
       <div class="nav-links">
@@ -84,10 +88,7 @@ function buildFooterHtml(year: number): string {
       <div class="site-footer-grid">
         <div class="footer-brand">
           <div class="footer-logo">
-            <div class="footer-craft-mark">
-              <div class="footer-craft-mark-outer"></div>
-              <div class="footer-craft-mark-inner"></div>
-            </div>
+            <img src="${logoBase64}" alt="The Augmented Craftsman" width="24" height="24" />
             <span class="footer-logo-text">The Augmented Craftsman</span>
           </div>
           <p class="footer-tagline">Crafting software with intention.<br/>TDD. Clean Architecture. Deliberate practice.</p>
@@ -322,9 +323,7 @@ body::before {
   text-decoration: none;
 }
 
-.craft-mark { width: 32px; height: 32px; position: relative; flex-shrink: 0; }
-.craft-mark-outer { position: absolute; inset: 0; border: 2px solid var(--color-accent); border-radius: 2px; }
-.craft-mark-inner { position: absolute; inset: 4px; border: 2px solid var(--color-text); border-radius: 2px; opacity: 0.4; }
+.craft-mark-img { width: 32px; height: 32px; flex-shrink: 0; }
 
 .logo-text {
   font-family: 'Fraunces', Georgia, serif;
@@ -627,9 +626,7 @@ body::before {
 .footer-brand { display: flex; flex-direction: column; gap: 0.75rem; }
 .footer-logo { display: flex; align-items: center; gap: 0.75rem; }
 
-.footer-craft-mark { width: 24px; height: 24px; position: relative; flex-shrink: 0; }
-.footer-craft-mark-outer { position: absolute; inset: 0; border: 2px solid var(--color-accent); border-radius: 2px; }
-.footer-craft-mark-inner { position: absolute; inset: 2px; border: 1px solid var(--color-text); border-radius: 2px; opacity: 0.3; }
+.footer-logo img { width: 24px; height: 24px; flex-shrink: 0; }
 
 .footer-logo-text {
   font-family: 'Fraunces', Georgia, serif;
@@ -1308,6 +1305,38 @@ function buildScript(filePath: string, initialMode: string, postId: string | nul
       });
     });
   }
+
+  // ── Live reload (external file changes) ─────────────
+  var evtSource = new EventSource('/watch?file=' + encodeURIComponent(FILE_PATH));
+
+  evtSource.addEventListener('message', function (e) {
+    var data;
+    try { data = JSON.parse(e.data); } catch (_) { return; }
+    if (!data.body && data.body !== '') return;
+
+    // Skip if content matches what we already have (avoids cursor jump on self-save echo)
+    if (data.body === editArea.value) return;
+
+    // Update textarea
+    editArea.value = data.body;
+    updateStatus();
+
+    // If in preview mode, also refresh the rendered preview
+    if (mode === 'preview') {
+      fetch('/render', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: data.body }),
+      }).then(function (res) {
+        return res.ok ? res.json() : null;
+      }).then(function (result) {
+        if (!result) return;
+        applyRenderedHtml(result.html);
+        wireCopyButtons();
+        updateToc();
+      }).catch(function () {});
+    }
+  });
 
   setMode(mode);
   wireCopyButtons();

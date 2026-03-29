@@ -3,6 +3,7 @@
 
 import * as http from 'node:http';
 import { readFile, writeFile, mkdir, rename, unlink } from 'node:fs/promises';
+import { watch, type FSWatcher } from 'node:fs';
 import { isAbsolute, basename, dirname, join } from 'node:path';
 import { renderMarkdown, slugifyHeading } from './src/data/markdown';
 import { buildHtml } from './editor-template';
@@ -63,6 +64,79 @@ function readBody(req: http.IncomingMessage): Promise<string> {
     req.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
     req.on('error', reject);
   });
+}
+
+// ── File-change SSE (Server-Sent Events) ────────────
+// Watches a file for external changes and pushes updates to the browser.
+// Self-writes (from PUT /file) are suppressed via a short cooldown window.
+
+const activeWatchers = new Map<string, { watcher: FSWatcher; clients: Set<http.ServerResponse>; debounceTimer: ReturnType<typeof setTimeout> | null }>();
+const recentSaves = new Map<string, number>(); // filePath → timestamp of last PUT /file
+const SELF_SAVE_COOLDOWN_MS = 2000;
+const WATCH_DEBOUNCE_MS = 300; // macOS fs.watch fires multiple times per change
+
+function addSseClient(filePath: string, res: http.ServerResponse): void {
+  let entry = activeWatchers.get(filePath);
+
+  if (!entry) {
+    const clients = new Set<http.ServerResponse>();
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const watcher = watch(filePath, (eventType) => {
+      if (eventType !== 'change') return;
+
+      // Suppress if this change was triggered by our own PUT /file
+      const lastSave = recentSaves.get(filePath) ?? 0;
+      if (Date.now() - lastSave < SELF_SAVE_COOLDOWN_MS) return;
+
+      // Debounce: macOS fires multiple events per single write
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        let content: string;
+        try {
+          content = await readFile(filePath, 'utf-8');
+        } catch {
+          return;
+        }
+
+        const { body } = parseFrontmatter(content);
+        for (const client of clients) {
+          client.write(`data: ${JSON.stringify({ body })}\n\n`);
+        }
+      }, WATCH_DEBOUNCE_MS);
+    });
+
+    entry = { watcher, clients, debounceTimer };
+    activeWatchers.set(filePath, entry);
+  }
+
+  entry.clients.add(res);
+
+  res.on('close', () => {
+    entry!.clients.delete(res);
+    if (entry!.clients.size === 0) {
+      entry!.watcher.close();
+      activeWatchers.delete(filePath);
+    }
+  });
+}
+
+function handleWatch(req: http.IncomingMessage, res: http.ServerResponse, url: URL): void {
+  const filePath = url.searchParams.get('file');
+  if (!isValidPath(filePath)) {
+    res.writeHead(400, { 'Content-Type': 'text/plain' });
+    res.end('Invalid file path');
+    return;
+  }
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+  res.write('\n');
+
+  addSseClient(filePath, res);
 }
 
 // ── Route handlers ──────────────────────────────────
@@ -139,6 +213,7 @@ async function handleFilePut(req: http.IncomingMessage, res: http.ServerResponse
   }
 
   const content = typeof parsed.content === 'string' ? parsed.content : '';
+  recentSaves.set(parsed.filePath, Date.now());
   await writeFile(parsed.filePath, content, 'utf-8');
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('ok');
@@ -206,6 +281,11 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && url.pathname === '/edit') {
       await handleEdit(req, res, url);
+      return;
+    }
+
+    if (req.method === 'GET' && url.pathname === '/watch') {
+      handleWatch(req, res, url);
       return;
     }
 
