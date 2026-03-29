@@ -5,11 +5,13 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
+      - 'frontend/**'
       - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'backend/**'
+      - 'frontend/**'
       - '.github/workflows/ci.yml'
   workflow_dispatch:
 
@@ -19,7 +21,33 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
-  ci:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed paths
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "backend=true" >> "$GITHUB_OUTPUT"
+            echo "frontend=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          BACKEND=$(git diff --name-only HEAD~1 HEAD -- backend/ .github/workflows/ci.yml | wc -l | tr -d ' ')
+          FRONTEND=$(git diff --name-only HEAD~1 HEAD -- frontend/ .github/workflows/ci.yml | wc -l | tr -d ' ')
+          echo "backend=$( [ "$BACKEND" -gt 0 ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+          echo "frontend=$( [ "$FRONTEND" -gt 0 ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+
+  backend-ci:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -83,8 +111,8 @@ jobs:
           docker push "${IMAGE_LC}:${{ github.sha }}"
           docker push "${IMAGE_LC}:latest"
 
-  deploy:
-    needs: ci
+  backend-deploy:
+    needs: backend-ci
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
@@ -124,7 +152,7 @@ jobs:
           exit 1
 
   smoke-test:
-    needs: deploy
+    needs: backend-deploy
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
@@ -155,13 +183,72 @@ jobs:
           echo "Smoke test failed: /health/ready did not return 200 after 6 attempts (database may be unreachable)"
           exit 1
 
-  trigger-frontend:
-    needs: smoke-test
+  frontend-ci:
+    needs: [detect-changes, smoke-test]
+    if: |
+      always() &&
+      needs.detect-changes.result == 'success' &&
+      (needs.detect-changes.outputs.frontend == 'true' || needs.smoke-test.result == 'success') &&
+      needs.smoke-test.result != 'failure'
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
     steps:
-      - name: Trigger frontend rebuild
-        run: gh workflow run frontend.yml --repo ${{ github.repository }}
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-fund
+        working-directory: frontend
+
+      - name: Type check
+        run: npx astro check
+        working-directory: frontend
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+
+      - name: Wait for API to be available
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          echo "Waiting for API at ${API_URL}/health ..."
+          for i in $(seq 1 18); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "${API_URL}/health" 2>/dev/null || echo "000")
+            echo "Attempt $i/18: HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "API is available"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "API did not become available within 3 minutes"
+          exit 1
+
+      - name: Build
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend
+        env:
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+
+      - name: Deploy to Vercel
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend
+        env:
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
