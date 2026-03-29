@@ -45,7 +45,7 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
   <article class="px-6 md:px-10 max-w-wide mx-auto pt-12 md:pt-20">
     <div class="max-w-4xl mx-auto">
 
-      <header class="mb-12 md:mb-16 animate-fade-up">
+      <header id="article-top" class="mb-12 md:mb-16 animate-fade-up">
         <a href="/blog" class="inline-flex items-center gap-2 text-body-sm font-mono text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors mb-8">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -86,6 +86,13 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
               <p class="font-mono text-xs uppercase tracking-wider text-[var(--color-text-muted)] mb-3">
                 On this page
               </p>
+              <a
+                href="#article-top"
+                data-toc-link="article-top"
+                class="active block text-body-sm text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors py-1 border-l-2 border-[var(--color-border)] hover:border-[var(--color-accent)] [&.active]:text-[var(--color-accent)] [&.active]:border-[var(--color-accent)] pl-3"
+              >
+                Introduzione
+              </a>
               {headings.map(({ text, id }) => (
                 <a
                   href={`#${id}`}
@@ -184,19 +191,35 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
     const tocLinks = document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]');
     if (!tocLinks.length) return;
 
+    const introLink = document.querySelector<HTMLAnchorElement>('[data-toc-link="article-top"]');
+    const headings = document.querySelectorAll('.prose-forge h2[id]');
+    const visibleHeadings = new Set<string>();
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            tocLinks.forEach(link => link.classList.remove('active'));
-            document.querySelector<HTMLAnchorElement>(`[data-toc-link="${entry.target.id}"]`)?.classList.add('active');
+            visibleHeadings.add(entry.target.id);
+          } else {
+            visibleHeadings.delete(entry.target.id);
           }
+        }
+
+        if (visibleHeadings.size > 0) {
+          const firstVisible = Array.from(headings).find(h => visibleHeadings.has(h.id));
+          if (firstVisible) {
+            tocLinks.forEach(link => link.classList.remove('active'));
+            document.querySelector<HTMLAnchorElement>(`[data-toc-link="${firstVisible.id}"]`)?.classList.add('active');
+          }
+        } else {
+          tocLinks.forEach(link => link.classList.remove('active'));
+          introLink?.classList.add('active');
         }
       },
       { rootMargin: '0px 0px -60% 0px' }
     );
 
-    document.querySelectorAll('.prose-forge h2[id]').forEach(heading => observer.observe(heading));
+    headings.forEach(heading => observer.observe(heading));
   }
 
   initScrollSpy();
