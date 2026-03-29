@@ -17,7 +17,7 @@ interface ApiPost {
   updatedAt?: string;
   publishedAt: string | null;
   featuredImageUrl: string | null;
-  tags: PostTag[] | null;
+  tags: (PostTag | string)[] | null;
 }
 
 export interface BlogPost {
@@ -65,7 +65,9 @@ function toFrontendPost(post: ApiPost): BlogPost {
     content: post.content ?? '',
     excerpt: post.content ? extractExcerpt(post.content) : '',
     date: (post.publishedAt ?? post.createdAt ?? '').split('T')[0],
-    tags: post.tags ?? [],
+    tags: (post.tags ?? []).map(t =>
+      typeof t === 'string' ? { name: t, slug: t.toLowerCase().replace(/\s+/g, '-'), color: '', colorDark: '' } : t
+    ),
     readingTime: post.content ? estimateReadingTime(post.content) : '',
     featured: false,
   };
