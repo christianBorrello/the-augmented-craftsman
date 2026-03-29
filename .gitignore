@@ -46,6 +46,7 @@ skills-lock.json
 .obsidian/
 .playwright-mcp/
 *.png
+!frontend/public/**/*.png
 *.canvas
 
 # Test results
