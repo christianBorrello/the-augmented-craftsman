@@ -7,8 +7,22 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Publish post
+      - name: Wake up backend
         run: |
-          curl -sf -X POST \
-            -H "X-Admin-Key: ${{ secrets.TAC_API_KEY }}" \
+          for i in 1 2 3 4 5 6; do
+            if curl -sf --max-time 30 https://api.theaugmentedcraftsman.christianborrello.dev/health; then
+              echo "Backend is up"
+              exit 0
+            fi
+            echo "Attempt $i — backend not ready, waiting 10s..."
+            sleep 10
+          done
+          echo "Backend did not wake up after 60s"
+          exit 1
+      - name: Publish post
+        env:
+          API_KEY: ${{ secrets.TAC_API_KEY }}
+        run: |
+          curl -sf --max-time 30 -X POST \
+            -H "X-Admin-Key: $API_KEY" \
             https://api.theaugmentedcraftsman.christianborrello.dev/api/posts/5576752a-95f1-4a4d-b105-63c84f1b94eb/publish
