@@ -36,5 +36,13 @@ public sealed class TagConfiguration : IEntityTypeConfiguration<Tag>
 
         builder.HasIndex(t => t.Slug)
             .IsUnique();
+
+        builder.Property(t => t.Color)
+            .HasColumnName("color")
+            .HasMaxLength(7)
+            .IsRequired()
+            .HasConversion(
+                color => color.Light,
+                value => TagColor.FromStoredValue(value));
     }
 }

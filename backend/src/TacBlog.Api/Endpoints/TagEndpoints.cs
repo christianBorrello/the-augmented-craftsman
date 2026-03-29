@@ -82,16 +82,16 @@ public static class TagEndpoints
     }
 
     private static TagResponse ToResponse(Domain.Tag tag) =>
-        new(tag.Name.ToString(), tag.Slug.Value);
+        new(tag.Name.ToString(), tag.Slug.Value, tag.Color.Light, tag.Color.Dark);
 
     private static TagWithPostCountResponse ToPublicTagResponse(PublicTagResult tag) =>
-        new(tag.Name, tag.Slug, tag.PostCount);
+        new(tag.Name, tag.Slug, tag.Color, tag.ColorDark, tag.PostCount);
 }
 
 public sealed record CreateTagRequest(string Name);
 
 public sealed record RenameTagRequest(string Name);
 
-public sealed record TagResponse(string Name, string Slug);
+public sealed record TagResponse(string Name, string Slug, string Color, string ColorDark);
 
-public sealed record TagWithPostCountResponse(string Name, string Slug, int PostCount);
+public sealed record TagWithPostCountResponse(string Name, string Slug, string Color, string ColorDark, int PostCount);

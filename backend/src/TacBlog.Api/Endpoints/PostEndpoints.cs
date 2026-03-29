@@ -184,6 +184,9 @@ public static class PostEndpoints
         return errorMessage;
     }
 
+    private static PostTagResponse ToPostTagResponse(Tag tag) =>
+        new(tag.Name.ToString(), tag.Slug.Value, tag.Color.Light, tag.Color.Dark);
+
     internal static PostResponse ToResponse(BlogPost post) =>
         new(
             Id: post.Id.Value,
@@ -195,7 +198,7 @@ public static class PostEndpoints
             UpdatedAt: post.UpdatedAt,
             PublishedAt: post.PublishedAt?.ToString("o"),
             FeaturedImageUrl: post.FeaturedImageUrl?.Value,
-            Tags: post.Tags.Select(t => t.Name.ToString()).ToArray());
+            Tags: post.Tags.Select(ToPostTagResponse).ToArray());
 
     private static PostSummaryResponse ToSummaryResponse(BlogPost post) =>
         new(
@@ -203,12 +206,14 @@ public static class PostEndpoints
             Slug: post.Slug.Value,
             PublishedAt: post.PublishedAt?.ToString("o"),
             FeaturedImageUrl: post.FeaturedImageUrl?.Value,
-            Tags: post.Tags.Select(t => t.Name.ToString()).ToArray());
+            Tags: post.Tags.Select(ToPostTagResponse).ToArray());
 }
 
 public sealed record CreatePostRequest(string Title, string Content, string[]? Tags = null);
 
 public sealed record EditPostRequest(string Title, string Content, string[]? Tags = null);
+
+public sealed record PostTagResponse(string Name, string Slug, string Color, string ColorDark);
 
 public sealed record PostResponse(
     Guid Id,
@@ -220,11 +225,11 @@ public sealed record PostResponse(
     DateTime UpdatedAt,
     string? PublishedAt = null,
     string? FeaturedImageUrl = null,
-    string[]? Tags = null);
+    PostTagResponse[]? Tags = null);
 
 public sealed record PostSummaryResponse(
     string Title,
     string Slug,
     string? PublishedAt,
     string? FeaturedImageUrl,
-    string[]? Tags);
+    PostTagResponse[]? Tags);

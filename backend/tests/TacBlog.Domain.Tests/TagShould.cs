@@ -28,6 +28,14 @@ public class TagShould
     }
 
     [Fact]
+    public void assign_color_from_palette_on_creation()
+    {
+        var tag = Tag.Create(new TagName("TDD"));
+
+        TagColor.Palette.Should().Contain(tag.Color);
+    }
+
+    [Fact]
     public void be_equal_when_slugs_match()
     {
         var tag1 = Tag.Create(new TagName("Clean Code"));

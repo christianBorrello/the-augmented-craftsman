@@ -197,8 +197,8 @@ public sealed class PostEndpointsShould : IAsyncLifetime
         var created = await CreatePostViaApiAsync("Tagged Post", "Content", ["TDD", "Clean Code"]);
 
         created.Tags.Should().NotBeNull();
-        created.Tags.Should().Contain("TDD");
-        created.Tags.Should().Contain("Clean Code");
+        created.Tags!.Select(t => t.Name).Should().Contain("TDD");
+        created.Tags.Select(t => t.Name).Should().Contain("Clean Code");
     }
 
     [Fact]
@@ -211,8 +211,9 @@ public sealed class PostEndpointsShould : IAsyncLifetime
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var updated = await response.Content.ReadFromJsonAsync<PostResponse>();
-        updated!.Tags.Should().Contain("DDD");
-        updated.Tags.Should().Contain("SOLID");
+        updated!.Tags.Should().NotBeNull();
+        updated.Tags!.Select(t => t.Name).Should().Contain("DDD");
+        updated.Tags.Select(t => t.Name).Should().Contain("SOLID");
     }
 
     [Theory]

@@ -1,5 +1,12 @@
 const API_BASE = import.meta.env.PUBLIC_API_URL || 'http://localhost:5063';
 
+export interface PostTag {
+  name: string;
+  slug: string;
+  color: string;
+  colorDark: string;
+}
+
 interface ApiPost {
   id?: string;
   title: string;
@@ -10,7 +17,7 @@ interface ApiPost {
   updatedAt?: string;
   publishedAt: string | null;
   featuredImageUrl: string | null;
-  tags: string[] | null;
+  tags: (PostTag | string)[] | null;
 }
 
 export interface BlogPost {
@@ -19,7 +26,7 @@ export interface BlogPost {
   excerpt: string;
   content: string;
   date: string;
-  tags: string[];
+  tags: PostTag[];
   readingTime: string;
   featured: boolean;
 }
@@ -27,6 +34,8 @@ export interface BlogPost {
 export interface TagInfo {
   name: string;
   slug: string;
+  color: string;
+  colorDark: string;
   postCount: number;
 }
 
@@ -56,7 +65,9 @@ function toFrontendPost(post: ApiPost): BlogPost {
     content: post.content ?? '',
     excerpt: post.content ? extractExcerpt(post.content) : '',
     date: (post.publishedAt ?? post.createdAt ?? '').split('T')[0],
-    tags: post.tags ?? [],
+    tags: (post.tags ?? []).map(t =>
+      typeof t === 'string' ? { name: t, slug: t.toLowerCase().replace(/\s+/g, '-'), color: '', colorDark: '' } : t
+    ),
     readingTime: post.content ? estimateReadingTime(post.content) : '',
     featured: false,
   };

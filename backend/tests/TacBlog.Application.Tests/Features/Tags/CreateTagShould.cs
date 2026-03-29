@@ -26,6 +26,7 @@ public class CreateTagShould
         result.Tag.Should().NotBeNull();
         result.Tag!.Name.ToString().Should().Be("Clean Code");
         result.Tag.Slug.ToString().Should().Be("clean-code");
+        TagColor.Palette.Should().Contain(result.Tag.Color);
 
         await _repository.Received(1).SaveAsync(
             Arg.Any<Tag>(),
