@@ -36,9 +36,18 @@ public class BrowsePublicTagsShould
         var result = await _useCase.ExecuteAsync();
 
         result.Tags.Should().HaveCount(3);
-        result.Tags[0].Should().Be(new PublicTagResult("Architecture", "architecture", 12));
-        result.Tags[1].Should().Be(new PublicTagResult("C#", "c", 5));
-        result.Tags[2].Should().Be(new PublicTagResult("TDD", "tdd", 3));
+        result.Tags[0].Name.Should().Be("Architecture");
+        result.Tags[0].Slug.Should().Be("architecture");
+        result.Tags[0].PostCount.Should().Be(12);
+        result.Tags[1].Name.Should().Be("C#");
+        result.Tags[1].PostCount.Should().Be(5);
+        result.Tags[2].Name.Should().Be("TDD");
+        result.Tags[2].PostCount.Should().Be(3);
+        result.Tags.Should().AllSatisfy(t =>
+        {
+            t.Color.Should().NotBeNullOrEmpty();
+            t.ColorDark.Should().NotBeNullOrEmpty();
+        });
     }
 
     [Fact]

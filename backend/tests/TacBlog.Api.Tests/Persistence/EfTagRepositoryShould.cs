@@ -52,6 +52,7 @@ public sealed class EfTagRepositoryShould : IAsyncLifetime
         found.Should().NotBeNull();
         found!.Name.Should().Be(new TagName("Clean Code"));
         found.Slug.Should().Be(new Slug("clean-code"));
+        TagColor.Palette.Should().Contain(found.Color);
     }
 
     [Fact]

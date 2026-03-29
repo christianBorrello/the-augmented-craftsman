@@ -4,18 +4,23 @@ import Hero from '../../components/Hero.astro';
 import PostCard from '../../components/PostCard.astro';
 import TagBadge from '../../components/TagBadge.astro';
 import { fetchPosts } from '../../data/api';
+import type { PostTag } from '../../data/api';
 
 const posts = await fetchPosts();
 
 const allTags = (() => {
-  const tagMap = new Map<string, number>();
+  const tagMap = new Map<string, { tag: PostTag; count: number }>();
   for (const post of posts) {
     for (const tag of post.tags) {
-      tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
+      const existing = tagMap.get(tag.slug);
+      if (existing) {
+        existing.count++;
+      } else {
+        tagMap.set(tag.slug, { tag, count: 1 });
+      }
     }
   }
-  return Array.from(tagMap.entries())
-    .map(([tag, count]) => ({ tag, count }))
+  return Array.from(tagMap.values())
     .sort((a, b) => b.count - a.count);
 })();
 ---
@@ -38,7 +43,7 @@ const allTags = (() => {
           All
         </a>
         {allTags.map(({ tag, count }) => (
-          <TagBadge tag={tag} count={count} linked />
+          <TagBadge tag={tag.name} color={tag.color} colorDark={tag.colorDark} count={count} linked />
         ))}
       </div>
     </section>

@@ -261,7 +261,7 @@ public sealed class TagSteps(
         var tagName = (string)scenarioContext["AssociatedTagName"];
         var tags = apiContext.LastResponseJson!.RootElement
             .GetProperty("tags").EnumerateArray()
-            .Select(t => t.GetString())
+            .Select(t => t.TryGetProperty("name", out var name) ? name.GetString() : t.GetString())
             .ToList();
         tags.Should().Contain(tagName);
     }
@@ -274,7 +274,7 @@ public sealed class TagSteps(
 
         var currentTags = apiContext.LastResponseJson!.RootElement
             .GetProperty("tags").EnumerateArray()
-            .Select(t => t.GetString()!)
+            .Select(t => t.TryGetProperty("name", out var n) ? n.GetString()! : t.GetString()!)
             .Where(t => t != name)
             .ToArray();
 
@@ -287,7 +287,7 @@ public sealed class TagSteps(
         apiContext.LastResponseJson.Should().NotBeNull();
         var tags = apiContext.LastResponseJson!.RootElement
             .GetProperty("tags").EnumerateArray()
-            .Select(t => t.GetString())
+            .Select(t => t.TryGetProperty("name", out var name) ? name.GetString() : t.GetString())
             .ToList();
         tags.Should().ContainSingle().Which.Should().Be(tag);
     }
@@ -426,7 +426,7 @@ public sealed class TagSteps(
 
     private static List<string?> ParsePostTags(JsonElement post) =>
         post.GetProperty("tags").EnumerateArray()
-            .Select(t => t.GetString())
+            .Select(t => t.TryGetProperty("name", out var name) ? name.GetString() : t.GetString())
             .ToList();
 
     private async Task CreateAndStoreTag(string name)

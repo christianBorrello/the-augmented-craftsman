@@ -16,13 +16,13 @@ const allTags = await fetchTags();
 
   <section class="px-6 md:px-10 max-w-wide mx-auto">
     <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4 stagger">
-      {allTags.map(({ name, slug, postCount }) => (
+      {allTags.map(({ name, slug, color, colorDark, postCount }) => (
         <a
           href={`/tags/${slug}`}
           class="group flex items-center justify-between p-5 rounded-xl border border-[var(--color-border)] transition-all duration-300 hover:border-[var(--color-accent)]/40 hover:shadow-lg hover:shadow-[var(--color-accent)]/5 animate-fade-up"
         >
           <div class="flex items-center gap-3">
-            <TagBadge tag={name} size="md" />
+            <TagBadge tag={name} color={color} colorDark={colorDark} size="md" />
           </div>
           <div class="flex items-center gap-2">
             <span class="text-body-sm text-[var(--color-text-muted)] font-mono">

@@ -1025,7 +1025,7 @@ public sealed class PostSteps
         _apiContext.LastResponseJson.Should().NotBeNull();
         return _apiContext.LastResponseJson!.RootElement
             .GetProperty("tags").EnumerateArray()
-            .Select(t => t.GetString())
+            .Select(t => t.TryGetProperty("name", out var name) ? name.GetString() : t.GetString())
             .ToList();
     }
 

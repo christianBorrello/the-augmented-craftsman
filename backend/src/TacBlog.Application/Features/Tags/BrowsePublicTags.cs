@@ -2,7 +2,7 @@ using TacBlog.Application.Ports.Driven;
 
 namespace TacBlog.Application.Features.Tags;
 
-public sealed record PublicTagResult(string Name, string Slug, int PostCount);
+public sealed record PublicTagResult(string Name, string Slug, string Color, string ColorDark, int PostCount);
 public sealed record BrowsePublicTagsResult(IReadOnlyList<PublicTagResult> Tags);
 
 public sealed class BrowsePublicTags(ITagRepository repository)
@@ -17,6 +17,8 @@ public sealed class BrowsePublicTags(ITagRepository repository)
             .Select(tagWithCount => new PublicTagResult(
                 tagWithCount.Tag.Name.Value,
                 tagWithCount.Tag.Slug.Value,
+                tagWithCount.Tag.Color.Light,
+                tagWithCount.Tag.Color.Dark,
                 tagWithCount.PostCount))
             .ToList();
 

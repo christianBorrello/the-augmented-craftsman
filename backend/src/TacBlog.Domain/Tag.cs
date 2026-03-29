@@ -5,16 +5,18 @@ public sealed class Tag : IEquatable<Tag>
     public TagId Id { get; }
     public TagName Name { get; private set; }
     public Slug Slug { get; private set; }
+    public TagColor Color { get; private set; }
 
-    private Tag(TagId id, TagName name, Slug slug)
+    private Tag(TagId id, TagName name, Slug slug, TagColor color)
     {
         Id = id;
         Name = name;
         Slug = slug;
+        Color = color;
     }
 
     public static Tag Create(TagName name) =>
-        new(TagId.NewUnique(), name, Slug.FromTagName(name));
+        new(TagId.NewUnique(), name, Slug.FromTagName(name), TagColor.Random());
 
     public void Rename(TagName newName)
     {
