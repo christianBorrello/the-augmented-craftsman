@@ -9,7 +9,7 @@ public sealed record GetRelatedPostsResult(bool IsSuccess, bool IsNotFound, IRea
     public static GetRelatedPostsResult NotFound() => new(false, true, null);
 }
 
-public sealed class GetRelatedPosts(IBlogPostRepository repository)
+public sealed class GetRelatedPosts(IBlogPostRepository repository, IClock clock)
 {
     private const int MaxRelatedPosts = 3;
 
@@ -36,7 +36,7 @@ public sealed class GetRelatedPosts(IBlogPostRepository repository)
 
         var relatedPosts = allPosts
             .Where(post => post.Id != sourcePost.Id)
-            .Where(post => post.Status == PostStatus.Published)
+            .Where(post => post.Status == PostStatus.Published && post.PublishedAt <= clock.UtcNow)
             .Select(post => new
             {
                 Post = post,

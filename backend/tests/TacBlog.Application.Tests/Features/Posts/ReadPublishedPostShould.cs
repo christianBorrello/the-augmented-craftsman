@@ -12,11 +12,13 @@ public class ReadPublishedPostShould
     private static readonly DateTime FixedNow = new(2026, 3, 6, 12, 0, 0, DateTimeKind.Utc);
 
     private readonly IBlogPostRepository _repository = Substitute.For<IBlogPostRepository>();
+    private readonly IClock _clock = Substitute.For<IClock>();
     private readonly ReadPublishedPost _useCase;
 
     public ReadPublishedPostShould()
     {
-        _useCase = new ReadPublishedPost(_repository);
+        _clock.UtcNow.Returns(FixedNow);
+        _useCase = new ReadPublishedPost(_repository, _clock);
     }
 
     [Fact]

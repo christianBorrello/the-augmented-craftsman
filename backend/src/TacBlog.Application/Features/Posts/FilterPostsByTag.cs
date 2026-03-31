@@ -9,7 +9,7 @@ public sealed record FilterPostsByTagResult(bool IsSuccess, bool IsNotFound, IRe
     public static FilterPostsByTagResult NotFound() => new(false, true, null);
 }
 
-public sealed class FilterPostsByTag(IBlogPostRepository repository)
+public sealed class FilterPostsByTag(IBlogPostRepository repository, IClock clock)
 {
     public async Task<FilterPostsByTagResult> ExecuteAsync(string tagSlug, CancellationToken cancellationToken = default)
     {
@@ -28,7 +28,7 @@ public sealed class FilterPostsByTag(IBlogPostRepository repository)
         if (tagExists is null)
             return FilterPostsByTagResult.NotFound();
 
-        var posts = await repository.FindPublishedByTagSlugAsync(validatedSlug, cancellationToken);
+        var posts = await repository.FindPublishedByTagSlugAsync(validatedSlug, clock.UtcNow, cancellationToken);
         return FilterPostsByTagResult.Success(posts);
     }
 }

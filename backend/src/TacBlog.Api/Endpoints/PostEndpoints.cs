@@ -125,10 +125,11 @@ public static class PostEndpoints
 
     private static async Task<IResult> PublishPostAsync(
         Guid id,
+        DateTime? publishAt,
         PublishPost publishPost,
         CancellationToken cancellationToken)
     {
-        var result = await publishPost.ExecuteAsync(id, cancellationToken);
+        var result = await publishPost.ExecuteAsync(id, publishAt, cancellationToken);
 
         if (result.IsNotFound)
             return Results.NotFound(new { error = "Post not found" });

@@ -12,11 +12,13 @@ public class FilterPostsByTagShould
     private static readonly DateTime FixedNow = new(2026, 3, 6, 12, 0, 0, DateTimeKind.Utc);
 
     private readonly IBlogPostRepository _repository = Substitute.For<IBlogPostRepository>();
+    private readonly IClock _clock = Substitute.For<IClock>();
     private readonly FilterPostsByTag _useCase;
 
     public FilterPostsByTagShould()
     {
-        _useCase = new FilterPostsByTag(_repository);
+        _clock.UtcNow.Returns(FixedNow);
+        _useCase = new FilterPostsByTag(_repository, _clock);
     }
 
     [Fact]
@@ -30,7 +32,7 @@ public class FilterPostsByTagShould
         matchingPost.AddTag(tag);
         matchingPost.Publish(FixedNow);
 
-        _repository.FindPublishedByTagSlugAsync(Arg.Is<Slug>(s => s.Value == "csharp"), Arg.Any<CancellationToken>())
+        _repository.FindPublishedByTagSlugAsync(Arg.Is<Slug>(s => s.Value == "csharp"), FixedNow, Arg.Any<CancellationToken>())
             .Returns([matchingPost]);
 
         var result = await _useCase.ExecuteAsync("csharp");
@@ -61,7 +63,7 @@ public class FilterPostsByTagShould
         _repository.FindTagBySlugAsync(Arg.Is<Slug>(s => s.Value == "empty-tag"), Arg.Any<CancellationToken>())
             .Returns(tag);
 
-        _repository.FindPublishedByTagSlugAsync(Arg.Is<Slug>(s => s.Value == "empty-tag"), Arg.Any<CancellationToken>())
+        _repository.FindPublishedByTagSlugAsync(Arg.Is<Slug>(s => s.Value == "empty-tag"), FixedNow, Arg.Any<CancellationToken>())
             .Returns(new List<BlogPost>());
 
         var result = await _useCase.ExecuteAsync("empty-tag");

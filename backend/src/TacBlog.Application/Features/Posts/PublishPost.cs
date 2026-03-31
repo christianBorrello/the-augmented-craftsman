@@ -14,6 +14,7 @@ public sealed class PublishPost(IBlogPostRepository repository, IClock clock)
 {
     public async Task<PublishPostResult> ExecuteAsync(
         Guid postId,
+        DateTime? publishAt = null,
         CancellationToken cancellationToken = default)
     {
         var post = await repository.FindByIdAsync(new PostId(postId), cancellationToken);
@@ -23,7 +24,7 @@ public sealed class PublishPost(IBlogPostRepository repository, IClock clock)
 
         try
         {
-            post.Publish(clock.UtcNow);
+            post.Publish(publishAt ?? clock.UtcNow);
         }
         catch (InvalidOperationException)
         {

@@ -44,15 +44,15 @@ public sealed class EfBlogPostRepository(TacBlogDbContext context) : IBlogPostRe
     public async Task<Tag?> FindTagBySlugAsync(Slug slug, CancellationToken cancellationToken) =>
         await context.Tags.SingleOrDefaultAsync(t => t.Slug == slug, cancellationToken);
 
-    public async Task<IReadOnlyList<BlogPost>> FindPublishedAsync(CancellationToken cancellationToken) =>
+    public async Task<IReadOnlyList<BlogPost>> FindPublishedAsync(DateTime asOf, CancellationToken cancellationToken) =>
         await context.Posts.Include(p => p.Tags)
-            .Where(p => p.Status == PostStatus.Published)
+            .Where(p => p.Status == PostStatus.Published && p.PublishedAt <= asOf)
             .OrderByDescending(p => p.PublishedAt)
             .ToListAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<BlogPost>> FindPublishedByTagSlugAsync(Slug tagSlug, CancellationToken cancellationToken) =>
+    public async Task<IReadOnlyList<BlogPost>> FindPublishedByTagSlugAsync(Slug tagSlug, DateTime asOf, CancellationToken cancellationToken) =>
         await context.Posts.Include(p => p.Tags)
-            .Where(p => p.Status == PostStatus.Published && p.Tags.Any(t => t.Slug == tagSlug))
+            .Where(p => p.Status == PostStatus.Published && p.PublishedAt <= asOf && p.Tags.Any(t => t.Slug == tagSlug))
             .OrderByDescending(p => p.PublishedAt)
             .ToListAsync(cancellationToken);
 }

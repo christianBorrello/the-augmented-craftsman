@@ -10,13 +10,16 @@ namespace TacBlog.Application.Tests.Features.Posts;
 public class GetRelatedPostsShould
 {
     private static readonly DateTime FixedNow = new(2026, 3, 6, 12, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime ClockNow = new(2026, 4, 6, 12, 0, 0, DateTimeKind.Utc);
 
     private readonly IBlogPostRepository _repository = Substitute.For<IBlogPostRepository>();
+    private readonly IClock _clock = Substitute.For<IClock>();
     private readonly GetRelatedPosts _useCase;
 
     public GetRelatedPostsShould()
     {
-        _useCase = new GetRelatedPosts(_repository);
+        _clock.UtcNow.Returns(ClockNow);
+        _useCase = new GetRelatedPosts(_repository, _clock);
     }
 
     [Fact]

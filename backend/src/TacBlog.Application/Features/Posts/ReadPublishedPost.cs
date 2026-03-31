@@ -9,7 +9,7 @@ public sealed record ReadPublishedPostResult(bool IsSuccess, BlogPost? Post)
     public static ReadPublishedPostResult NotFound() => new(false, null);
 }
 
-public sealed class ReadPublishedPost(IBlogPostRepository repository)
+public sealed class ReadPublishedPost(IBlogPostRepository repository, IClock clock)
 {
     public async Task<ReadPublishedPostResult> ExecuteAsync(string slug, CancellationToken cancellationToken = default)
     {
@@ -25,7 +25,7 @@ public sealed class ReadPublishedPost(IBlogPostRepository repository)
 
         var post = await repository.FindBySlugAsync(validatedSlug, cancellationToken);
 
-        if (post is null || post.Status != PostStatus.Published)
+        if (post is null || post.Status != PostStatus.Published || post.PublishedAt > clock.UtcNow)
             return ReadPublishedPostResult.NotFound();
 
         return ReadPublishedPostResult.Success(post);
