@@ -57,12 +57,13 @@ StrykerOutput/
 .vercel
 
 # Personal content & workflow
-docs/
+docs/*
+!docs/AUTHORING_GUIDE.md
 backend/docs/
-scripts/
+scripts/*
 !scripts/dev.sh
+!scripts/tac-ui.sh
 !frontend/public/scripts/
-tac-ui.sh
 CLAUDE.md
 BEST_PRACTICES.md
 feedback*.json
