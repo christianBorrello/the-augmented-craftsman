@@ -93,6 +93,7 @@
     margin-top: 3rem;
     margin-bottom: 1rem;
     color: var(--color-text);
+    scroll-margin-top: 6rem;
   }
 
   .prose-forge h3 {
@@ -102,6 +103,7 @@
     letter-spacing: -0.015em;
     margin-top: 2.5rem;
     margin-bottom: 0.75rem;
+    scroll-margin-top: 6rem;
   }
 
   .prose-forge p {

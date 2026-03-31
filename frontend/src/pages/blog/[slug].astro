@@ -45,7 +45,7 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
   <article class="px-6 md:px-10 max-w-wide mx-auto pt-12 md:pt-20">
     <div class="max-w-4xl mx-auto">
 
-      <header id="article-top" class="mb-12 md:mb-16 animate-fade-up">
+      <header id="article-top" class="mb-12 md:mb-16 animate-fade-up scroll-mt-24">
         <a href="/blog" class="inline-flex items-center gap-2 text-body-sm font-mono text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors mb-8">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -127,7 +127,7 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
       </footer>
 
       <CommentList server:defer slug={post.slug} pageUrl={canonicalUrl}>
-        <div slot="fallback" class="comment-skeleton">
+        <div slot="fallback" class="comment-skeleton" style="min-height: 12rem;">
           <div class="comment-skeleton-bar" style="width: 40%; height: 1.5rem; margin-bottom: 1.5rem;"></div>
           <div class="comment-skeleton-bar" style="width: 100%; height: 5rem; margin-bottom: 1rem;"></div>
           <div class="comment-skeleton-bar" style="width: 80%; height: 0.75rem; margin-bottom: 0.5rem;"></div>
@@ -187,15 +187,32 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
 </script>
 
 <script>
+  let scrollSpyObserver: IntersectionObserver | null = null;
+
   function initScrollSpy() {
+    scrollSpyObserver?.disconnect();
+
     const tocLinks = document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]');
     if (!tocLinks.length) return;
 
     const introLink = document.querySelector<HTMLAnchorElement>('[data-toc-link="article-top"]');
     const headings = document.querySelectorAll('.prose-forge h2[id]');
     const visibleHeadings = new Set<string>();
+    let lastActiveId: string | null = null;
 
-    const observer = new IntersectionObserver(
+    function activate(id: string | null) {
+      tocLinks.forEach(link => link.classList.remove('active'));
+      if (id) {
+        document.querySelector<HTMLAnchorElement>(`[data-toc-link="${id}"]`)?.classList.add('active');
+      } else {
+        introLink?.classList.add('active');
+      }
+      lastActiveId = id;
+    }
+
+    activate(null);
+
+    scrollSpyObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
@@ -207,19 +224,20 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
 
         if (visibleHeadings.size > 0) {
           const firstVisible = Array.from(headings).find(h => visibleHeadings.has(h.id));
-          if (firstVisible) {
-            tocLinks.forEach(link => link.classList.remove('active'));
-            document.querySelector<HTMLAnchorElement>(`[data-toc-link="${firstVisible.id}"]`)?.classList.add('active');
-          }
-        } else {
-          tocLinks.forEach(link => link.classList.remove('active'));
-          introLink?.classList.add('active');
+          if (firstVisible) activate(firstVisible.id);
+          return;
+        }
+
+        if (lastActiveId && headings.length > 0) {
+          const firstHeading = headings[0] as HTMLElement;
+          const aboveFirstHeading = firstHeading.getBoundingClientRect().top > window.innerHeight * 0.4;
+          if (aboveFirstHeading) activate(null);
         }
       },
       { rootMargin: '0px 0px -60% 0px' }
     );
 
-    headings.forEach(heading => observer.observe(heading));
+    headings.forEach(heading => scrollSpyObserver!.observe(heading));
   }
 
   initScrollSpy();
