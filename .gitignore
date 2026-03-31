@@ -60,9 +60,6 @@ StrykerOutput/
 docs/*
 !docs/AUTHORING_GUIDE.md
 backend/docs/
-scripts/*
-!scripts/dev.sh
-!scripts/tac-ui.sh
 !frontend/public/scripts/
 CLAUDE.md
 BEST_PRACTICES.md
