@@ -25,6 +25,15 @@ function fetchPostCardCounts() {
         if (countEl) countEl.textContent = String(data.count ?? data);
       })
       .catch(function() {});
+
+    fetch(api + '/api/posts/' + slug + '/views/count')
+      .then(function(res) { return res.ok ? res.json() : null; })
+      .then(function(data) {
+        if (!data) return;
+        var countEl = card.querySelector('.postcard-view-count');
+        if (countEl) countEl.textContent = String(data.count ?? data);
+      })
+      .catch(function() {});
   });
 }
 fetchPostCardCounts();
