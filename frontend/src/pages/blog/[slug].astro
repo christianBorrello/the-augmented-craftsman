@@ -244,4 +244,27 @@ const canonicalUrl = new URL(`/blog/${post.slug}`, Astro.site).href;
   document.addEventListener('astro:after-swap', initScrollSpy);
 </script>
 
+<script define:vars={{ slug: post.slug }}>
+  function recordPageView() {
+    var key = 'viewed-' + slug;
+    if (sessionStorage.getItem(key)) return;
+
+    var apiBase = document.querySelector('meta[name="api-base"]');
+    if (!apiBase) return;
+    var api = apiBase.getAttribute('content');
+    var visitorId = window.__visitorId;
+    if (!visitorId) return;
+
+    fetch(api + '/api/posts/' + slug + '/views', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visitorId: visitorId })
+    }).then(function() {
+      sessionStorage.setItem(key, '1');
+    }).catch(function() {});
+  }
+  recordPageView();
+  document.addEventListener('astro:after-swap', recordPageView);
+</script>
+
 </BaseLayout>

@@ -9,6 +9,7 @@ using TacBlog.Application.Features.Comments;
 using TacBlog.Application.Features.Likes;
 using TacBlog.Application.Features.OAuth;
 using TacBlog.Application.Features.Tags;
+using TacBlog.Application.Features.Views;
 using TacBlog.Application.Ports.Driven;
 using TacBlog.Infrastructure;
 using TacBlog.Infrastructure.Clock;
@@ -68,6 +69,9 @@ builder.Services.AddScoped<GetComments>();
 builder.Services.AddScoped<GetCommentCount>();
 builder.Services.AddScoped<DeleteComment>();
 builder.Services.AddScoped<ListAdminComments>();
+builder.Services.AddScoped<IPageViewRepository, EfPageViewRepository>();
+builder.Services.AddScoped<RecordPageView>();
+builder.Services.AddScoped<GetPageViewCount>();
 builder.Services.AddScoped<IReaderSessionRepository, EfReaderSessionRepository>();
 
 var oauthSettings = new TacBlog.Infrastructure.Identity.OAuthSettings(
@@ -163,6 +167,7 @@ app.MapPostEndpoints();
 app.MapTagEndpoints();
 app.MapImageEndpoints();
 app.MapLikeEndpoints();
+app.MapViewEndpoints();
 app.MapCommentEndpoints();
 app.MapOAuthEndpoints();
 

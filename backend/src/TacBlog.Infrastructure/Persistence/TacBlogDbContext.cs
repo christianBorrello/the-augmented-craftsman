@@ -11,6 +11,7 @@ public sealed class TacBlogDbContext(DbContextOptions<TacBlogDbContext> options)
     public DbSet<Like> Likes => Set<Like>();
     public DbSet<Comment> Comments => Set<Comment>();
     public DbSet<ReaderSession> ReaderSessions => Set<ReaderSession>();
+    public DbSet<PageView> PageViews => Set<PageView>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,5 +20,6 @@ public sealed class TacBlogDbContext(DbContextOptions<TacBlogDbContext> options)
         modelBuilder.ApplyConfiguration(new LikeConfiguration());
         modelBuilder.ApplyConfiguration(new CommentConfiguration());
         modelBuilder.ApplyConfiguration(new ReaderSessionConfiguration());
+        modelBuilder.ApplyConfiguration(new PageViewConfiguration());
     }
 }
