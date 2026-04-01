@@ -33,6 +33,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta name="twitter:description" content={description} />
 
     <link rel="canonical" href={canonicalURL} />
+    <link rel="alternate" type="application/rss+xml" title="The Augmented Craftsman" href="/rss.xml" />
     <link rel="icon" type="image/png" href="/assets/tac-logo.png" />
     <meta name="api-base" content={import.meta.env.PUBLIC_API_URL || 'http://localhost:5063'} />
 
