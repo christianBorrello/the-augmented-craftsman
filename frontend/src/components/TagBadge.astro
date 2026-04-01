@@ -1,6 +1,7 @@
 ---
 interface Props {
   tag: string;
+  slug?: string;
   color?: string;
   colorDark?: string;
   count?: number;
@@ -8,9 +9,9 @@ interface Props {
   linked?: boolean;
 }
 
-const { tag, color, colorDark, count, size = 'sm', linked = false } = Astro.props;
+const { tag, slug: slugProp, color, colorDark, count, size = 'sm', linked = false } = Astro.props;
 
-const slug = tag.toLowerCase().replace(/\s+/g, '-');
+const slug = slugProp || tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
 const fallbackClass = 'bg-[var(--color-bg-surface)] text-[var(--color-text-muted)] border-[var(--color-border)]';
 

@@ -43,7 +43,7 @@ const allTags = (() => {
           All
         </a>
         {allTags.map(({ tag, count }) => (
-          <TagBadge tag={tag.name} color={tag.color} colorDark={tag.colorDark} count={count} linked />
+          <TagBadge tag={tag.name} slug={tag.slug} color={tag.color} colorDark={tag.colorDark} count={count} linked />
         ))}
       </div>
     </section>

@@ -35,8 +35,20 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
     <!-- Meta -->
     <div class="flex items-center gap-3 text-xs font-mono text-[var(--color-text-muted)]">
       <time datetime={date}>{formattedDate}</time>
+      {readingTime && (
+        <>
+          <span class="w-1 h-1 rounded-full bg-[var(--color-text-muted)]"></span>
+          <span>{readingTime}</span>
+        </>
+      )}
       <span class="w-1 h-1 rounded-full bg-[var(--color-text-muted)]"></span>
-      <span>{readingTime}</span>
+      <span class="postcard-views" data-slug={slug}>
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+        <span class="postcard-view-count">—</span>
+      </span>
       <span class="w-1 h-1 rounded-full bg-[var(--color-text-muted)]"></span>
       <span class="postcard-likes" data-slug={slug}>
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
@@ -50,14 +62,6 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
         <span class="postcard-comment-count">—</span>
-      </span>
-      <span class="w-1 h-1 rounded-full bg-[var(--color-text-muted)]"></span>
-      <span class="postcard-views" data-slug={slug}>
-        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-        <span class="postcard-view-count">—</span>
       </span>
     </div>
 
@@ -80,7 +84,7 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
     <!-- Tags -->
     <div class="flex flex-wrap gap-2 pt-2">
       {tags.map((tag) => (
-        <TagBadge tag={tag.name} color={tag.color} colorDark={tag.colorDark} />
+        <TagBadge tag={tag.name} slug={tag.slug} color={tag.color} colorDark={tag.colorDark} />
       ))}
     </div>
   </a>
