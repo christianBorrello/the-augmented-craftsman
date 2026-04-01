@@ -104,8 +104,8 @@ const topTags = (await fetchTags()).slice(0, 6);
         </a>
       </div>
       <div class="flex flex-wrap gap-3">
-        {topTags.map(({ name, color, colorDark, postCount }) => (
-          <TagBadge tag={name} color={color} colorDark={colorDark} count={postCount} size="md" linked />
+        {topTags.map(({ name, slug, color, colorDark, postCount }) => (
+          <TagBadge tag={name} slug={slug} color={color} colorDark={colorDark} count={postCount} size="md" linked />
         ))}
       </div>
     </section>

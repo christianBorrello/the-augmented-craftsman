@@ -595,14 +595,16 @@
 
 @layer components {
   .postcard-likes,
-  .postcard-comments {
+  .postcard-comments,
+  .postcard-views {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
   }
 
   .postcard-likes svg,
-  .postcard-comments svg {
+  .postcard-comments svg,
+  .postcard-views svg {
     width: 12px;
     height: 12px;
     color: var(--color-text-muted);

@@ -28,7 +28,7 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"));
 
 var allowedOrigins = builder.Environment.IsDevelopment()
-    ? new[] { "http://localhost:4321" }
+    ? new[] { "http://localhost:4321", "http://localhost:4322", "http://localhost:4323" }
     : new[] { "https://theaugmentedcraftsman.christianborrello.dev" };
 
 builder.Services.AddCors(options =>

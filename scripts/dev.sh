@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set -m
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 BACKEND_PID=""
@@ -10,13 +11,13 @@ cleanup() {
     echo "Shutting down..."
 
     if [[ -n "$FRONTEND_PID" ]] && kill -0 "$FRONTEND_PID" 2>/dev/null; then
-        kill "$FRONTEND_PID" 2>/dev/null
+        kill -- -"$FRONTEND_PID" 2>/dev/null || kill "$FRONTEND_PID" 2>/dev/null
         wait "$FRONTEND_PID" 2>/dev/null || true
         echo "Frontend stopped."
     fi
 
     if [[ -n "$BACKEND_PID" ]] && kill -0 "$BACKEND_PID" 2>/dev/null; then
-        kill "$BACKEND_PID" 2>/dev/null
+        kill -- -"$BACKEND_PID" 2>/dev/null || kill "$BACKEND_PID" 2>/dev/null
         wait "$BACKEND_PID" 2>/dev/null || true
         echo "Backend stopped."
     fi
@@ -24,7 +25,7 @@ cleanup() {
     echo "Done."
 }
 
-trap cleanup EXIT INT TERM
+trap cleanup EXIT INT TERM HUP
 
 echo "=== Starting backend (dotnet) ==="
 cd "$ROOT_DIR/backend"
