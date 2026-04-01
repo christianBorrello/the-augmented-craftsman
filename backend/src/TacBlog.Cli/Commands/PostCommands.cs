@@ -175,96 +175,14 @@ public static class PostCommands
                 return;
             }
 
-            // Fetch slug from admin posts list
             var client = new ApiClient(url, key);
-            var posts = await client.GetAsync("/api/admin/posts");
-            if (posts is null) return;
+            var isoAt = scheduledAt.Value.ToString("o");
+            var result = await client.PostAsync($"/api/posts/{id}/schedule?at={isoAt}");
 
-            string? slug = null;
-            foreach (var post in posts.Value.EnumerateArray())
-            {
-                if (post.GetProperty("id").GetString() == id)
-                {
-                    slug = post.GetProperty("slug").GetString();
-                    break;
-                }
-            }
+            if (result is null) return;
 
-            if (slug is null)
-            {
-                Console.Error.WriteLine($"Error: post with id '{id}' not found.");
-                return;
-            }
-
-            var repoRoot = FindRepoRoot(Directory.GetCurrentDirectory());
-            if (repoRoot is null)
-            {
-                Console.Error.WriteLine("Error: could not find git repository root.");
-                return;
-            }
-
-            var workflowDir = Path.Combine(repoRoot, ".github", "workflows");
-            Directory.CreateDirectory(workflowDir);
-
-            var dateLabel = scheduledAt.Value.ToString("yyyy-MM-dd");
-            var workflowFile = Path.Combine(workflowDir, $"publish-{slug}-{dateLabel}.yml");
-
-            var cron = ToMidnightCronExpression(scheduledAt.Value);
-            var apiUrl = url.TrimEnd('/');
-            var publishAt = scheduledAt.Value.ToString("o");
-
-            var yaml = "name: Publish \u2014 " + slug + "\n" +
-                       "on:\n" +
-                       "  schedule:\n" +
-                       $"    - cron: '{cron}'   # midnight UTC on {dateLabel} (post visible at {scheduledAt.Value:u})\n" +
-                       "  workflow_dispatch:\n" +
-                       "jobs:\n" +
-                       "  publish:\n" +
-                       "    runs-on: ubuntu-latest\n" +
-                       "    steps:\n" +
-                       "      - name: Validate secrets\n" +
-                       "        env:\n" +
-                       "          API_KEY: ${{ secrets.TAC_API_KEY }}\n" +
-                       "        run: |\n" +
-                       "          if [ -z \"$API_KEY\" ]; then\n" +
-                       "            echo \"::error::TAC_API_KEY secret is not set or empty\"\n" +
-                       "            exit 1\n" +
-                       "          fi\n" +
-                       "      - name: Wake up backend\n" +
-                       "        run: |\n" +
-                       "          for i in 1 2 3 4 5 6; do\n" +
-                       $"            if curl -sf --max-time 30 {apiUrl}/health; then\n" +
-                       "              echo \"Backend is up\"\n" +
-                       "              exit 0\n" +
-                       "            fi\n" +
-                       "            echo \"Attempt $i — backend not ready, waiting 10s...\"\n" +
-                       "            sleep 10\n" +
-                       "          done\n" +
-                       "          echo \"Backend did not wake up after 60s\"\n" +
-                       "          exit 1\n" +
-                       "      - name: Publish post\n" +
-                       "        env:\n" +
-                       "          API_KEY: ${{ secrets.TAC_API_KEY }}\n" +
-                       "        run: |\n" +
-                       "          curl -sf --max-time 30 -X POST \\\n" +
-                       "            -H \"X-Admin-Key: $API_KEY\" \\\n" +
-                       $"            \"{apiUrl}/api/posts/{id}/publish?publishAt={publishAt}\"\n" +
-                       "      - name: Notify on failure\n" +
-                       "        if: failure()\n" +
-                       "        uses: actions/github-script@v7\n" +
-                       "        with:\n" +
-                       "          script: |\n" +
-                       $"            await github.rest.issues.create({{\n" +
-                       "              owner: context.repo.owner,\n" +
-                       "              repo: context.repo.repo,\n" +
-                       $"              title: 'Scheduled publish failed: {slug} ({dateLabel})',\n" +
-                       "              body: `Workflow run: ${{context.serverUrl}}/${{context.repo.owner}}/${{context.repo.repo}}/actions/runs/${{context.runId}}`,\n" +
-                       "              labels: ['publish-failure']\n" +
-                       "            });\n";
-
-            await File.WriteAllTextAsync(workflowFile, yaml);
-            Console.WriteLine($"Scheduled: {scheduledAt.Value:u}");
-            Console.WriteLine($"Workflow:  {workflowFile}");
+            var slug = result.Value.GetProperty("slug").GetString();
+            Console.WriteLine($"Scheduled: {slug} → {scheduledAt.Value:u}");
         }, urlOpt, keyOpt, idArg, atOpt);
 
         return cmd;
@@ -296,21 +214,6 @@ public static class PostCommands
         if (ampm == "am" && hour == 12) hour = 0;
 
         return baseDate.Value.AddHours(hour).AddMinutes(minute);
-    }
-
-    private static string ToMidnightCronExpression(DateTime utc)
-        => $"0 0 {utc.Day} {utc.Month} *";
-
-    private static string? FindRepoRoot(string startPath)
-    {
-        var dir = new DirectoryInfo(startPath);
-        while (dir is not null)
-        {
-            if (Directory.Exists(Path.Combine(dir.FullName, ".git")))
-                return dir.FullName;
-            dir = dir.Parent;
-        }
-        return null;
     }
 
     private static Command BuildList(Option<string> urlOpt, Option<string> keyOpt)

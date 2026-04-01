@@ -55,4 +55,10 @@ public sealed class EfBlogPostRepository(TacBlogDbContext context) : IBlogPostRe
             .Where(p => p.Status == PostStatus.Published && p.PublishedAt <= asOf && p.Tags.Any(t => t.Slug == tagSlug))
             .OrderByDescending(p => p.PublishedAt)
             .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<BlogPost>> FindScheduledDueAsync(DateTime asOf, CancellationToken cancellationToken) =>
+        await context.Posts.Include(p => p.Tags)
+            .Where(p => p.Status == PostStatus.Draft && p.ScheduledAt != null && p.ScheduledAt <= asOf)
+            .OrderBy(p => p.ScheduledAt)
+            .ToListAsync(cancellationToken);
 }

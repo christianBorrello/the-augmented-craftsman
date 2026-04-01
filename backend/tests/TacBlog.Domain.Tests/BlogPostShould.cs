@@ -164,4 +164,53 @@ public class BlogPostShould
         post.FeaturedImageUrl.Should().BeNull();
         post.UpdatedAt.Should().Be(Later);
     }
+
+    [Fact]
+    public void schedule_draft_post_for_future_publication()
+    {
+        var post = CreateDraftPost();
+        var futureDate = CreatedAt.AddDays(3);
+
+        post.Schedule(futureDate, CreatedAt);
+
+        post.ScheduledAt.Should().Be(futureDate);
+        post.Status.Should().Be(PostStatus.Draft);
+        post.UpdatedAt.Should().Be(CreatedAt);
+    }
+
+    [Fact]
+    public void reject_schedule_when_already_published()
+    {
+        var post = CreateDraftPost();
+        post.Publish(Later);
+
+        var act = () => post.Schedule(Later.AddDays(1), Later);
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void reject_schedule_in_the_past()
+    {
+        var post = CreateDraftPost();
+        var pastDate = CreatedAt.AddHours(-1);
+
+        var act = () => post.Schedule(pastDate, CreatedAt);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void clear_scheduled_at_when_published()
+    {
+        var post = CreateDraftPost();
+        var futureDate = CreatedAt.AddDays(1);
+        post.Schedule(futureDate, CreatedAt);
+
+        post.Publish(futureDate);
+
+        post.ScheduledAt.Should().BeNull();
+        post.Status.Should().Be(PostStatus.Published);
+        post.PublishedAt.Should().Be(futureDate);
+    }
 }

@@ -64,6 +64,9 @@ public sealed class BlogPostConfiguration : IEntityTypeConfiguration<BlogPost>
         builder.Property(p => p.PublishedAt)
             .HasColumnName("published_at");
 
+        builder.Property(p => p.ScheduledAt)
+            .HasColumnName("scheduled_at");
+
         builder.Property(p => p.FeaturedImageUrl)
             .HasColumnName("featured_image_url")
             .HasMaxLength(2048)
