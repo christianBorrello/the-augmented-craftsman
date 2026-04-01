@@ -45,6 +45,7 @@ builder.Services.AddScoped<GetPostBySlug>();
 builder.Services.AddScoped<EditPost>();
 builder.Services.AddScoped<DeletePost>();
 builder.Services.AddScoped<PublishPost>();
+builder.Services.AddScoped<PublishScheduledPosts>();
 builder.Services.AddScoped<ListPosts>();
 builder.Services.AddScoped<PreviewPost>();
 builder.Services.AddScoped<BrowsePublishedPosts>();

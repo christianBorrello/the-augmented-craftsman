@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using TacBlog.Api;
 using TacBlog.Application.Features.Posts;
 using TacBlog.Application.Ports.Driven;
@@ -16,6 +17,8 @@ public static class PostEndpoints
         app.MapPut("/api/posts/{id:guid}", EditPostAsync).AddEndpointFilter<AdminApiKeyFilter>();
         app.MapDelete("/api/posts/{id:guid}", DeletePostAsync).AddEndpointFilter<AdminApiKeyFilter>();
         app.MapPost("/api/posts/{id:guid}/publish", PublishPostAsync).AddEndpointFilter<AdminApiKeyFilter>();
+        app.MapPost("/api/posts/{id:guid}/schedule", SchedulePostAsync).AddEndpointFilter<AdminApiKeyFilter>();
+        app.MapPost("/api/posts/publish-scheduled", PublishScheduledPostsAsync).AddEndpointFilter<AdminApiKeyFilter>();
         app.MapGet("/api/posts/{id:guid}/preview", PreviewPostAsync).AddEndpointFilter<AdminApiKeyFilter>();
         app.MapGet("/api/admin/posts", ListAllPostsAsync).AddEndpointFilter<AdminApiKeyFilter>();
         app.MapGet("/api/admin/posts/{slug}", GetAdminPostBySlugAsync).AddEndpointFilter<AdminApiKeyFilter>();
@@ -138,6 +141,43 @@ public static class PostEndpoints
             return Results.Conflict(new { error = result.ErrorMessage });
 
         return Results.Ok(ToResponse(result.Post!));
+    }
+
+    private static async Task<IResult> SchedulePostAsync(
+        Guid id,
+        DateTime at,
+        IBlogPostRepository repository,
+        IClock clock,
+        CancellationToken cancellationToken)
+    {
+        var post = await repository.FindByIdAsync(new PostId(id), cancellationToken);
+
+        if (post is null)
+            return Results.NotFound(new { error = "Post not found" });
+
+        try
+        {
+            post.Schedule(at, clock.UtcNow);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Conflict(new { error = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+
+        await repository.SaveAsync(post, cancellationToken);
+        return Results.Ok(ToResponse(post));
+    }
+
+    private static async Task<IResult> PublishScheduledPostsAsync(
+        [FromServices] PublishScheduledPosts publishScheduledPosts,
+        CancellationToken cancellationToken)
+    {
+        var result = await publishScheduledPosts.ExecuteAsync(cancellationToken);
+        return Results.Ok(new { published = result.PublishedSlugs });
     }
 
     private static async Task<IResult> PreviewPostAsync(

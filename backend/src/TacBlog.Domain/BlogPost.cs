@@ -12,6 +12,7 @@ public sealed class BlogPost
     public DateTime CreatedAt { get; }
     public DateTime UpdatedAt { get; private set; }
     public DateTime? PublishedAt { get; private set; }
+    public DateTime? ScheduledAt { get; private set; }
     public FeaturedImageUrl? FeaturedImageUrl { get; private set; }
     public IReadOnlyList<Tag> Tags => _tags.AsReadOnly();
 
@@ -41,6 +42,18 @@ public sealed class BlogPost
         UpdatedAt = updatedAt;
     }
 
+    public void Schedule(DateTime scheduledAt, DateTime now)
+    {
+        if (Status == PostStatus.Published)
+            throw new InvalidOperationException("Cannot schedule an already published post.");
+
+        if (scheduledAt <= now)
+            throw new ArgumentException("Scheduled time must be in the future.", nameof(scheduledAt));
+
+        ScheduledAt = scheduledAt;
+        UpdatedAt = now;
+    }
+
     public void Publish(DateTime publishedAt)
     {
         if (Status == PostStatus.Published)
@@ -48,6 +61,7 @@ public sealed class BlogPost
 
         Status = PostStatus.Published;
         PublishedAt = publishedAt;
+        ScheduledAt = null;
         UpdatedAt = publishedAt;
     }
 

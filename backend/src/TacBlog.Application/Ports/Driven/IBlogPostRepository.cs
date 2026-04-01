@@ -13,4 +13,5 @@ public interface IBlogPostRepository
     Task<Tag?> FindTagBySlugAsync(Slug slug, CancellationToken cancellationToken);
     Task<IReadOnlyList<BlogPost>> FindPublishedAsync(DateTime asOf, CancellationToken cancellationToken);
     Task<IReadOnlyList<BlogPost>> FindPublishedByTagSlugAsync(Slug tagSlug, DateTime asOf, CancellationToken cancellationToken);
+    Task<IReadOnlyList<BlogPost>> FindScheduledDueAsync(DateTime asOf, CancellationToken cancellationToken);
 }
